@@ -1,0 +1,38 @@
+import express from 'express';
+import mongoose from 'mongoose';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import authRoutes from './interfaces/http/routes/auth.routes';
+import env from './config/env';
+import { logger } from './utils/logger';
+
+dotenv.config();
+
+const app = express();
+const PORT = env.PORT;
+const MONGODB_URI = env.MONGODB_URI;
+
+// Middleware
+app.use(express.json());
+app.use(cookieParser());
+app.use(cors({
+  origin: env.CLIENT_URL,
+  credentials: true
+}));
+
+// Routes
+app.use('/api/auth', authRoutes);
+
+// Connect to DB 
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    logger.green('DB_STATUS', 'Connected to MongoDB');
+    app.listen(PORT, () => {
+      logger.green('SERVER', `Server is running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    logger.red('DB_ERROR', 'MongoDB connection error: ' + error.message);
+    process.exit(1);
+  }); 

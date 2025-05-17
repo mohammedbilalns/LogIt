@@ -1,0 +1,150 @@
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import api from '../../api/axios';
+import { User, AuthResponse, LoginRequest, SignupRequest } from '../../types/user.types';
+
+
+interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+  error: string | null;
+  verificationEmail: string | null;
+}
+
+const initialState: AuthState = {
+  user: null,
+  isAuthenticated: false,
+  loading: false,
+  error: null,
+  verificationEmail: null,
+};
+
+export const signup = createAsyncThunk(
+  'auth/signup',
+  async (credentials: SignupRequest, { rejectWithValue }) => {
+    try {
+      const response = await api.post<AuthResponse>('/auth/signup', credentials);
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Signup failed. Please try again.';
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const verifyEmail = createAsyncThunk(
+  'auth/verifyEmail',
+  async ({ email, otp }: { email: string; otp: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.post<AuthResponse>('/auth/verify-otp', { email, otp });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Email verification failed. Please try again.';
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const login = createAsyncThunk(
+  'auth/login',
+  async (credentials: LoginRequest, { rejectWithValue }) => {
+    try {
+      const response = await api.post<AuthResponse>('/auth/login', credentials);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.data?.errors) {
+        const validationErrors = error.response.data.errors;
+        if (Array.isArray(validationErrors)) {
+          return rejectWithValue(validationErrors[0].message);
+        }
+      }
+      const message = error.response?.data?.message || 'Login failed. Please try again.';
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const logout = createAsyncThunk('auth/logout', async (_, { rejectWithValue }) => {
+  try {
+    await api.post('/auth/logout');
+    return null;
+  } catch (error: any) {
+    const message = error.response?.data?.message || 'Logout failed. Please try again.';
+    return rejectWithValue(message);
+  }
+});
+
+const authSlice = createSlice({
+  name: 'auth',
+  initialState,
+  reducers: {
+    clearError: (state) => {
+      state.error = null;
+    },
+    setVerificationEmail: (state, action) => {
+      state.verificationEmail = action.payload;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      // Signup
+      .addCase(signup.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(signup.fulfilled, (state, action) => {
+        state.loading = false;
+        state.verificationEmail = action.payload.user.email;
+      })
+      .addCase(signup.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // Email Verification
+      .addCase(verifyEmail.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(verifyEmail.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload.user;
+        state.verificationEmail = null;
+      })
+      .addCase(verifyEmail.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // Login
+      .addCase(login.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(login.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload.user;
+      })
+      .addCase(login.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // Logout
+      .addCase(logout.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(logout.fulfilled, (state) => {
+        state.loading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+      })
+      .addCase(logout.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+  },
+});
+
+export const { clearError, setVerificationEmail } = authSlice.actions;
+export default authSlice.reducer; 
