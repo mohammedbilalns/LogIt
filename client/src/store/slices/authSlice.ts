@@ -9,6 +9,7 @@ interface AuthState {
   loading: boolean;
   error: string | null;
   verificationEmail: string | null;
+  isInitialized: boolean;
 }
 
 const initialState: AuthState = {
@@ -17,6 +18,7 @@ const initialState: AuthState = {
   loading: false,
   error: null,
   verificationEmail: null,
+  isInitialized: false,
 };
 
 export const signup = createAsyncThunk(
@@ -52,12 +54,6 @@ export const login = createAsyncThunk(
       const response = await api.post<AuthResponse>('/auth/login', credentials);
       return response.data;
     } catch (error: any) {
-      if (error.response?.data?.errors) {
-        const validationErrors = error.response.data.errors;
-        if (Array.isArray(validationErrors)) {
-          return rejectWithValue(validationErrors[0].message);
-        }
-      }
       const message = error.response?.data?.message || 'Login failed. Please try again.';
       return rejectWithValue(message);
     }
@@ -71,6 +67,15 @@ export const logout = createAsyncThunk('auth/logout', async (_, { rejectWithValu
   } catch (error: any) {
     const message = error.response?.data?.message || 'Logout failed. Please try again.';
     return rejectWithValue(message);
+  }
+});
+
+export const checkAuth = createAsyncThunk('auth/check', async (_, { rejectWithValue }) => {
+  try {
+    const response = await api.post<AuthResponse>('/auth/refresh');
+    return response.data;
+  } catch (error: any) {
+    return rejectWithValue(null);
   }
 });
 
@@ -142,6 +147,23 @@ const authSlice = createSlice({
       .addCase(logout.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      // Check Auth
+      .addCase(checkAuth.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(checkAuth.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload.user;
+        state.isInitialized = true;
+      })
+      .addCase(checkAuth.rejected, (state) => {
+        state.loading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+        state.isInitialized = true;
       });
   },
 });

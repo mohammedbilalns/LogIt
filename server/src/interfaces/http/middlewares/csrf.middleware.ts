@@ -3,24 +3,19 @@ import crypto from 'crypto';
 
 const generateToken = () => crypto.randomBytes(32).toString('hex');
 
-const PUBLIC_ROUTES = ['/auth/signup', '/auth/login', '/auth/verify-email'];
 
 export const csrfMiddleware = () => {
+  console.log('CSRF middleware called');
   return (req: Request, res: Response, next: NextFunction) => {
     // Skip CSRF check for GET, HEAD, OPTIONS requests
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
       return next();
     }
 
-    // Skip CSRF check for public routes
-    const path = req.path;
-    if (PUBLIC_ROUTES.some(route => path.endsWith(route))) {
-      return next();
-    }
-
     const csrfToken = req.headers['x-csrf-token'];
+    console.log('CSRF token:', csrfToken);
     const storedToken = req.cookies['csrf-token'];
-
+    console.log('Stored token:', storedToken);
     if (!csrfToken || !storedToken || csrfToken !== storedToken) {
       return res.status(403).json({ message: 'Invalid CSRF token' });
     }
@@ -31,12 +26,13 @@ export const csrfMiddleware = () => {
 
 export const setCsrfToken = (_req: Request, res: Response, next: NextFunction) => {
   const token = generateToken();
+  console.log('Setting CSRF token:', token);
   res.cookie('csrf-token', token, {
-    httpOnly: true,
+    httpOnly: false,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict'
   });
-  // Send the token in the response so the client can use it in the x-csrf-token header
+  // Send the token in the response header as well
   res.setHeader('x-csrf-token', token);
   next();
 }; 

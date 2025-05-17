@@ -1,4 +1,4 @@
-// ANSI color codes
+//  color codes
 const colors = {
   reset: '\x1b[0m',
   // Text colors

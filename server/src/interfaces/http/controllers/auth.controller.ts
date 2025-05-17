@@ -6,9 +6,20 @@ import { logger } from '../../../utils/logger';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  private setCsrfToken(res: Response): void {
+    const csrfToken = this.authService.generateCsrfToken();
+    res.cookie('csrf-token', csrfToken, {
+      ...COOKIE_OPTIONS,
+      httpOnly: false,
+      maxAge: ACCESS_COOKIE_EXPIRY
+    });
+    res.setHeader('x-csrf-token', csrfToken);
+  }
+
   signup = async (req: Request, res: Response): Promise<void> => {
     try {
       const user = await this.authService.signup(req.body);
+      this.setCsrfToken(res);
       res.status(201).json({
         message: 'Signup successful. Please check your email for OTP verification.',
         user
@@ -40,6 +51,8 @@ export class AuthController {
         maxAge: REFRESH_COOKIE_EXPIRY
       });
 
+      this.setCsrfToken(res);
+
       res.json({
         message: 'Email verified successfully',
         user
@@ -68,6 +81,8 @@ export class AuthController {
         ...COOKIE_OPTIONS,
         maxAge: REFRESH_COOKIE_EXPIRY
       });
+      
+      this.setCsrfToken(res);
 
       res.json({
         message: 'Login successful',
@@ -104,6 +119,8 @@ export class AuthController {
         maxAge: REFRESH_COOKIE_EXPIRY
       });
 
+      this.setCsrfToken(res);
+
       res.json({
         message: 'Tokens refreshed successfully',
         user
@@ -120,6 +137,7 @@ export class AuthController {
   };
 
   logout = async (_req: Request, res: Response): Promise<void> => {
+    console.log('Logout request received');
     res.cookie('accessToken', '', {
       ...COOKIE_OPTIONS,
       maxAge: 0

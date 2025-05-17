@@ -2,12 +2,11 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import authRoutes from './interfaces/http/routes/auth.routes';
 import env from './config/env';
+import morgan from 'morgan';
 import { logger } from './utils/logger';
 
-dotenv.config();
 
 const app = express();
 const PORT = env.PORT;
@@ -20,6 +19,7 @@ app.use(cors({
   origin: env.CLIENT_URL,
   credentials: true
 }));
+app.use(morgan('dev'));
 
 // Routes
 app.use('/api/auth', authRoutes);

@@ -1,13 +1,15 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { AuthController } from '../controllers/auth.controller';
 import { AuthService } from '../../../application/usecases/auth/auth.service';
-import { MongoUserRepository } from '../../../infrastructure/database/mongodb/user.repository';
+import { MongoUserRepository } from '../../../infrastructure/repositories/mongodb/user.repository';
+import { MongoOTPRepository } from '../../../infrastructure/repositories/mongodb/otp.repository';
 import { authMiddleware } from '../middlewares/auth.middleware';
-import { csrfMiddleware, setCsrfToken } from '../middlewares/csrf.middleware';
+import { csrfMiddleware } from '../middlewares/csrf.middleware';
 
 const router = Router();
 const userRepository = new MongoUserRepository();
-const authService = new AuthService(userRepository);
+const otpRepository = new MongoOTPRepository();
+const authService = new AuthService(userRepository, otpRepository);
 const authController = new AuthController(authService);
 
 // Helper to convert middleware to Promise<void>
@@ -21,7 +23,7 @@ const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => P
   };
 };
 
-// Public routes - no CSRF needed for authentication endpoints
+// Public routes
 router.post('/signup', 
   asyncHandler((req, res) => authController.signup(req, res))
 );
@@ -34,11 +36,9 @@ router.post('/login',
   asyncHandler((req, res) => authController.login(req, res))
 );
 
-// Token refresh - needs CSRF as it uses existing session
+// Token refresh 
 router.post('/refresh',
-  asyncHandler((req, res, next) => csrfMiddleware()(req, res, next)),
-  asyncHandler((req, res) => authController.refresh(req, res)),
-  asyncHandler(setCsrfToken)
+  asyncHandler((req, res) => authController.refresh(req, res))
 );
 
 // Protected routes
