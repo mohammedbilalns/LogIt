@@ -10,6 +10,7 @@ import {
   Title,
   Center,
   Divider,
+  Group,
 } from '@mantine/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
@@ -17,6 +18,7 @@ import { IconLock } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '../store';
 import { login, clearError } from '../store/slices/authSlice';
 import { useEffect } from 'react';
+import { GoogleButton } from '../components/GoogleButton';
 
 export default function Login() {
   const dispatch = useDispatch<AppDispatch>();
@@ -68,22 +70,22 @@ export default function Login() {
   };
 
   return (
-    <Container size={420} my={40}>
+    <Container size={580} my={40}>
       <Paper radius="lg" p="xl" withBorder>
-        <Center mb="xl">
-          <IconLock size={50} color="var(--mantine-color-blue-6)" />
+        <Center mb="lg">
+          <IconLock size={42} color="var(--mantine-color-blue-6)" />
         </Center>
 
-        <Title order={2} ta="center" mb="sm">
+        <Title order={2} ta="center" mb="xs">
           Welcome back to LogIt
         </Title>
 
-        <Text c="dimmed" size="sm" ta="center" mb="xl">
+        <Text c="dimmed" size="sm" ta="center" mb="lg">
           Enter your credentials to access your account
         </Text>
 
         <form onSubmit={form.onSubmit(handleSubmit)}>
-          <Stack>
+          <Stack gap="md">
             <TextInput
               label="Email"
               placeholder="your@email.com"
@@ -118,22 +120,38 @@ export default function Login() {
               Sign in
             </Button>
 
+            <Group justify="flex-end">
+              <Button
+                component={Link}
+                to="/reset-password"
+                variant="subtle"
+                size="sm"
+                color="gray"
+              >
+                Forgot password?
+              </Button>
+            </Group>
+
             <Divider
               label="Don't have an account?"
               labelPosition="center"
-              my="md"
+              my="xs"
             />
 
-            <Button
-              component={Link}
-              to="/signup"
-              variant="light"
-              radius="xl"
-              fullWidth
-              size="md"
-            >
-              Create account
-            </Button>
+            <Group grow wrap="wrap" gap="sm">
+              <Button
+                component={Link}
+                to="/signup"
+                variant="light"
+                radius="xl"
+                size="md"
+                style={{ flex: '1 1 calc(50% - 8px)' }}
+              >
+                Create account
+              </Button>
+
+              <GoogleButton style={{ flex: '1 1 calc(50% - 8px)' }} />
+            </Group>
           </Stack>
         </form>
       </Paper>

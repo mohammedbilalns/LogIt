@@ -6,5 +6,6 @@ export interface IUserRepository {
   findById(id: string): Promise<User | null>;
   updateVerificationStatus(id: string, isVerified: boolean): Promise<User | null>;
   updatePassword(id: string, password: string): Promise<User | null>;
+  updateById(id: string, update: Partial<User>): Promise<User | null>;
   delete(email: string): Promise<void>;
 } 

@@ -94,6 +94,19 @@ export const resendOTP = createAsyncThunk(
   }
 );
 
+export const googleAuth = createAsyncThunk(
+  'auth/google',
+  async (credential: string, { rejectWithValue }) => {
+    try {
+      const response = await api.post<AuthResponse>('/auth/google', { credential });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Google authentication failed. Please try again.';
+      return rejectWithValue(message);
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -197,6 +210,20 @@ const authSlice = createSlice({
       })
       .addCase(resendOTP.rejected, (state, action) => {
         state.resendLoading = false;
+        state.error = action.payload as string;
+      })
+      // Google Auth
+      .addCase(googleAuth.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(googleAuth.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload.user;
+      })
+      .addCase(googleAuth.rejected, (state, action) => {
+        state.loading = false;
         state.error = action.payload as string;
       });
   },

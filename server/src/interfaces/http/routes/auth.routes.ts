@@ -28,6 +28,10 @@ router.post('/signup',
   asyncHandler((req, res) => authController.signup(req, res))
 );
 
+router.post('/google',
+  asyncHandler((req, res) => authController.googleAuth(req, res))
+);
+
 router.post('/verify-otp',
   asyncHandler((req, res) => authController.verifyOTP(req, res))
 );

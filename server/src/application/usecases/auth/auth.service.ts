@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
 import { IOTPRepository } from '../../../domain/repositories/otp.repository.interface';
 import env from '../../../config/env';
@@ -12,7 +13,8 @@ import {
   InvalidOTPError,
   UserNotFoundError,
   InvalidTokenError,
-  MaxRetryAttemptsExceededError
+  MaxRetryAttemptsExceededError,
+  EmailAlreadyWithGoogleIdError
 } from '../../errors/auth.errors';
 
 export class AuthService {
@@ -39,7 +41,10 @@ export class AuthService {
         throw new UserNotFoundError();
       }
 
-      const { password, ...userWithoutPassword } = user;
+      const userWithoutPassword = {
+        ...user,
+        password: undefined
+      };
       return userWithoutPassword;
     } catch (error) {
       throw new InvalidTokenError();
@@ -55,9 +60,13 @@ export class AuthService {
     
     const existingUser = await this.userRepository.findByEmail(validatedData.email);
 
+    if(!existingUser?.password && existingUser?.googleId) {
+      throw new EmailAlreadyWithGoogleIdError();
+    }
     if (existingUser?.isVerified) {
       throw new EmailAlreadyRegisteredError();
     }
+   
 
     if (existingUser) {
       await this.userRepository.delete(validatedData.email);
@@ -83,7 +92,10 @@ export class AuthService {
 
     await this.mailService.sendOTP(user.email, otp);
 
-    const { password, ...userWithoutPassword } = user;
+    const userWithoutPassword = {
+      ...user,
+      password: undefined
+    };
     return userWithoutPassword;
   }
 
@@ -92,12 +104,10 @@ export class AuthService {
     if (!storedOTP || storedOTP.otp !== otp) {
       if (storedOTP) {
         if (storedOTP.retryAttempts >= 4) {
-          // Delete both user and OTP documents
           await this.userRepository.delete(email);
           await this.otpRepository.delete(email);
           throw new MaxRetryAttemptsExceededError();
         }
-        // Increment retry attempts
         await this.otpRepository.incrementRetryAttempts(email);
       }
       throw new InvalidOTPError();
@@ -111,7 +121,10 @@ export class AuthService {
     await this.userRepository.updateVerificationStatus(user.id, true);
     await this.otpRepository.delete(email);
 
-    const { password, ...userWithoutPassword } = user;
+    const userWithoutPassword = {
+      ...user,
+      password: undefined
+    };
     return {
       user: userWithoutPassword,
       accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
@@ -123,17 +136,22 @@ export class AuthService {
     const validatedData = this.validationService.validateLoginData(credentials);
 
     const user = await this.userRepository.findByEmail(validatedData.email);
-    if (!user || !user.isVerified) {
+    if(!user?.password && user?.googleId) {
+      throw new EmailAlreadyWithGoogleIdError();
+    }
+    if (!user || !user.isVerified || !user.password) {
       throw new InvalidCredentialsError();
     }
-
 
     const isValidPassword = await bcrypt.compare(validatedData.password, user.password);
     if (!isValidPassword) {
       throw new InvalidCredentialsError();
     }
 
-    const { password, ...userWithoutPassword } = user;
+    const userWithoutPassword = {
+      ...user,
+      password: undefined
+    };
     return {
       user: userWithoutPassword,
       accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
@@ -150,7 +168,10 @@ export class AuthService {
         throw new UserNotFoundError();
       }
 
-      const { password, ...userWithoutPassword } = user;
+      const userWithoutPassword = {
+        ...user,
+        password: undefined
+      };
       return {
         user: userWithoutPassword,
         accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
@@ -173,13 +194,11 @@ export class AuthService {
 
     const storedOTP = await this.otpRepository.findByEmail(email);
     if (storedOTP && storedOTP.retryAttempts >= 4) {
-      // Delete both user and OTP documents
       await this.userRepository.delete(email);
       await this.otpRepository.delete(email);
       throw new MaxRetryAttemptsExceededError();
     }
 
-    // Generate and store new OTP
     const otp = this.generateOTP();
     const now = new Date();
     
@@ -202,5 +221,56 @@ export class AuthService {
 
     await this.mailService.sendOTP(email, otp);
     return { message: 'OTP resent successfully' };
+  }
+
+  async googleAuth(token: string) {
+    try {
+      const decoded = jwt.decode(token) as {
+        email: string;
+        name: string;
+        picture: string;
+        sub: string;
+      } | null;
+
+      if (!decoded) {
+        throw new InvalidCredentialsError();
+      }
+
+      let user = await this.userRepository.findByEmail(decoded.email);
+
+      if (!user) {
+        user = await this.userRepository.create({
+          name: decoded.name,
+          email: decoded.email,
+          isVerified: true,
+          googleId: decoded.sub,
+          profileImage: decoded.picture,
+          provider: 'google'
+        });
+      } else if (!user.googleId) {
+        const updatedUser = await this.userRepository.updateById(user.id, {
+          googleId: decoded.sub,
+          profileImage: decoded.picture,
+          provider: 'google',
+          isVerified: true
+        });
+        if (!updatedUser) {
+          throw new InvalidCredentialsError();
+        }
+        user = updatedUser;
+      }
+
+      const userWithoutPassword = {
+        ...user,
+        password: undefined
+      };
+      return {
+        user: userWithoutPassword,
+        accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
+        refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword)
+      };
+    } catch (error) {
+      throw new InvalidCredentialsError();
+    }
   }
 } 

@@ -186,4 +186,36 @@ export class AuthController {
       }
     }
   };
+
+  googleAuth = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { credential } = req.body;
+      const { user, accessToken, refreshToken } = await this.authService.googleAuth(credential);
+
+      res.cookie('accessToken', accessToken, {
+        ...COOKIE_OPTIONS,
+        maxAge: ACCESS_COOKIE_EXPIRY
+      });
+
+      res.cookie('refreshToken', refreshToken, {
+        ...COOKIE_OPTIONS,
+        maxAge: REFRESH_COOKIE_EXPIRY
+      });
+      
+      this.setCsrfToken(res);
+
+      res.json({
+        message: 'Google authentication successful',
+        user
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.red('GOOGLE_AUTH_ERROR', error.message);
+        res.status(400).json({ message: error.message });
+      } else {
+        logger.red('GOOGLE_AUTH_ERROR', 'Internal server error');
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  };
 } 

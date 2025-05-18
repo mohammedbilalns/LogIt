@@ -11,6 +11,12 @@ export class EmailAlreadyRegisteredError extends AuthError {
   }
 }
 
+export class EmailAlreadyWithGoogleIdError extends AuthError {
+  constructor() {
+    super('Email already registered with Google, Sign in with Google instead');
+  }
+}
+
 export class InvalidCredentialsError extends AuthError {
   constructor() {
     super('Invalid credentials');

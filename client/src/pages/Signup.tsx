@@ -10,6 +10,7 @@ import {
   Title,
   Center,
   Divider,
+  Group,
 } from '@mantine/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
@@ -17,6 +18,7 @@ import { IconUserPlus } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '../store';
 import { signup, clearError } from '../store/slices/authSlice';
 import { useEffect } from 'react';
+import { GoogleButton } from '../components/GoogleButton';
 
 export default function Signup() {
   const dispatch = useDispatch<AppDispatch>();
@@ -80,22 +82,22 @@ export default function Signup() {
   };
 
   return (
-    <Container size={420} my={40}>
+    <Container size={580} my={20}>
       <Paper radius="lg" p="xl" withBorder>
-        <Center mb="xl">
-          <IconUserPlus size={50} color="var(--mantine-color-blue-6)" />
+        <Center mb="lg">
+          <IconUserPlus size={42} color="var(--mantine-color-blue-6)" />
         </Center>
 
-        <Title order={2} ta="center" mb="sm">
+        <Title order={2} ta="center" mb="xs">
           Create your account
         </Title>
 
-        <Text c="dimmed" size="sm" ta="center" mb="xl">
+        <Text c="dimmed" size="sm" ta="center" mb="lg">
           Fill in your details to get started with LogIt
         </Text>
 
         <form onSubmit={form.onSubmit(handleSubmit)}>
-          <Stack>
+          <Stack gap="md">
             <TextInput
               label="Name"
               placeholder="Your name"
@@ -151,19 +153,23 @@ export default function Signup() {
             <Divider
               label="Already have an account?"
               labelPosition="center"
-              my="md"
+              my="xs"
             />
 
-            <Button
-              component={Link}
-              to="/login"
-              variant="light"
-              radius="xl"
-              fullWidth
-              size="md"
-            >
-              Sign in
-            </Button>
+            <Group grow wrap="wrap" gap="sm">
+              <Button
+                component={Link}
+                to="/login"
+                variant="light"
+                radius="xl"
+                size="md"
+                style={{ flex: '1 1 calc(50% - 8px)' }}
+              >
+                Sign in
+              </Button>
+
+              <GoogleButton style={{ flex: '1 1 calc(50% - 8px)' }} />
+            </Group>
           </Stack>
         </form>
       </Paper>
