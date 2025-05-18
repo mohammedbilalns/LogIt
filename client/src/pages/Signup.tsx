@@ -18,7 +18,7 @@ import { IconUserPlus } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '../store';
 import { signup, clearError } from '../store/slices/authSlice';
 import { useEffect } from 'react';
-import { GoogleButton } from '../components/GoogleButton';
+import { GoogleButton } from '../components/user/GoogleButton';
 
 export default function Signup() {
   const dispatch = useDispatch<AppDispatch>();

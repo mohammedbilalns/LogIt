@@ -1,10 +1,11 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
 import { AuthService } from '../../../application/usecases/auth/auth.service';
 import { MongoUserRepository } from '../../../infrastructure/repositories/mongodb/user.repository';
 import { MongoOTPRepository } from '../../../infrastructure/repositories/mongodb/otp.repository';
 import { authMiddleware } from '../middlewares/auth.middleware';
 import { csrfMiddleware } from '../middlewares/csrf.middleware';
+import { asyncHandler } from '../../../utils/asyncHandler'
 
 const router = Router();
 const userRepository = new MongoUserRepository();
@@ -12,16 +13,6 @@ const otpRepository = new MongoOTPRepository();
 const authService = new AuthService(userRepository, otpRepository);
 const authController = new AuthController(authService);
 
-// Helper to convert middleware to Promise<void>
-const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any> | any) => {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      await fn(req, res, next);
-    } catch (error) {
-      next(error);
-    }
-  };
-};
 
 // Public routes
 router.post('/signup', 

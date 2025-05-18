@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import authRoutes from './interfaces/http/routes/auth.routes';
+import adminRoutes from './interfaces/http/routes/admin.routes';
 import env from './config/env';
 import morgan from 'morgan';
 import { logger } from './utils/logger';
@@ -23,6 +24,7 @@ app.use(morgan('dev'));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Connect to DB 
 mongoose.connect(MONGODB_URI)

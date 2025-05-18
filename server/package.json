@@ -13,7 +13,8 @@
     "lint": "eslint . --ext .ts",
     "test": "jest",
     "init-superadmin": "ts-node src/scripts/init-superadmin.ts",
-    "init-admin": "ts-node src/scripts/init-admin.ts"
+    "init-admin": "ts-node src/scripts/init-admin.ts",
+    "generate-users": "ts-node src/scripts/generateUsers.ts"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",
@@ -29,7 +30,8 @@
     "multer": "^1.4.5-lts.2",
     "nodemailer": "^6.9.9",
     "react-redux": "^9.2.0",
-    "zod": "^3.24.4"
+    "zod": "^3.24.4",
+    "@faker-js/faker": "^8.4.1"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.8",

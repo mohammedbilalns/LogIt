@@ -1,6 +1,6 @@
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
-import { store } from '../store';
-import { googleAuth } from '../store/slices/authSlice';
+import { store } from '../../store';
+import { googleAuth } from '../../store/slices/authSlice';
 
 interface GoogleButtonProps {
   style?: React.CSSProperties;

@@ -8,4 +8,6 @@ export interface IUserRepository {
   updatePassword(id: string, password: string): Promise<User | null>;
   updateById(id: string, update: Partial<User>): Promise<User | null>;
   delete(email: string): Promise<void>;
+  fetch(page?:number, limit?:number, search?:string):Promise<{users: User[], total:number}>
+  
 } 

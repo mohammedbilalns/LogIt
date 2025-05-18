@@ -2,18 +2,20 @@ import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { Suspense } from 'react';
-import { LoadingOverlay } from '@mantine/core';
-import Navbar from './Navbar/Navbar';
+import { LoadingOverlay, Box } from '@mantine/core';
+import Navbar from './Navbar';
 
 // Layout component 
 export function Layout() {
   return (
-    <>
+    <Box>
       <Navbar />
-      <Suspense fallback={<LoadingOverlay visible />}>
-        <Outlet />
-      </Suspense>
-    </>
+      <Box style={{ marginTop: '4.5rem' }}>
+        <Suspense fallback={<LoadingOverlay visible />}>
+          <Outlet />
+        </Suspense>
+      </Box>
+    </Box>
   );
 }
 

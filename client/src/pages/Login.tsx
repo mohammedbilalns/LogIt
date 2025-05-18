@@ -18,7 +18,7 @@ import { IconLock } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '../store';
 import { login, clearError } from '../store/slices/authSlice';
 import { useEffect } from 'react';
-import { GoogleButton } from '../components/GoogleButton';
+import { GoogleButton } from '../components/user/GoogleButton';
 
 export default function Login() {
   const dispatch = useDispatch<AppDispatch>();

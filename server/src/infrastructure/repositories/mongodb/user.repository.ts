@@ -64,6 +64,27 @@ export class MongoUserRepository implements IUserRepository {
     return user ? this.mapToUser(user) : null;
   }
 
+  async fetch(page=1, limit=10, search=''): Promise<{ users: User[]; total: number; }> {
+    
+    const query = search ? {
+      $or:[
+        {name:{$regex: search , $options:'i'}},
+        {email: {$regex: search, $options:'i'}}
+      ],
+    }:{}
+
+    const skip = (page-1) * limit 
+    const [userDocs, total] = await Promise.all([UserModel.
+      find(query).skip(skip).limit(limit)
+      .sort({createdAt:-1})
+      .select('-password'),
+      UserModel.countDocuments(query)
+    ])
+
+    const users = userDocs.map((doc)=> this.mapToUser(doc))
+    return {users, total}
+  }
+
   private mapToUser(doc: mongoose.Document): User {
     const user = doc.toObject();
     return {
