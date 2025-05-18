@@ -7,10 +7,11 @@ const otpSchema = new Schema<OTP>({
   otp: { type: String, required: true },
   createdAt: { type: Date, required: true },
   expiresAt: { type: Date, required: true },
-  retryAttempts: { type: Number, default: 0 }
+  retryAttempts: { type: Number, default: 0 },
+  type: { type: String, enum: ['verification', 'reset'], default: 'verification' }
 });
 
-// Create TTL index on expiresAt field
+//  TTL index on expiresAt field
 otpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 const OTPModel = mongoose.model<OTP>('OTP', otpSchema);

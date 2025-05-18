@@ -44,6 +44,18 @@ router.post('/login',
   asyncHandler((req, res) => authController.login(req, res))
 );
 
+router.post('/reset-password',
+  asyncHandler((req, res) => authController.initiatePasswordReset(req, res))
+);
+
+router.post('/verify-resetotp',
+  asyncHandler((req, res) => authController.verifyResetOTP(req, res))
+);
+
+router.post('/update-password',
+  asyncHandler((req, res) => authController.updatePassword(req, res))
+);
+
 // Token refresh 
 router.post('/refresh',
   asyncHandler((req, res) => authController.refresh(req, res))

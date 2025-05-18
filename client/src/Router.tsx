@@ -7,6 +7,7 @@ const Login = lazy(() => import('./pages/Login'));
 const Signup = lazy(() => import('./pages/Signup'));
 const EmailVerification = lazy(() => import('./pages/EmailVerification'));
 const Home = lazy(() => import('./pages/Home'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 
 export const router = createBrowserRouter([
   {
@@ -37,6 +38,10 @@ export const router = createBrowserRouter([
           {
             path: '/verify-email',
             element: <EmailVerification />,
+          },
+          {
+            path: '/reset-password',
+            element: <ResetPassword />,
           },
         ],
       },

@@ -12,7 +12,6 @@ import {
   Center,
   Title,
   Box,
-  Notification,
 } from '@mantine/core';
 import { IconMailCheck } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '../store';
@@ -93,6 +92,13 @@ export default function EmailVerification() {
     }
   };
 
+  const handleOTPChange = (value: string) => {
+    setOtp(value);
+    if (error) {
+      dispatch(clearError());
+    }
+  };
+
   const handleResendOTP = async () => {
     if (verificationEmail && resendCooldown === 0) {
       const result = await dispatch(resendOTP(verificationEmail));
@@ -129,8 +135,8 @@ export default function EmailVerification() {
                 length={6}
                 size="lg"
                 value={otp}
-                onChange={setOtp}
-                error={Boolean(error) || otpExpiryTime === 0}
+                onChange={handleOTPChange}
+                error={Boolean(error)}
                 type="number"
                 oneTimeCode
                 aria-label="Verification code"
@@ -143,15 +149,15 @@ export default function EmailVerification() {
             </Text>
 
             {error && (
-              <Notification color="red" onClose={() => dispatch(clearError())}>
+              <Text c="red" size="sm" ta="center">
                 {error}
-              </Notification>
+              </Text>
             )}
 
             {otpExpiryTime === 0 && (
-              <Notification color="yellow">
+              <Text c="yellow" size="sm" ta="center">
                 OTP has expired. Please request a new one.
-              </Notification>
+              </Text>
             )}
 
             <Button

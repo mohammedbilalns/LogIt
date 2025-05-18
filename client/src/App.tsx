@@ -8,8 +8,15 @@ import { theme } from './theme';
 import { checkAuth } from './store/slices/authSlice';
 import { useEffect, Suspense } from 'react';
 import { LoadingUI } from './components/LoadingUI';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+if (!GOOGLE_CLIENT_ID) {
+  throw new Error('Missing VITE_GOOGLE_CLIENT_ID environment variable');
+}
 
 function AppContent() {
   const dispatch = useDispatch<AppDispatch>();
@@ -41,10 +48,12 @@ export default function App() {
 
   return (
     <Provider store={store}>
-      <MantineProvider theme={theme}>
-        <Notifications />
-        <AppContent />
-      </MantineProvider>
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+        <MantineProvider theme={theme}>
+          <Notifications />
+          <AppContent />
+        </MantineProvider>
+      </GoogleOAuthProvider>
     </Provider>
   );
 }

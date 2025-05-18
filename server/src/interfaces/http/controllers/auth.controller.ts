@@ -218,4 +218,52 @@ export class AuthController {
       }
     }
   };
+
+  initiatePasswordReset = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { email } = req.body;
+      const result = await this.authService.initiatePasswordReset(email);
+      res.json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.red('PASSWORD_RESET_ERROR', error.message);
+        res.status(400).json({ message: error.message });
+      } else {
+        logger.red('PASSWORD_RESET_ERROR', 'Internal server error');
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  };
+
+  verifyResetOTP = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { email, otp } = req.body;
+      const result = await this.authService.verifyResetOTP(email, otp);
+      res.json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.red('VERIFY_RESET_OTP_ERROR', error.message);
+        res.status(400).json({ message: error.message });
+      } else {
+        logger.red('VERIFY_RESET_OTP_ERROR', 'Internal server error');
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  };
+
+  updatePassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { email, newPassword } = req.body;
+      const result = await this.authService.updatePassword(email, newPassword);
+      res.json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.red('UPDATE_PASSWORD_ERROR', error.message);
+        res.status(400).json({ message: error.message });
+      } else {
+        logger.red('UPDATE_PASSWORD_ERROR', 'Internal server error');
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  };
 } 

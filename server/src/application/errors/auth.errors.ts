@@ -51,4 +51,16 @@ export class MaxRetryAttemptsExceededError extends AuthError {
   constructor() {
     super('Maximum OTP retry attempts exceeded');
   }
+}
+
+export class PasswordResetNotAllowedError extends AuthError {
+  constructor() {
+    super('Google account is not allowed to reset password');
+  }
+}
+
+export class InvalidResetOTPError extends AuthError {
+  constructor() {
+    super('Invalid or expired reset OTP');
+  }
 } 

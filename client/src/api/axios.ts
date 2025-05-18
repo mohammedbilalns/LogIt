@@ -14,7 +14,14 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     // Skip CSRF token for public endpoints
-    const skipCsrfEndpoints = ['/auth/login', '/auth/signup', '/auth/verify-otp'];
+    const skipCsrfEndpoints = [
+      '/auth/login',
+      '/auth/signup',
+      '/auth/verify-otp',
+      '/auth/reset-password',
+      '/auth/verify-resetotp',
+      '/auth/update-password'
+    ];
     if (skipCsrfEndpoints.some(endpoint => config.url?.endsWith(endpoint))) {
       return config;
     }

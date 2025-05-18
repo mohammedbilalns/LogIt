@@ -5,4 +5,5 @@ export interface OTP {
   createdAt: Date;
   expiresAt: Date;
   retryAttempts: number;
+  type?: 'verification' | 'reset';
 } 

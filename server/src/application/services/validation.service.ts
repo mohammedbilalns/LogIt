@@ -11,6 +11,11 @@ export interface LoginData {
   password: string;
 }
 
+export interface ResetPasswordData {
+  email: string;
+  newPassword: string;
+}
+
 export class ValidationService {
   private signupSchema = z.object({
     name: z.string().min(2).trim(),
@@ -23,11 +28,20 @@ export class ValidationService {
     password: z.string()
   });
 
+  private resetPasswordSchema = z.object({
+    email: z.string().email().trim().toLowerCase(),
+    newPassword: z.string().min(8)
+  });
+
   validateSignupData(data: SignupData): SignupData {
     return this.signupSchema.parse(data);
   }
 
   validateLoginData(data: LoginData): LoginData {
     return this.loginSchema.parse(data);
+  }
+
+  validateResetPasswordData(data: ResetPasswordData): ResetPasswordData {
+    return this.resetPasswordSchema.parse(data);
   }
 } 

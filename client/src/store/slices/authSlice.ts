@@ -11,6 +11,8 @@ interface AuthState {
   verificationEmail: string | null;
   isInitialized: boolean;
   resendLoading: boolean;
+  resetPasswordEmail: string | null;
+  resetPasswordVerified: boolean;
 }
 
 const initialState: AuthState = {
@@ -21,6 +23,8 @@ const initialState: AuthState = {
   verificationEmail: null,
   isInitialized: false,
   resendLoading: false,
+  resetPasswordEmail: null,
+  resetPasswordVerified: false,
 };
 
 export const signup = createAsyncThunk(
@@ -74,6 +78,14 @@ export const logout = createAsyncThunk('auth/logout', async (_, { rejectWithValu
 
 export const checkAuth = createAsyncThunk('auth/check', async (_, { rejectWithValue }) => {
   try {
+    // Check fronted has cookies first
+    const cookies = document.cookie.split(';');
+    const hasRefreshToken = cookies.some(cookie => cookie.trim().startsWith('refreshToken='));
+    
+    if (!hasRefreshToken) {
+      return rejectWithValue(null);
+    }
+
     const response = await api.post<AuthResponse>('/auth/refresh');
     return response.data;
   } catch (error: any) {
@@ -107,6 +119,45 @@ export const googleAuth = createAsyncThunk(
   }
 );
 
+export const initiatePasswordReset = createAsyncThunk(
+  'auth/initiatePasswordReset',
+  async (email: string, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/auth/reset-password', { email });
+      return { email, message: response.data.message };
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to initiate password reset. Please try again.';
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const verifyResetOTP = createAsyncThunk(
+  'auth/verifyResetOTP',
+  async ({ email, otp }: { email: string; otp: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/auth/verify-resetotp', { email, otp });
+      return { email, message: response.data.message };
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to verify OTP. Please try again.';
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const updatePassword = createAsyncThunk(
+  'auth/updatePassword',
+  async ({ email, otp, newPassword }: { email: string; otp: string; newPassword: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/auth/update-password', { email, otp, newPassword });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to update password. Please try again.';
+      return rejectWithValue(message);
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -119,6 +170,11 @@ const authSlice = createSlice({
     },
     resetAuthState: (state) => {
       Object.assign(state, initialState);
+    },
+    clearResetPasswordState: (state) => {
+      state.resetPasswordEmail = null;
+      state.resetPasswordVerified = false;
+      state.error = null;
     },
   },
   extraReducers: (builder) => {
@@ -225,9 +281,49 @@ const authSlice = createSlice({
       .addCase(googleAuth.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      // Password Reset Initiation
+      .addCase(initiatePasswordReset.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(initiatePasswordReset.fulfilled, (state, action) => {
+        state.loading = false;
+        state.resetPasswordEmail = action.payload.email;
+      })
+      .addCase(initiatePasswordReset.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // Reset OTP Verification
+      .addCase(verifyResetOTP.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(verifyResetOTP.fulfilled, (state) => {
+        state.loading = false;
+        state.resetPasswordVerified = true;
+      })
+      .addCase(verifyResetOTP.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // Update Password
+      .addCase(updatePassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updatePassword.fulfilled, (state) => {
+        state.loading = false;
+        state.resetPasswordEmail = null;
+        state.resetPasswordVerified = false;
+      })
+      .addCase(updatePassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });
 
-export const { clearError, setVerificationEmail, resetAuthState } = authSlice.actions;
+export const { clearError, setVerificationEmail, resetAuthState, clearResetPasswordState } = authSlice.actions;
 export default authSlice.reducer; 

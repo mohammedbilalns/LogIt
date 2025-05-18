@@ -14,7 +14,9 @@ import {
   UserNotFoundError,
   InvalidTokenError,
   MaxRetryAttemptsExceededError,
-  EmailAlreadyWithGoogleIdError
+  EmailAlreadyWithGoogleIdError,
+  PasswordResetNotAllowedError,
+  InvalidResetOTPError
 } from '../../errors/auth.errors';
 
 export class AuthService {
@@ -87,7 +89,8 @@ export class AuthService {
       otp,
       createdAt: now,
       expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
-      retryAttempts: 0
+      retryAttempts: 0,
+      type: 'verification'
     });
 
     await this.mailService.sendOTP(user.email, otp);
@@ -101,7 +104,7 @@ export class AuthService {
 
   async verifyOTP(email: string, otp: string) {
     const storedOTP = await this.otpRepository.findByEmail(email);
-    if (!storedOTP || storedOTP.otp !== otp) {
+    if (!storedOTP || storedOTP.otp !== otp || storedOTP.type !== 'verification') {
       if (storedOTP) {
         if (storedOTP.retryAttempts >= 4) {
           await this.userRepository.delete(email);
@@ -207,7 +210,8 @@ export class AuthService {
         otp,
         createdAt: now,
         expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
-        retryAttempts: (storedOTP.retryAttempts || 0) + 1
+        retryAttempts: (storedOTP.retryAttempts || 0) + 1,
+        type: 'verification'
       });
     } else {
       await this.otpRepository.create({
@@ -215,7 +219,8 @@ export class AuthService {
         otp,
         createdAt: now,
         expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
-        retryAttempts: 0
+        retryAttempts: 0,
+        type: 'verification'
       });
     }
 
@@ -272,5 +277,75 @@ export class AuthService {
     } catch (error) {
       throw new InvalidCredentialsError();
     }
+  }
+
+  async initiatePasswordReset(email: string) {
+    const user = await this.userRepository.findByEmail(email);
+    
+    if (!user) {
+      throw new UserNotFoundError();
+    }
+
+    if (!user.password) {
+      throw new PasswordResetNotAllowedError();
+    }
+
+    const otp = this.generateOTP();
+    const now = new Date();
+    
+    await this.otpRepository.delete(email); // Clear any existing OTP
+    await this.otpRepository.create({
+      email,
+      otp,
+      createdAt: now,
+      expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
+      retryAttempts: 0,
+      type: 'reset'
+    });
+
+    await this.mailService.sendPasswordResetOTP(email, otp);
+    return { message: 'Password reset OTP sent successfully' };
+  }
+
+  async verifyResetOTP(email: string, otp: string) {
+    const storedOTP = await this.otpRepository.findByEmail(email);
+    
+    if (!storedOTP || storedOTP.otp !== otp || storedOTP.type !== 'reset') {
+      if (storedOTP) {
+        if (storedOTP.retryAttempts >= 4) {
+          await this.otpRepository.delete(email);
+          throw new MaxRetryAttemptsExceededError();
+        }
+        await this.otpRepository.incrementRetryAttempts(email);
+      }
+      throw new InvalidResetOTPError();
+    }
+
+    if (new Date() > storedOTP.expiresAt) {
+      await this.otpRepository.delete(email);
+      throw new InvalidResetOTPError();
+    }
+
+    return { message: 'OTP verified successfully' };
+  }
+
+  async updatePassword(email: string, newPassword: string) {
+    const validatedData = this.validationService.validateResetPasswordData({ email, newPassword });
+    const user = await this.userRepository.findByEmail(validatedData.email);
+    
+    if (!user) {
+      throw new UserNotFoundError();
+    }
+
+    const storedOTP = await this.otpRepository.findByEmail(validatedData.email);
+    if (!storedOTP || storedOTP.type !== 'reset') {
+      throw new InvalidResetOTPError();
+    }
+
+    const hashedPassword = await bcrypt.hash(validatedData.newPassword, 10);
+    await this.userRepository.updateById(user.id, { password: hashedPassword });
+    await this.otpRepository.delete(validatedData.email);
+
+    return { message: 'Password updated successfully' };
   }
 } 
