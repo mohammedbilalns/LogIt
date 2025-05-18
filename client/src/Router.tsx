@@ -1,6 +1,12 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { lazy } from 'react';
-import { Layout, ProtectedRoute, PublicRoute } from './components/RouteGuards';
+import {
+  Layout,
+  UserProtectedRoute,
+  PublicRoute,
+  AdminProtectedRoute,
+  SuperAdminProtectedRoute
+} from './components/RouteGuards';
 
 // Lazy load all pages
 const Login = lazy(() => import('./pages/Login'));
@@ -8,19 +14,38 @@ const Signup = lazy(() => import('./pages/Signup'));
 const EmailVerification = lazy(() => import('./pages/EmailVerification'));
 const Home = lazy(() => import('./pages/Home'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 export const router = createBrowserRouter([
   {
     element: <Layout />,
     children: [
-      // Protected Routes
+      // User Protected Routes
       {
-        element: <ProtectedRoute />,
+        element: <UserProtectedRoute />,
         children: [
           {
             path: '/',
             element: <Home />,
           },
+        ],
+      },
+      // Admin Protected Routes
+      {
+        element: <AdminProtectedRoute />,
+        children: [
+          {
+            path: '/admin',
+            element: <AdminDashboard />,
+          },
+        ],
+      },
+      // Super Admin Protected Routes
+      {
+        element: <SuperAdminProtectedRoute />,
+        children: [
+          
         ],
       },
       // Public Routes
@@ -44,6 +69,11 @@ export const router = createBrowserRouter([
             element: <ResetPassword />,
           },
         ],
+      },
+      // 404 Route - Must be last
+      {
+        path: '*',
+        element: <NotFound />,
       },
     ],
   },

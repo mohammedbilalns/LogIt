@@ -100,6 +100,7 @@ export class AuthController {
   };
 
   refresh = async (req: Request, res: Response): Promise<void> => {
+    console.log('Refresh request received');
     try {
       // Check for existing access token first
       const accessToken = req.cookies.accessToken;

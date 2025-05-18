@@ -19,9 +19,9 @@ if (!GOOGLE_CLIENT_ID) {
 }
 
 function AppContent() {
+
   const dispatch = useDispatch<AppDispatch>();
   const { isInitialized } = useSelector((state: RootState) => state.auth);
-
   useEffect(() => {
     dispatch(checkAuth());
   }, [dispatch]);

@@ -79,7 +79,8 @@ export class AuthService {
     const user = await this.userRepository.create({
       ...validatedData,
       password: hashedPassword,
-      isVerified: false
+      isVerified: false,
+      role: 'user'
     });
 
     const otp = this.generateOTP();
@@ -250,14 +251,16 @@ export class AuthService {
           isVerified: true,
           googleId: decoded.sub,
           profileImage: decoded.picture,
-          provider: 'google'
+          provider: 'google',
+          role: 'user'
         });
       } else if (!user.googleId) {
         const updatedUser = await this.userRepository.updateById(user.id, {
           googleId: decoded.sub,
           profileImage: decoded.picture,
           provider: 'google',
-          isVerified: true
+          isVerified: true,
+          role: user.role || 'user'
         });
         if (!updatedUser) {
           throw new InvalidCredentialsError();
@@ -282,7 +285,7 @@ export class AuthService {
   async initiatePasswordReset(email: string) {
     const user = await this.userRepository.findByEmail(email);
     
-    if (!user) {
+    if (!user || user.role === 'admin'|| user.role === 'superadmin') {
       throw new UserNotFoundError();
     }
 

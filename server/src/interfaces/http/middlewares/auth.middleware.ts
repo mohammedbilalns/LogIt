@@ -8,6 +8,7 @@ declare global {
       user?: {
         id: string;
         email: string;
+        role: 'user' | 'admin' | 'superadmin';
       };
     }
   }
@@ -23,7 +24,7 @@ export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
         return;
       }
 
-      const decoded = jwt.verify(token, jwtSecret) as { id: string; email: string };
+      const decoded = jwt.verify(token, jwtSecret) as { id: string; email: string; role: 'user' | 'admin' | 'superadmin' };
       req.user = decoded;
       next();
     } catch (error) {

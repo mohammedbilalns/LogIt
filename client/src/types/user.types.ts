@@ -5,6 +5,7 @@ export interface User {
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;
+  role: 'user' | 'admin' | 'superadmin';
 }
 
 export interface AuthResponse {

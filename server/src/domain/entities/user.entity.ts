@@ -9,6 +9,7 @@ export interface User {
   googleId?: string;
   profileImage?: string;
   provider?: 'local' | 'google';
+  role: 'user' | 'admin' | 'superadmin';
 }
 
 export interface UserWithoutPassword extends Omit<User, 'password'> {} 

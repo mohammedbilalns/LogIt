@@ -197,8 +197,13 @@ export default function ResetPassword() {
               {...emailForm.getInputProps('email')}
             />
             <Button type="submit" radius="xl" loading={loading} fullWidth size="md">
-              Send Reset Link
+              Send Reset Otp
             </Button>
+            {error && (
+              <Text c="red" size="sm" ta="center">
+                {error}
+              </Text>
+            )}
           </Stack>
         </form>
       );

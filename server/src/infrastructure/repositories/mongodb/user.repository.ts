@@ -11,7 +11,8 @@ const userSchema = new Schema<User>({
   updatedAt: { type: Date, default: Date.now },
   googleId: { type: String },
   profileImage: { type: String },
-  provider: { type: String, enum: ['local', 'google'], default: 'local' }
+  provider: { type: String, enum: ['local', 'google'], default: 'local' },
+  role: { type: String, enum: ['user', 'admin', 'superadmin'], default: 'user' }
 });
 
 const UserModel = mongoose.model<User>('User', userSchema);

@@ -78,13 +78,8 @@ export const logout = createAsyncThunk('auth/logout', async (_, { rejectWithValu
 
 export const checkAuth = createAsyncThunk('auth/check', async (_, { rejectWithValue }) => {
   try {
-    // Check fronted has cookies first
-    const cookies = document.cookie.split(';');
-    const hasRefreshToken = cookies.some(cookie => cookie.trim().startsWith('refreshToken='));
-    
-    if (!hasRefreshToken) {
-      return rejectWithValue(null);
-    }
+  
+
 
     const response = await api.post<AuthResponse>('/auth/refresh');
     return response.data;

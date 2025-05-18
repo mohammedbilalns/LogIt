@@ -1,36 +1,77 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
+import { Suspense } from 'react';
+import { LoadingOverlay } from '@mantine/core';
 import Navbar from './Navbar/Navbar';
 
 // Layout component 
-export const Layout = () => {
+export function Layout() {
   return (
     <>
       <Navbar />
-      <Outlet />
+      <Suspense fallback={<LoadingOverlay visible />}>
+        <Outlet />
+      </Suspense>
     </>
   );
-};
-
-// Protected Route Guard
-export const ProtectedRoute = () => {
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <Outlet />;
-};
+}
 
 // Public Route Guard 
-export const PublicRoute = () => {
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+export function PublicRoute() {
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+
   
-  if (isAuthenticated) {
+  if (isAuthenticated && user) {
+    if (user.role === 'admin' || user.role === 'superadmin') {
+      return <Navigate to="/admin" replace />;
+    }
     return <Navigate to="/" replace />;
   }
 
   return <Outlet />;
-}; 
+}
+
+// User Protected Route
+export function UserProtectedRoute() {
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const location = useLocation();
+
+  if (!isAuthenticated ||  user?.role !== 'user') {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <Outlet />;
+}
+
+// Admin Protected Route
+export function AdminProtectedRoute() {
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const location = useLocation();
+
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (user.role !== 'admin' && user.role !== 'superadmin') {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+}
+
+// Super Admin Protected Route
+export function SuperAdminProtectedRoute() {
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const location = useLocation();
+
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (user.role !== 'superadmin') {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+} 

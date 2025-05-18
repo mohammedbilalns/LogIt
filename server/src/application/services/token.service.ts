@@ -9,7 +9,7 @@ export class TokenService {
 
   generateAccessToken(user: UserWithoutPassword): string {
     return jwt.sign(
-      { id: user.id, email: user.email, type: 'access' },
+      { id: user.id, email: user.email, role: user.role, type: 'access' },
       this.jwtSecret,
       { expiresIn: ACCESS_TOKEN_EXPIRY }
     );
@@ -17,7 +17,7 @@ export class TokenService {
 
   generateRefreshToken(user: UserWithoutPassword): string {
     return jwt.sign(
-      { id: user.id, email: user.email, type: 'refresh' },
+      { id: user.id, email: user.email, role: user.role, type: 'refresh' },
       this.jwtSecret,
       { expiresIn: REFRESH_TOKEN_EXPIRY }
     );
@@ -27,16 +27,16 @@ export class TokenService {
     return crypto.randomBytes(32).toString('hex');
   }
 
-  verifyAccessToken(token: string): { id: string; email: string; type?: string } {
-    const decoded = jwt.verify(token, this.jwtSecret) as { id: string; email: string; type?: string };
+  verifyAccessToken(token: string): { id: string; email: string; role: string; type?: string } {
+    const decoded = jwt.verify(token, this.jwtSecret) as { id: string; email: string; role: string; type?: string };
     if (decoded.type !== 'access') {
       throw new InvalidTokenTypeError();
     }
     return decoded;
   }
 
-  verifyRefreshToken(token: string): { id: string; email: string; type?: string } {
-    const decoded = jwt.verify(token, this.jwtSecret) as { id: string; email: string; type?: string };
+  verifyRefreshToken(token: string): { id: string; email: string; role: string; type?: string } {
+    const decoded = jwt.verify(token, this.jwtSecret) as { id: string; email: string; role: string; type?: string };
     if (decoded.type !== 'refresh') {
       throw new InvalidTokenTypeError();
     }
