@@ -4,4 +4,5 @@ export interface OTP {
   otp: string;
   createdAt: Date;
   expiresAt: Date;
+  retryAttempts: number;
 } 

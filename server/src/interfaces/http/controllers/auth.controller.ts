@@ -155,4 +155,20 @@ export class AuthController {
 
     res.json({ message: 'Logout successful' });
   };
+
+  resendOTP = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { email } = req.body;
+      const result = await this.authService.resendOTP(email);
+      res.json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.red('RESEND_OTP_ERROR', error.message);
+        res.status(400).json({ message: error.message });
+      } else {
+        logger.red('RESEND_OTP_ERROR', 'Internal server error');
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  };
 } 

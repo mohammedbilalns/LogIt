@@ -6,7 +6,8 @@ const otpSchema = new Schema<OTP>({
   email: { type: String, required: true, unique: true },
   otp: { type: String, required: true },
   createdAt: { type: Date, required: true },
-  expiresAt: { type: Date, required: true }
+  expiresAt: { type: Date, required: true },
+  retryAttempts: { type: Number, default: 0 }
 });
 
 // Create TTL index on expiresAt field
@@ -42,6 +43,27 @@ export class MongoOTPRepository implements IOTPRepository {
 
   async delete(email: string): Promise<void> {
     await OTPModel.deleteOne({ email });
+  }
+
+  async update(email: string, otp: Partial<OTP>): Promise<OTP> {
+    const result = await OTPModel.findOneAndUpdate(
+      { email },
+      { $set: otp },
+      { new: true }
+    );
+    
+    if (!result) {
+      throw new Error('OTP not found');
+    }
+    
+    return this.mapToOTP(result);
+  }
+
+  async incrementRetryAttempts(email: string): Promise<void> {
+    await OTPModel.updateOne(
+      { email },
+      { $inc: { retryAttempts: 1 } }
+    );
   }
 
   private mapToOTP(doc: mongoose.Document): OTP {

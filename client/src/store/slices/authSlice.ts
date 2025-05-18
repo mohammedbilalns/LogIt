@@ -10,6 +10,7 @@ interface AuthState {
   error: string | null;
   verificationEmail: string | null;
   isInitialized: boolean;
+  resendLoading: boolean;
 }
 
 const initialState: AuthState = {
@@ -19,6 +20,7 @@ const initialState: AuthState = {
   error: null,
   verificationEmail: null,
   isInitialized: false,
+  resendLoading: false,
 };
 
 export const signup = createAsyncThunk(
@@ -79,6 +81,19 @@ export const checkAuth = createAsyncThunk('auth/check', async (_, { rejectWithVa
   }
 });
 
+export const resendOTP = createAsyncThunk(
+  'auth/resendOTP',
+  async (email: string, { rejectWithValue }) => {
+    try {
+      const response = await api.post<{ message: string }>('/auth/resend-otp', { email });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to resend OTP. Please try again.';
+      return rejectWithValue(message);
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -88,6 +103,9 @@ const authSlice = createSlice({
     },
     setVerificationEmail: (state, action) => {
       state.verificationEmail = action.payload;
+    },
+    resetAuthState: (state) => {
+      Object.assign(state, initialState);
     },
   },
   extraReducers: (builder) => {
@@ -119,6 +137,9 @@ const authSlice = createSlice({
       .addCase(verifyEmail.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+        if (action.payload === 'Maximum OTP retry attempts exceeded') {
+          state.verificationEmail = null;
+        }
       })
       // Login
       .addCase(login.pending, (state) => {
@@ -164,9 +185,22 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
         state.isInitialized = true;
+      })
+      // Resend OTP
+      .addCase(resendOTP.pending, (state) => {
+        state.resendLoading = true;
+        state.error = null;
+      })
+      .addCase(resendOTP.fulfilled, (state) => {
+        state.resendLoading = false;
+        state.error = null;
+      })
+      .addCase(resendOTP.rejected, (state, action) => {
+        state.resendLoading = false;
+        state.error = action.payload as string;
       });
   },
 });
 
-export const { clearError, setVerificationEmail } = authSlice.actions;
+export const { clearError, setVerificationEmail, resetAuthState } = authSlice.actions;
 export default authSlice.reducer; 

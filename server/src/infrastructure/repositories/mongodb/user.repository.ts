@@ -47,6 +47,10 @@ export class MongoUserRepository implements IUserRepository {
     return user ? this.mapToUser(user) : null;
   }
 
+  async delete(email: string): Promise<void> {
+    await UserModel.deleteOne({ email });
+  }
+
   private mapToUser(doc: mongoose.Document): User {
     const user = doc.toObject();
     return {

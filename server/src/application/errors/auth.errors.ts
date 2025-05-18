@@ -17,12 +17,6 @@ export class InvalidCredentialsError extends AuthError {
   }
 }
 
-export class EmailNotVerifiedError extends AuthError {
-  constructor() {
-    super('Email not verified');
-  }
-}
-
 export class InvalidOTPError extends AuthError {
   constructor() {
     super('Invalid or expired OTP');
@@ -44,5 +38,11 @@ export class InvalidTokenError extends AuthError {
 export class InvalidTokenTypeError extends AuthError {
   constructor() {
     super('Invalid token type');
+  }
+}
+
+export class MaxRetryAttemptsExceededError extends AuthError {
+  constructor() {
+    super('Maximum OTP retry attempts exceeded');
   }
 } 

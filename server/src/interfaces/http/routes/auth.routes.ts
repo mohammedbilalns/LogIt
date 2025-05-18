@@ -32,6 +32,10 @@ router.post('/verify-otp',
   asyncHandler((req, res) => authController.verifyOTP(req, res))
 );
 
+router.post('/resend-otp',
+  asyncHandler((req, res) => authController.resendOTP(req, res))
+);
+
 router.post('/login',
   asyncHandler((req, res) => authController.login(req, res))
 );

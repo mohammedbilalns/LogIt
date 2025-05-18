@@ -9,10 +9,10 @@ import { ValidationService, SignupData, LoginData } from '../../services/validat
 import {
   EmailAlreadyRegisteredError,
   InvalidCredentialsError,
-  EmailNotVerifiedError,
   InvalidOTPError,
   UserNotFoundError,
-  InvalidTokenError
+  InvalidTokenError,
+  MaxRetryAttemptsExceededError
 } from '../../errors/auth.errors';
 
 export class AuthService {
@@ -38,8 +38,14 @@ export class AuthService {
     const validatedData = this.validationService.validateSignupData(userData);
     
     const existingUser = await this.userRepository.findByEmail(validatedData.email);
-    if (existingUser) {
+
+    if (existingUser?.isVerified) {
       throw new EmailAlreadyRegisteredError();
+    }
+
+    if (existingUser) {
+      await this.userRepository.delete(validatedData.email);
+      await this.otpRepository.delete(validatedData.email);
     }
 
     const hashedPassword = await bcrypt.hash(validatedData.password, 10);
@@ -55,7 +61,8 @@ export class AuthService {
       email: user.email,
       otp,
       createdAt: now,
-      expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000)
+      expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
+      retryAttempts: 0
     });
 
     await this.mailService.sendOTP(user.email, otp);
@@ -67,6 +74,16 @@ export class AuthService {
   async verifyOTP(email: string, otp: string) {
     const storedOTP = await this.otpRepository.findByEmail(email);
     if (!storedOTP || storedOTP.otp !== otp) {
+      if (storedOTP) {
+        if (storedOTP.retryAttempts >= 4) {
+          // Delete both user and OTP documents
+          await this.userRepository.delete(email);
+          await this.otpRepository.delete(email);
+          throw new MaxRetryAttemptsExceededError();
+        }
+        // Increment retry attempts
+        await this.otpRepository.incrementRetryAttempts(email);
+      }
       throw new InvalidOTPError();
     }
 
@@ -90,13 +107,10 @@ export class AuthService {
     const validatedData = this.validationService.validateLoginData(credentials);
 
     const user = await this.userRepository.findByEmail(validatedData.email);
-    if (!user) {
+    if (!user || !user.isVerified) {
       throw new InvalidCredentialsError();
     }
 
-    if (!user.isVerified) {
-      throw new EmailNotVerifiedError();
-    }
 
     const isValidPassword = await bcrypt.compare(validatedData.password, user.password);
     if (!isValidPassword) {
@@ -133,5 +147,44 @@ export class AuthService {
 
   generateCsrfToken(): string {
     return this.tokenService.generateCsrfToken();
+  }
+
+  async resendOTP(email: string) {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+      throw new UserNotFoundError();
+    }
+
+    const storedOTP = await this.otpRepository.findByEmail(email);
+    if (storedOTP && storedOTP.retryAttempts >= 4) {
+      // Delete both user and OTP documents
+      await this.userRepository.delete(email);
+      await this.otpRepository.delete(email);
+      throw new MaxRetryAttemptsExceededError();
+    }
+
+    // Generate and store new OTP
+    const otp = this.generateOTP();
+    const now = new Date();
+    
+    if (storedOTP) {
+      await this.otpRepository.update(email, {
+        otp,
+        createdAt: now,
+        expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
+        retryAttempts: (storedOTP.retryAttempts || 0) + 1
+      });
+    } else {
+      await this.otpRepository.create({
+        email,
+        otp,
+        createdAt: now,
+        expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
+        retryAttempts: 0
+      });
+    }
+
+    await this.mailService.sendOTP(email, otp);
+    return { message: 'OTP resent successfully' };
   }
 } 
