@@ -18,7 +18,7 @@ import { AppDispatch, RootState } from '../store';
 import { login, clearError } from '../store/slices/authSlice';
 import { useEffect } from 'react';
 
-export function Login() {
+export default function Login() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const location = useLocation();

@@ -22,7 +22,7 @@ import { notifications } from '@mantine/notifications';
 const OTP_EXPIRY_TIME = 5 * 60; 
 const RESEND_COOLDOWN = 60; 
 
-export function EmailVerification() {
+export default function EmailVerification() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const [otp, setOtp] = useState('');

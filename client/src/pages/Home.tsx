@@ -2,7 +2,7 @@ import { Container, Title, Text, Button, Group } from '@mantine/core';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 
-export function Home() {
+export default function Home() {
   const { user } = useSelector((state: RootState) => state.auth);
 
   return (

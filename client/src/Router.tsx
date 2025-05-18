@@ -1,9 +1,12 @@
 import { createBrowserRouter } from 'react-router-dom';
-import { Login } from './pages/Login';
-import { Signup } from './pages/Signup';
-import { EmailVerification } from './pages/EmailVerification';
-import { Home } from './pages/Home';
+import { lazy } from 'react';
 import { Layout, ProtectedRoute, PublicRoute } from './components/RouteGuards';
+
+// Lazy load all pages
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
+const EmailVerification = lazy(() => import('./pages/EmailVerification'));
+const Home = lazy(() => import('./pages/Home'));
 
 export const router = createBrowserRouter([
   {

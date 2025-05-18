@@ -101,15 +101,30 @@ export class AuthController {
 
   refresh = async (req: Request, res: Response): Promise<void> => {
     try {
+      // Check for existing access token first
+      const accessToken = req.cookies.accessToken;
+      if (accessToken) {
+        try {
+          const user = await this.authService.validateAccessToken(accessToken);
+          res.json({
+            message: 'Access token is still valid',
+            user
+          });
+          return;
+        } catch (error) {
+          logger.red('REFRESH_ERROR', 'Access token is invalid');
+        }
+      }
+
       const refreshToken = req.cookies.refreshToken;
       if (!refreshToken) {
         res.status(401).json({ message: 'Refresh token required' });
         return;
       }
 
-      const { user, accessToken, refreshToken: newRefreshToken } = await this.authService.refreshToken(refreshToken);
+      const { user, accessToken: newAccessToken, refreshToken: newRefreshToken } = await this.authService.refreshToken(refreshToken);
 
-      res.cookie('accessToken', accessToken, {
+      res.cookie('accessToken', newAccessToken, {
         ...COOKIE_OPTIONS,
         maxAge: ACCESS_COOKIE_EXPIRY
       });

@@ -30,6 +30,22 @@ export class AuthService {
     this.validationService = new ValidationService();
   }
 
+  async validateAccessToken(token: string) {
+    try {
+      const decoded = this.tokenService.verifyAccessToken(token);
+      const user = await this.userRepository.findById(decoded.id);
+      
+      if (!user) {
+        throw new UserNotFoundError();
+      }
+
+      const { password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    } catch (error) {
+      throw new InvalidTokenError();
+    }
+  }
+
   private generateOTP(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }

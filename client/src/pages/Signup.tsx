@@ -18,7 +18,7 @@ import { AppDispatch, RootState } from '../store';
 import { signup, clearError } from '../store/slices/authSlice';
 import { useEffect } from 'react';
 
-export function Signup() {
+export default function Signup() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { loading, error, verificationEmail } = useSelector((state: RootState) => state.auth);

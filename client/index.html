@@ -2,15 +2,87 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/src/favicon.svg" />
-    <meta
-      name="viewport"
-      content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
-    />
-    <title>Vite + Mantine App</title>
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LogIt</title>
+    <style>
+      #root-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #fff;
+      }
+
+      .dots-loader {
+        display: inline-block;
+        position: relative;
+        width: 80px;
+        height: 80px;
+      }
+
+      .dots-loader div {
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #228be6;
+        animation: dots-loader 1.2s linear infinite;
+      }
+
+      .dots-loader div:nth-child(1) {
+        top: 32px;
+        left: 8px;
+        animation-delay: 0s;
+      }
+
+      .dots-loader div:nth-child(2) {
+        top: 32px;
+        left: 32px;
+        animation-delay: -0.4s;
+      }
+
+      .dots-loader div:nth-child(3) {
+        top: 32px;
+        left: 56px;
+        animation-delay: -0.8s;
+      }
+
+      @keyframes dots-loader {
+        0%, 100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.5;
+          transform: scale(0.7);
+        }
+      }
+
+      .loader-text {
+        margin-top: 16px;
+        color: #868e96;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 14px;
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="root-loader">
+        <div class="dots-loader">
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+        <div class="loader-text">Loading...</div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

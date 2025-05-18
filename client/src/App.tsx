@@ -6,7 +6,8 @@ import { store, AppDispatch, RootState } from './store';
 import { router } from './Router';
 import { theme } from './theme';
 import { checkAuth } from './store/slices/authSlice';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
+import { LoadingUI } from './components/LoadingUI';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 
@@ -19,13 +20,25 @@ function AppContent() {
   }, [dispatch]);
 
   if (!isInitialized) {
-    return null; 
+    return <LoadingUI />; 
   }
 
-  return <RouterProvider router={router} />;
+  return (
+    <Suspense fallback={<LoadingUI />}>
+      <RouterProvider router={router} />
+    </Suspense>
+  );
 }
 
 export default function App() {
+  useEffect(() => {
+    // Remove the root loader 
+    const rootLoader = document.getElementById('root-loader');
+    if (rootLoader) {
+      rootLoader.remove();
+    }
+  }, []);
+
   return (
     <Provider store={store}>
       <MantineProvider theme={theme}>
