@@ -26,7 +26,7 @@ router.post('/',
   asyncHandler((req, res) => tagController.createTag(req, res))
 );
 
-
+// Admin Routes 
 
 router.post('/:id/promote',
   asyncHandler((req, res, next) => authorizeRoles('admin', 'superadmin')(req, res, next)),

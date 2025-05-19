@@ -50,7 +50,6 @@ export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
             maxAge: 15 * 60 * 1000 
           });
 
-          // Set user in request
           req.user = decoded;
         } catch (refreshError) {
           res.status(401).json({ message: 'Invalid or expired refresh token' });

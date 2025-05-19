@@ -6,7 +6,7 @@ const articleTagSchema = new Schema<ArticleTag>({
   tagId: { type: String, required: true }
 });
 
-// Create a compound index to ensure uniqueness of article-tag pairs
+//  compound index to ensure uniqueness of article-tag pairs
 articleTagSchema.index({ articleId: 1, tagId: 1 }, { unique: true });
 
 const ArticleTagModel = mongoose.model<ArticleTag>('ArticleTag', articleTagSchema);

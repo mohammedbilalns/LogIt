@@ -68,7 +68,7 @@ function TagSelector({ value, onChange }: TagSelectorProps) {
   }, [searchQuery, tagOptions, handleTagCreate]);
 
   const handleChange = useCallback((newValue: string[]) => {
-    // Ensure we're only storing tag IDs
+    
     onChange(newValue);
     setSearchQuery('');
   }, [onChange]);

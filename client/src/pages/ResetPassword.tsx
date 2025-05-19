@@ -27,8 +27,8 @@ import {
 import { useEffect, useState, useCallback } from 'react';
 import { notifications } from '@mantine/notifications';
 
-const OTP_EXPIRY_TIME = 5 * 60; // 5 minutes in seconds
-const RESEND_COOLDOWN = 60; // 1 minute in seconds
+const OTP_EXPIRY_TIME = 5 * 60; 
+const RESEND_COOLDOWN = 60; 
 
 export default function ResetPassword() {
   const dispatch = useDispatch<AppDispatch>();

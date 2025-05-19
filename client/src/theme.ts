@@ -19,5 +19,5 @@ export const theme = createTheme({
         radius: 'md',
       },
     },
-  }, // individual component overrides
+  },
 });

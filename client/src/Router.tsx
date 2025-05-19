@@ -8,7 +8,7 @@ import {
   SuperAdminProtectedRoute
 } from './components/RouteGuards';
 
-// Lazy load all pages
+// Lazy load  pages
 const Login = lazy(() => import('./pages/Login'));
 const Signup = lazy(() => import('./pages/Signup'));
 const EmailVerification = lazy(() => import('./pages/EmailVerification'));

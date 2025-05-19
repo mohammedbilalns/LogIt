@@ -82,7 +82,7 @@ export const checkAuth = createAsyncThunk('auth/check', async (_, { rejectWithVa
 
     return response.data;
   } catch (error: any) {
-    // Even if the refresh fails, we should still initialize the app
+    
     return rejectWithValue(null);
   }
 });

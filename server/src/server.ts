@@ -14,7 +14,7 @@ const app = express();
 const PORT = env.PORT;
 const MONGODB_URI = env.MONGODB_URI;
 
-// Middleware
+// Middlewares
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({

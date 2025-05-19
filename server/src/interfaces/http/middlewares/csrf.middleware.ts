@@ -32,7 +32,7 @@ export const setCsrfToken = (_req: Request, res: Response, next: NextFunction) =
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict'
   });
-  // Send the token in the response header as well
+  // Send the token in the response header 
   res.setHeader('x-csrf-token', token);
   next();
 }; 
