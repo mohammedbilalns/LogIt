@@ -78,12 +78,11 @@ export const logout = createAsyncThunk('auth/logout', async (_, { rejectWithValu
 
 export const checkAuth = createAsyncThunk('auth/check', async (_, { rejectWithValue }) => {
   try {
-  
-
-
     const response = await api.post<AuthResponse>('/auth/refresh');
+
     return response.data;
   } catch (error: any) {
+    // Even if the refresh fails, we should still initialize the app
     return rejectWithValue(null);
   }
 });

@@ -13,24 +13,22 @@ const axiosInstance = axios.create({
 // Request interceptor to add CSRF token
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Skip CSRF token for public endpoints
-    const skipCsrfEndpoints = [
-      '/auth/login',
-      '/auth/signup',
-      '/auth/verify-otp',
-      '/auth/reset-password',
-      '/auth/verify-resetotp',
-      '/auth/update-password'
-    ];
-    if (skipCsrfEndpoints.some(endpoint => config.url?.endsWith(endpoint))) {
+ 
+    const skipMethods = ['get', 'head', 'options'];
+    const method = config.method?.toLowerCase() || '';
+    // Check if the request method is one of the skip methods
+    if (skipMethods.includes(method)) {
       return config;
     }
+ 
 
     // Get CSRF token from cookie
     const csrfToken = document.cookie
       .split('; ')
       .find(row => row.startsWith('csrf-token='))
       ?.split('=')[1];
+
+    console.log('CSRF Token:', csrfToken);
 
     if (csrfToken) {
       config.headers['x-csrf-token'] = csrfToken;

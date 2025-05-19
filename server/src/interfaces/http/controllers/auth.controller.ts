@@ -19,7 +19,6 @@ export class AuthController {
   signup = async (req: Request, res: Response): Promise<void> => {
     try {
       const user = await this.authService.signup(req.body);
-      this.setCsrfToken(res);
       res.status(201).json({
         message: 'Signup successful. Please check your email for OTP verification.',
         user
@@ -51,8 +50,6 @@ export class AuthController {
         maxAge: REFRESH_COOKIE_EXPIRY
       });
 
-      this.setCsrfToken(res);
-
       res.json({
         message: 'Email verified successfully',
         user
@@ -82,8 +79,6 @@ export class AuthController {
         maxAge: REFRESH_COOKIE_EXPIRY
       });
       
-      this.setCsrfToken(res);
-
       res.json({
         message: 'Login successful',
         user
@@ -101,6 +96,9 @@ export class AuthController {
 
   refresh = async (req: Request, res: Response): Promise<void> => {
     console.log('Refresh request received');
+    // Set CSRF token 
+    this.setCsrfToken(res);
+    
     try {
       // Check for existing access token first
       const accessToken = req.cookies.accessToken;
@@ -135,8 +133,6 @@ export class AuthController {
         maxAge: REFRESH_COOKIE_EXPIRY
       });
 
-      this.setCsrfToken(res);
-
       res.json({
         message: 'Tokens refreshed successfully',
         user
@@ -164,10 +160,7 @@ export class AuthController {
       maxAge: 0
     });
 
-    res.cookie('csrf-token', '', {
-      ...COOKIE_OPTIONS,
-      maxAge: 0
-    });
+   
 
     res.json({ message: 'Logout successful' });
   };
@@ -203,6 +196,7 @@ export class AuthController {
         maxAge: REFRESH_COOKIE_EXPIRY
       });
       
+      // Set CSRF token 
       this.setCsrfToken(res);
 
       res.json({
