@@ -67,12 +67,20 @@ export class MongoUserRepository implements IUserRepository {
 
   async fetch(page=1, limit=10, search=''): Promise<{ users: User[]; total: number; }> {
     
-    const query = search ? {
-      $or:[
-        {name:{$regex: search , $options:'i'}},
-        {email: {$regex: search, $options:'i'}}
+    const query = search
+  ? {
+      $and: [
+        {
+          $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+          ],
+        },
+        { role: 'user' },
       ],
-    }:{}
+    }
+  : { role: 'user' };
+
 
     const skip = (page-1) * limit 
     const [userDocs, total] = await Promise.all([UserModel.

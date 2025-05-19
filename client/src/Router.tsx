@@ -14,6 +14,7 @@ const Signup = lazy(() => import('./pages/Signup'));
 const EmailVerification = lazy(() => import('./pages/EmailVerification'));
 const Home = lazy(() => import('./pages/Home'));
 const Articles = lazy(() => import('./pages/Articles'));
+const ArticleEditor = lazy(() => import('./components/ArticleEditorForm'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
 const AdminLayout = lazy(() => import('./components/admin/AdminLayout'));
@@ -35,6 +36,14 @@ export const router = createBrowserRouter([
           {
             path: '/articles',
             element: <Articles />,
+          },
+          {
+            path: '/articles/create',
+            element: <ArticleEditor mode="create" onClose={() => {}} />,
+          },
+          {
+            path: '/articles/:id/edit',
+            element: <ArticleEditor mode="edit" onClose={() => {}} />,
           },
           {
             path: '/logs',
@@ -67,19 +76,19 @@ export const router = createBrowserRouter([
               },
               {
                 path: '/admin/reports',
-                element: <AdminDashboard />, // Replace with ReportsManagement component
+                element: <AdminDashboard />, 
               },
               {
                 path: '/admin/tags',
-                element: <AdminDashboard />, // Replace with TagManagement component
+                element: <AdminDashboard />, 
               },
               {
                 path: '/admin/subscriptions',
-                element: <AdminDashboard />, // Replace with SubscriptionSettings component
+                element: <AdminDashboard />,
               },
               {
                 path: '/admin/analytics',
-                element: <AdminDashboard />, // Replace with Analytics component
+                element: <AdminDashboard />, 
               },
             ],
           },
@@ -91,7 +100,7 @@ export const router = createBrowserRouter([
         children: [
           {
             path: '/admin/manage-admins',
-            element: <AdminDashboard />, // Replace with actual AdminManagement component when created
+            element: <AdminDashboard />,
           },
         ],
       },

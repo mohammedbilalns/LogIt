@@ -4,10 +4,11 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import authRoutes from './interfaces/http/routes/auth.routes';
 import adminRoutes from './interfaces/http/routes/admin.routes';
+import articleRoutes from './interfaces/http/routes/article.route';
+import tagRoutes from './interfaces/http/routes/tag.routes';
 import env from './config/env';
 import morgan from 'morgan';
 import { logger } from './utils/logger';
-
 
 const app = express();
 const PORT = env.PORT;
@@ -25,6 +26,8 @@ app.use(morgan('dev'));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/articles', articleRoutes);
+app.use('/api/tags', tagRoutes);
 
 // Connect to DB 
 mongoose.connect(MONGODB_URI)

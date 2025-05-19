@@ -6,7 +6,7 @@ import { LoadingOverlay, Box } from '@mantine/core';
 import Navbar from './Navbar';
 import UserSidebar from './user/UserSidebar';
 
-// Layout component 
+
 export function Layout() {
   const { user } = useSelector((state: RootState) => state.auth);
   return (

@@ -17,25 +17,65 @@ declare global {
 export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const token = req.cookies.accessToken;
+      let token = req.cookies.accessToken;
 
       if (!token) {
-        res.status(401).json({ message: 'Authentication required' });
-        return;
+        // Check for refresh token
+        const refreshToken = req.cookies.refreshToken;
+        if (!refreshToken) {
+          res.status(401).json({ message: 'Authentication required' });
+          return;
+        }
+
+        try {
+          // Verify refresh token
+          const decoded = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET) as { 
+            id: string; 
+            email: string; 
+            role: 'user' | 'admin' | 'superadmin' 
+          };
+
+          // Generate new access token
+          token = jwt.sign(
+            { id: decoded.id, email: decoded.email, role: decoded.role },
+            jwtSecret,
+            { expiresIn: '15m' }
+          );
+
+          // Set new access token in cookie
+          res.cookie('accessToken', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 15 * 60 * 1000 
+          });
+
+          // Set user in request
+          req.user = decoded;
+        } catch (refreshError) {
+          res.status(401).json({ message: 'Invalid or expired refresh token' });
+          return;
+        }
+      } else {
+        // Verify existing access token
+        const decoded = jwt.verify(token, jwtSecret) as { 
+          id: string; 
+          email: string; 
+          role: 'user' | 'admin' | 'superadmin' 
+        };
+        req.user = decoded;
       }
 
-      const decoded = jwt.verify(token, jwtSecret) as { id: string; email: string; role: 'user' | 'admin' | 'superadmin' };
-      req.user = decoded;
       next();
     } catch (error) {
       res.status(401).json({ message: 'Invalid or expired token' });
       return;
     }
   };
-}; 
+};
 
 export const authorizeRoles = (...allowedRoles: ('user' | 'admin' | 'superadmin')[]) => {
-  return  (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Unauthorized: No user found' });
     }
@@ -44,6 +84,6 @@ export const authorizeRoles = (...allowedRoles: ('user' | 'admin' | 'superadmin'
       return res.status(403).json({ message: 'Forbidden: You do not have permission to access this resource' });
     }
 
-   return  next();
+    return next();
   };
 };

@@ -6,9 +6,6 @@ import CreateButton from '../components/CreateButton';
 export default function Home() {
   const { user } = useSelector((state: RootState) => state.auth);
 
-  const handleCreate = () => {
-    
-  };
 
   return (
     <Container size="lg" py="xl">
@@ -26,7 +23,7 @@ export default function Home() {
         </Button>
       </Group>
 
-      <CreateButton onClick={handleCreate} />
+      <CreateButton  />
     </Container>
   );
 } 

@@ -1,7 +1,10 @@
-import { Button, ActionIcon, Group } from '@mantine/core';
+import { Button } from '@mantine/core';
 import { IconPlus } from '@tabler/icons-react';
+import { useNavigate } from 'react-router-dom';
 
-export default function CreateButton({ onClick }: { onClick?: () => void }) {
+export default function CreateButton() {
+  const navigate = useNavigate();
+
   return (
     <Button
       leftSection={<IconPlus size={20} />}
@@ -15,7 +18,7 @@ export default function CreateButton({ onClick }: { onClick?: () => void }) {
         zIndex: 200,
         boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
       }}
-      onClick={onClick}
+      onClick={() => navigate('/articles/create')}
     >
       Create
     </Button>
