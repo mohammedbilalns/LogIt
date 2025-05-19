@@ -9,6 +9,7 @@ import { IconUpload } from '@tabler/icons-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { createArticle, updateArticle, fetchArticle, clearCurrentArticle } from '../store/slices/articleSlice';
+import { fetchTags } from '../store/slices/tagSlice';
 import { AppDispatch, RootState } from '../store';
 import TagSelector from './TagSelector';
 import { notifications } from '@mantine/notifications';
@@ -64,8 +65,8 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
     if (trimmed.length < 5) {
       return 'Title must be at least 5 characters long';
     }
-    if (trimmed.length > 25) {
-      return 'Title must not exceed 25 characters';
+    if (trimmed.length > 150) {
+      return 'Title must not exceed 150 characters';
     }
     return undefined;
   }, []);
@@ -74,6 +75,9 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
     const textContent = editor?.getText().trim() || '';
     if (textContent.length < 50) {
       return 'Article content must be at least 50 characters long';
+    }
+    if (textContent.length > 50000) {
+      return 'Article content must not exceed 50,000 characters';
     }
     return undefined;
   }, [editor]);
@@ -125,6 +129,10 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
       setEditorContent(currentArticle.content);
     }
   }, [mode, currentArticle, editor]);
+
+  useEffect(() => {
+    dispatch(fetchTags());
+  }, [dispatch]);
 
   const handleImageUpload = useCallback(async (file: File) => {
     if (!editor) {
@@ -179,6 +187,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
       featured_image: featuredImage,
     };
 
+  
     try {
       if (mode === 'create') {
         await dispatch(createArticle(articleData)).unwrap();
@@ -188,7 +197,8 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
           color: 'green',
         });
       } else if (mode === 'edit' && articleId) {
-        await dispatch(updateArticle({ id: articleId, articleData })).unwrap();
+        const result = await dispatch(updateArticle({ id: articleId, articleData })).unwrap();
+        console.log('Update result:', result);
         notifications.show({
           title: 'Success',
           message: 'Article updated successfully',
@@ -197,18 +207,19 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
       }
       onClose();
       navigate('/articles');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save article:', error);
+
       notifications.show({
         title: 'Error',
-        message: 'Failed to save article. Please try again.',
+        message: error.message || 'Failed to save article. Please try again.',
         color: 'red',
       });
     }
   };
 
   return (
-    <Box pos="relative" ml={290} mt={100} mr={30} pl="md">
+    <Box pos="relative" ml={290} mt={100} mb={5} mr={30} pl="md">
       <LoadingOverlay visible={articleLoading || tagsLoading || isUploading} overlayProps={{ radius: "sm", blur: 2 }} />
 
       <Box mb="xl">
@@ -225,6 +236,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
           error={errors.title}
           required
           size="lg"
+          maxLength={150}
         />
       </Box>
 
@@ -287,7 +299,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
           </RichTextEditor.Toolbar>
 
           <RichTextEditor.Content
-            style={{ minHeight: '400px' }}
+            style={{ minHeight: '400px', maxHeight: '800px', overflowY: 'auto' }}
             onPaste={(e) => {
               const items = e.clipboardData?.items;
               if (items) {

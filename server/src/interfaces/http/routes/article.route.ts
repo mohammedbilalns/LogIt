@@ -27,12 +27,6 @@ router.use(
   asyncHandler((req, res, next) => csrfMiddleware()(req, res, next))
 );
 
-// Get user's articles
-router.get('/user/articles', 
-  asyncHandler((req, res, next) => authorizeRoles('user', 'admin', 'superadmin')(req, res, next)),
-  asyncHandler((req, res) => articleController.getUserArticles(req, res))
-);
-
 router.post('/', 
   asyncHandler((req, res, next) => authorizeRoles('user')(req, res, next)),
   asyncHandler((req, res) => articleController.createArticle(req, res))

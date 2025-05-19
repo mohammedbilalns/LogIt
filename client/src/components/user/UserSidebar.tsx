@@ -39,7 +39,6 @@ export default function UserSidebar() {
     },
   ];
 
-  // Helper for initials
   const getInitials = (name?: string) => {
     if (!name) {
       return '?';
@@ -71,7 +70,9 @@ export default function UserSidebar() {
     >
       <Stack gap="xs">
         {sidebarItems.map((item) => {
-          const isActive = location.pathname === item.path;
+          const isActive = item.path === '/articles' 
+            ? location.pathname.startsWith('/articles')
+            : location.pathname === item.path;
           return (
             <UnstyledButton
               key={item.label}

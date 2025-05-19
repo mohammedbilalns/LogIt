@@ -92,7 +92,7 @@ export default function ArticleDetailPage() {
           </Box>
 
           <Group gap="xs" mt="xl">
-            {article.tags.map(tag => (
+            {article.tagNames.map(tag => (
               <Chip 
                 key={tag} 
                 size="sm" 

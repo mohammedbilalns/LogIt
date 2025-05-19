@@ -114,7 +114,8 @@ export class ArticleService {
 
     return {
       ...article,
-      tags: tagNames,
+      tags: tagIds,
+      tagNames,
       author: authorName
     };
   }

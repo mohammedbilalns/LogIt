@@ -24,11 +24,22 @@ export class ArticleController {
     const { id } = req.params;
     const { title, content, tagIds, featured_image } = req.body;
     
+    console.log('Update article request:', {
+      id,
+      title,
+      content: content?.substring(0, 100) + '...', // Log first 100 chars of content
+      tagIds,
+      featured_image
+    });
+    
     const article = await this.articleService.updateArticle(
       id, 
       { title, content, featured_image }, 
       tagIds
     );
+
+    console.log('Update article response:', article ? 'Success' : 'Not found');
+    
     if (!article) {
       return res.status(404).json({ message: 'Article not found' });
     }

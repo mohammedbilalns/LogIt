@@ -27,11 +27,13 @@ function TagSelector({ value, onChange }: TagSelectorProps) {
     dispatch(fetchTags());
   }, [dispatch]);
 
-  const tagOptions = useMemo(() => 
-    searchResults.length > 0
-      ? searchResults.map((tag: Tag) => ({ value: tag._id, label: tag.name }))
-      : tags.map((tag: Tag) => ({ value: tag._id, label: tag.name }))
-  , [searchResults, tags]);
+  const tagOptions = useMemo(() => {
+    const allTags = searchResults.length > 0 ? searchResults : tags;
+    return allTags.map((tag: Tag) => ({
+      value: tag._id,
+      label: tag.name
+    }));
+  }, [searchResults, tags]);
 
   const handleTagCreate = useCallback(async (query: string) => {
     try {
@@ -66,6 +68,7 @@ function TagSelector({ value, onChange }: TagSelectorProps) {
   }, [searchQuery, tagOptions, handleTagCreate]);
 
   const handleChange = useCallback((newValue: string[]) => {
+    // Ensure we're only storing tag IDs
     onChange(newValue);
     setSearchQuery('');
   }, [onChange]);

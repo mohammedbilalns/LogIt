@@ -11,7 +11,7 @@ import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import { IconArticle } from '@tabler/icons-react';
 
-const MAX_VISIBLE_LINES = 3;
+const MAX_VISIBLE_LINES = 2;
 
 export default function ArticlesPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -46,7 +46,8 @@ export default function ArticlesPage() {
       <Box mt={4}>
         <Box style={{ 
           maxHeight: `${MAX_VISIBLE_LINES * 1.5}em`,
-          overflow: 'hidden'
+          overflow: 'hidden',
+          position: 'relative'
         }}>
           <ReactMarkdown 
             rehypePlugins={[rehypeRaw]} 
@@ -54,12 +55,23 @@ export default function ArticlesPage() {
             components={{
               img: () => null,
               p: ({ children }) => (
-                <Text size="sm">{children}</Text>
+                <Text size="sm" lineClamp={MAX_VISIBLE_LINES}>{children}</Text>
               )
             }}
           >
             {content}
           </ReactMarkdown>
+          <Box
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: '2em',
+              background: 'linear-gradient(transparent, white)',
+              pointerEvents: 'none'
+            }}
+          />
         </Box>
         <Button 
           variant="subtle" 
@@ -135,7 +147,7 @@ export default function ArticlesPage() {
         </Group>
       </Group>
 
-      {/* Recent Tags - display only */}
+      {/* Recent Tags */}
       <Group mb="md" align="flex-start">
         <Text fw={500} mt={6}>Recent Tags:</Text>
         <Group gap="xs">
@@ -189,7 +201,7 @@ export default function ArticlesPage() {
                 </Group>
                 {renderArticleContent(article.content, article._id)}
                 <Group gap="xs" mt={6} style={{ flexWrap: 'wrap' }}>
-                  {article.tags.slice(0, 5).map(tag => (
+                  {article.tagNames.slice(0, 5).map(tag => (
                     <Chip 
                       key={tag} 
                       size="xs" 
@@ -201,14 +213,14 @@ export default function ArticlesPage() {
                       {tag}
                     </Chip>
                   ))}
-                  {article.tags.length > 5 && (
+                  {article.tagNames.length > 5 && (
                     <Chip 
                       size="xs" 
                       variant="light"
                       color="blue"
                       disabled
                     >
-                      +{article.tags.length - 5} more
+                      +{article.tagNames.length - 5} more
                     </Chip>
                   )}
                 </Group>

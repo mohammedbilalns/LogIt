@@ -15,7 +15,7 @@ import {
 } from '@mantine/core';
 import { IconMailCheck } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '../store';
-import { verifyEmail, clearError, resendOTP } from '../store/slices/authSlice';
+import { verifyEmail, clearError, resendOTP, setVerificationEmail } from '../store/slices/authSlice';
 import { notifications } from '@mantine/notifications';
 
 const OTP_EXPIRY_TIME = 5 * 60; 
@@ -50,6 +50,7 @@ export default function EmailVerification() {
       navigate('/signup');
     }
     if (isAuthenticated) {
+      
       navigate('/');
     }
     return () => {
@@ -88,6 +89,12 @@ export default function EmailVerification() {
           color: 'red',
         });
         navigate('/signup');
+      } else if (verifyEmail.fulfilled.match(result)) {
+        notifications.show({
+          title: 'Success',
+          message: 'Email verified successfully! Welcome to LogIt.',
+          color: 'green',
+        });
       }
     }
   };
@@ -111,7 +118,7 @@ export default function EmailVerification() {
   };
 
   return (
-    <Container size={420} my={40}>
+    <Container size={420} my={100}>
       <Paper radius="lg" p="xl" withBorder>
         <Center mb="xl">
           <IconMailCheck size={50} color="var(--mantine-color-blue-6)" />
@@ -184,6 +191,18 @@ export default function EmailVerification() {
                 {resendCooldown > 0 ? `Resend in ${formatTime(resendCooldown)}` : 'Resend'}
               </Button>
             </Group>
+
+            <Button
+              variant="subtle"
+              fullWidth
+              mt="md"
+              onClick={() => {
+                dispatch(setVerificationEmail(null));
+                navigate('/signup');
+              }}
+            >
+              Back to Signup
+            </Button>
           </Stack>
         </form>
       </Paper>

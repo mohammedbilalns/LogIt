@@ -7,6 +7,7 @@ interface Article {
   title: string;
   content: string;
   tags: string[];
+  tagNames: string[];
   author: string;
   authorId: string;
   featured_image?: string;
@@ -59,6 +60,7 @@ export const updateArticle = createAsyncThunk(
       featured_image?: string;
     }
   }) => {
+  
     const response = await axiosInstance.put(`/articles/${id}`, articleData);
     return response.data;
   }
