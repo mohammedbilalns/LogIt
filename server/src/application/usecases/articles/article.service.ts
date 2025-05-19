@@ -2,12 +2,14 @@ import { Article, ArticleWithTags } from '../../../domain/entities/article.entit
 import { IArticleRepository } from '../../../domain/repositories/article.repository.interface';
 import { ITagRepository } from '../../../domain/repositories/tag.repository.interface';
 import { MongoArticleTagRepository } from '../../../infrastructure/repositories/mongodb/article-tag.repository';
+import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
 
 export class ArticleService {
   constructor(
     private articleRepository: IArticleRepository,
     private tagRepository: ITagRepository,
-    private articleTagRepository: MongoArticleTagRepository
+    private articleTagRepository: MongoArticleTagRepository,
+    private userRepository: IUserRepository
   ) {}
 
   async createArticle(article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>, tagIds: string[]): Promise<ArticleWithTags> {
@@ -84,6 +86,16 @@ export class ArticleService {
     const articlesWithTags = await Promise.all(
       articles.map(article => this.getArticleWithTags(article.id!))
     );
+
+    // If sorting by tag usage count
+    if (params.sortBy === 'tagUsageCount') {
+      articlesWithTags.sort((a, b) => {
+        const aTagCount = a.tags.length;
+        const bTagCount = b.tags.length;
+        return params.sortOrder === 'desc' ? bTagCount - aTagCount : aTagCount - bTagCount;
+      });
+    }
+
     return { articles: articlesWithTags, total };
   }
 
@@ -96,9 +108,14 @@ export class ArticleService {
     const tags = await Promise.all(tagIds.map(id => this.tagRepository.findById(id)));
     const tagNames = tags.map(tag => tag?.name).filter((name): name is string => name !== null);
 
+    // Get author information
+    const author = await this.userRepository.findById(article.authorId);
+    const authorName = author ? author.name : 'Unknown Author';
+
     return {
       ...article,
-      tags: tagNames
+      tags: tagNames,
+      author: authorName
     };
   }
 } 

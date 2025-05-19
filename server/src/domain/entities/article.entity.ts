@@ -11,4 +11,5 @@ export interface Article {
 
 export interface ArticleWithTags extends Article {
   tags: string[];
+  author: string;
 } 

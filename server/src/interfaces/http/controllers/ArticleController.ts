@@ -62,6 +62,29 @@ export class ArticleController {
     return res.json(articles);
   }
 
+  async getUserArticles(req: Request, res: Response) {
+    const authorId = req.user?.id;
+    if (!authorId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const { page, limit, search, sortBy, sortOrder } = req.query;
+    
+    const articles = await this.articleService.getArticles({
+      page: Number(page),
+      limit: Number(limit),
+      search: search as string,
+      sortBy: sortBy as string,
+      sortOrder: sortOrder as 'asc' | 'desc',
+      filters: {
+        authorId,
+        isActive: true
+      }
+    });
+    
+    return res.json(articles);
+  }
+
   async deleteArticle(req: Request, res: Response) {
     const { id } = req.params;
     await this.articleService.deleteArticle(id);

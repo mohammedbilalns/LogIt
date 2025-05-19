@@ -35,9 +35,11 @@ export class TagController {
   async getTags(req: Request, res: Response) {
     const { page, limit, search, promoted } = req.query;
     
+    //  default to 5 tags
+    const defaultLimit = 5;
     const tags = await this.tagService.getTags({
-      page: Number(page),
-      limit: Number(limit),
+      page: Number(page) || 1,
+      limit: Number(limit) || defaultLimit,
       search: search as string,
       promoted: promoted === 'true'
     });

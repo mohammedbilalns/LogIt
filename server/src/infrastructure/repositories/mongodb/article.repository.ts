@@ -61,6 +61,16 @@ export class MongoArticleRepository implements IArticleRepository {
       ];
     }
 
+    // Handle tag filtering
+    if (filters.tags && Array.isArray(filters.tags) && filters.tags.length > 0) {
+      const articleTagModel = mongoose.model('ArticleTag');
+      const articleIds = await articleTagModel.distinct('articleId', {
+        tagId: { $in: filters.tags }
+      });
+      query._id = { $in: articleIds };
+      delete query.tags; // Remove tags from the query 
+    }
+
     const skip = (page - 1) * limit;
     const sort: any = {};
     sort[sortBy] = sortOrder === 'asc' ? 1 : -1;

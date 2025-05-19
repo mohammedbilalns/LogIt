@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '../../api/axios';
+import { RootState } from '../../store';
 
 interface Article {
   _id: string;
@@ -17,6 +18,9 @@ interface ArticleState {
   currentArticle: Article | null;
   loading: boolean;
   error: string | null;
+  total: number;
+  hasMore: boolean;
+  searchQuery: string;
 }
 
 const initialState: ArticleState = {
@@ -24,6 +28,9 @@ const initialState: ArticleState = {
   currentArticle: null,
   loading: false,
   error: null,
+  total: 0,
+  hasMore: true,
+  searchQuery: '',
 };
 
 // Async thunks
@@ -49,25 +56,9 @@ export const updateArticle = createAsyncThunk(
       content: string; 
       tagIds: string[]; 
       featured_image?: string;
-    }; 
+    }
   }) => {
     const response = await axiosInstance.put(`/articles/${id}`, articleData);
-    return response.data;
-  }
-);
-
-export const fetchArticles = createAsyncThunk(
-  'articles/fetchAll',
-  async () => {
-    const response = await axiosInstance.get('/articles');
-    return response.data.articles;
-  }
-);
-
-export const fetchArticle = createAsyncThunk(
-  'articles/fetchOne',
-  async (id: string) => {
-    const response = await axiosInstance.get(`/articles/${id}`);
     return response.data;
   }
 );
@@ -80,12 +71,80 @@ export const deleteArticle = createAsyncThunk(
   }
 );
 
+export const fetchArticles = createAsyncThunk(
+  'articles/fetchAll',
+  async ({ page, limit, search, sortBy, sortOrder }: { 
+    page: number; 
+    limit: number; 
+    search?: string; 
+    sortBy?: string; 
+    sortOrder?: 'asc' | 'desc';
+  }, { getState }) => {
+    const state = getState() as RootState;
+    const response = await axiosInstance.get('/articles', {
+      params: {
+        page,
+        limit,
+        search: search || state.articles.searchQuery,
+        sortBy: sortBy === 'tagUsage' ? 'tagUsageCount' : sortBy,
+        sortOrder,
+      },
+    });
+    return response.data;
+  }
+);
+
+export const fetchUserArticles = createAsyncThunk(
+  'articles/fetchUserArticles',
+  async ({ page, limit, search, sortBy, sortOrder }: { 
+    page: number; 
+    limit: number; 
+    search?: string; 
+    sortBy?: string; 
+    sortOrder?: 'asc' | 'desc';
+  }, { getState }) => {
+    const state = getState() as RootState;
+    const response = await axiosInstance.get('/articles/user/articles', {
+      params: {
+        page,
+        limit,
+        search: search || state.articles.searchQuery,
+        sortBy,
+        sortOrder,
+      },
+    });
+    return response.data;
+  }
+);
+
+export const fetchArticle = createAsyncThunk(
+  'articles/fetchOne',
+  async (id: string) => {
+    const response = await axiosInstance.get(`/articles/${id}`);
+    return response.data;
+  }
+);
+
 const articleSlice = createSlice({
   name: 'articles',
   initialState,
   reducers: {
     clearCurrentArticle: (state) => {
       state.currentArticle = null;
+    },
+    setSearchQuery: (state, action) => {
+      state.searchQuery = action.payload;
+      state.articles = [];
+      state.hasMore = true;
+    },
+    resetState: (state) => {
+      state.articles = [];
+      state.currentArticle = null;
+      state.loading = false;
+      state.error = null;
+      state.total = 0;
+      state.hasMore = true;
+      state.searchQuery = '';
     },
   },
   extraReducers: (builder) => {
@@ -129,11 +188,42 @@ const articleSlice = createSlice({
       })
       .addCase(fetchArticles.fulfilled, (state, action) => {
         state.loading = false;
-        state.articles = action.payload;
+        if (action.meta.arg.page === 1) {
+          state.articles = action.payload.articles;
+        } else {
+          const newArticles = action.payload.articles.filter(
+            (newArticle: Article) => !state.articles.some(existingArticle => existingArticle._id === newArticle._id)
+          );
+          state.articles = [...state.articles, ...newArticles];
+        }
+        state.total = action.payload.total;
+        state.hasMore = state.articles.length < action.payload.total;
       })
       .addCase(fetchArticles.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch articles';
+      })
+      // Fetch User Articles
+      .addCase(fetchUserArticles.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUserArticles.fulfilled, (state, action) => {
+        state.loading = false;
+        if (action.meta.arg.page === 1) {
+          state.articles = action.payload.articles;
+        } else {
+          const newArticles = action.payload.articles.filter(
+            (newArticle: Article) => !state.articles.some(existingArticle => existingArticle._id === newArticle._id)
+          );
+          state.articles = [...state.articles, ...newArticles];
+        }
+        state.total = action.payload.total;
+        state.hasMore = state.articles.length < action.payload.total;
+      })
+      .addCase(fetchUserArticles.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch user articles';
       })
       // Fetch Single Article
       .addCase(fetchArticle.pending, (state) => {
@@ -167,5 +257,5 @@ const articleSlice = createSlice({
   },
 });
 
-export const { clearCurrentArticle } = articleSlice.actions;
+export const { clearCurrentArticle, setSearchQuery, resetState } = articleSlice.actions;
 export default articleSlice.reducer; 
