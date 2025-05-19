@@ -70,7 +70,7 @@ export default function Login() {
   };
 
   return (
-    <Container size={580} my={40}>
+    <Container size={580} my={40} mt={100}>
       <Paper radius="lg" p="xl" withBorder>
         <Center mb="lg">
           <IconLock size={42} color="var(--mantine-color-blue-6)" />

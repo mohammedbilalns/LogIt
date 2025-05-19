@@ -162,7 +162,7 @@ export class AuthController {
 
    
 
-    res.json({ message: 'Logout successful' });
+    res.json({ message: 'Logged out successfully' });
   };
 
   resendOTP = async (req: Request, res: Response): Promise<void> => {

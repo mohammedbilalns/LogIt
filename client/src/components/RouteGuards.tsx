@@ -4,12 +4,15 @@ import { RootState } from '../store';
 import { Suspense } from 'react';
 import { LoadingOverlay, Box } from '@mantine/core';
 import Navbar from './Navbar';
+import UserSidebar from './user/UserSidebar';
 
 // Layout component 
 export function Layout() {
+  const { user } = useSelector((state: RootState) => state.auth);
   return (
     <Box>
       <Navbar />
+      {user?.role === 'user' && <UserSidebar />}
       <Box style={{ marginTop: '4.5rem' }}>
         <Suspense fallback={<LoadingOverlay visible />}>
           <Outlet />

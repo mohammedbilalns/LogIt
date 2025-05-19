@@ -1,9 +1,14 @@
 import { Container, Title, Text, Button, Group } from '@mantine/core';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
+import CreateButton from '../components/CreateButton';
 
 export default function Home() {
   const { user } = useSelector((state: RootState) => state.auth);
+
+  const handleCreate = () => {
+    
+  };
 
   return (
     <Container size="lg" py="xl">
@@ -12,8 +17,7 @@ export default function Home() {
       </Title>
 
       <Text c="dimmed" ta="center" size="lg" maw={580} mx="auto" mt="xl">
-        Hello, {user?.name}! This is your protected home page. You can only see this page when you're
-        logged in.
+        Hello, {user?.name}! 
       </Text>
 
       <Group justify="center" mt="xl">
@@ -21,6 +25,8 @@ export default function Home() {
           Get Started
         </Button>
       </Group>
+
+      <CreateButton onClick={handleCreate} />
     </Container>
   );
 } 

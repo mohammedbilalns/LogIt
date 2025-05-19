@@ -1,5 +1,5 @@
-import { Container, Grid, Paper, Text, Title, Group, Button, ActionIcon } from '@mantine/core';
-import { IconUsers, IconNotes, IconSettings, IconTrash, IconEdit } from '@tabler/icons-react';
+import { Container, Grid, Paper, Text, Title, Group  } from '@mantine/core';
+import { IconUsers, IconNotes, IconSettings } from '@tabler/icons-react';
 import { useState } from 'react';
 
 interface User {
@@ -53,47 +53,7 @@ export default function AdminDashboard() {
         </Grid.Col>
       </Grid>
 
-      {/* User Management */}
-      <Paper shadow="sm" p="md" radius="md">
-        <Group justify="space-between" mb="md">
-          <Title order={3}>User Management</Title>
-          <Button>Add User</Button>
-        </Group>
-
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
-                <th style={{ textAlign: 'left', padding: '12px' }}>Name</th>
-                <th style={{ textAlign: 'left', padding: '12px' }}>Email</th>
-                <th style={{ textAlign: 'left', padding: '12px' }}>Role</th>
-                <th style={{ textAlign: 'left', padding: '12px' }}>Last Active</th>
-                <th style={{ textAlign: 'right', padding: '12px' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id} style={{ borderBottom: '1px solid var(--mantine-color-gray-2)' }}>
-                  <td style={{ padding: '12px' }}>{user.name}</td>
-                  <td style={{ padding: '12px' }}>{user.email}</td>
-                  <td style={{ padding: '12px' }}>{user.role}</td>
-                  <td style={{ padding: '12px' }}>{user.lastActive}</td>
-                  <td style={{ padding: '12px', textAlign: 'right' }}>
-                    <Group gap="xs" justify="flex-end">
-                      <ActionIcon variant="subtle" color="blue">
-                        <IconEdit size={16} />
-                      </ActionIcon>
-                      <ActionIcon variant="subtle" color="red">
-                        <IconTrash size={16} />
-                      </ActionIcon>
-                    </Group>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Paper>
+     
     </Container>
   );
 } 
