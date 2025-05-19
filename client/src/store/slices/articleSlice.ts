@@ -8,6 +8,7 @@ interface Article {
   content: string;
   tags: string[];
   author: string;
+  authorId: string;
   featured_image?: string;
   createdAt: string;
   updatedAt: string;

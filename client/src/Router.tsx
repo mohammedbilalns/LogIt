@@ -14,6 +14,7 @@ const Signup = lazy(() => import('./pages/Signup'));
 const EmailVerification = lazy(() => import('./pages/EmailVerification'));
 const Home = lazy(() => import('./pages/Home'));
 const Articles = lazy(() => import('./pages/Articles'));
+const ArticleDetail = lazy(() => import('./pages/ArticleDetail'));
 const ArticleEditor = lazy(() => import('./components/ArticleEditorForm'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
@@ -36,6 +37,10 @@ export const router = createBrowserRouter([
           {
             path: '/articles',
             element: <Articles />,
+          },
+          {
+            path: '/articles/:id',
+            element: <ArticleDetail />,
           },
           {
             path: '/articles/create',

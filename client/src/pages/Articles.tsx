@@ -175,8 +175,10 @@ export default function ArticlesPage() {
               '&:hover': {
                 transform: 'translateY(-2px)',
                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
-              }
+              },
+              cursor: 'pointer'
             }}
+            onClick={() => navigate(`/articles/${article._id}`)}
           >
             <Group align="flex-start" wrap="nowrap">
               {renderArticleImage(article)}
