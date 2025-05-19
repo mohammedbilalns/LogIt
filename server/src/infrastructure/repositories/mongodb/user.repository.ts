@@ -7,6 +7,7 @@ const userSchema = new Schema<User>({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: false },
   isVerified: { type: Boolean, default: false },
+  isBlocked: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   googleId: { type: String },
@@ -83,6 +84,15 @@ export class MongoUserRepository implements IUserRepository {
 
     const users = userDocs.map((doc)=> this.mapToUser(doc))
     return {users, total}
+  }
+
+  async updateUser(id: string, update: Partial<User>): Promise<User | null> {
+    const user = await UserModel.findByIdAndUpdate(
+      id,
+      { ...update, updatedAt: new Date() },
+      { new: true }
+    );
+    return user ? this.mapToUser(user) : null;
   }
 
   private mapToUser(doc: mongoose.Document): User {

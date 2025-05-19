@@ -5,7 +5,6 @@ import {
   Title,
   TextInput,
   Table,
-  Button,
   Group,
   Text,
   Badge,
@@ -14,11 +13,14 @@ import {
   Avatar,
   Stack,
   Box,
+  ActionIcon,
+  Tooltip,
 } from '@mantine/core';
-import { IconSearch } from '@tabler/icons-react';
+import { IconSearch, IconLock, IconLockOpen } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '../../store';
-import { fetchUsers, setSearchQuery } from '../../store/slices/userManagementSlice';
+import { fetchUsers, setSearchQuery, blockUser, unblockUser } from '../../store/slices/userManagementSlice';
 import { useDebouncedValue } from '@mantine/hooks';
+import { notifications } from '@mantine/notifications';
 
 export default function UserManagement() {
   const dispatch = useDispatch<AppDispatch>();
@@ -29,6 +31,32 @@ export default function UserManagement() {
   const { users, loading, error, hasMore } = useSelector(
     (state: RootState) => state.userManagement
   );
+
+  const handleBlockUser = async (userId: string, isBlocked: boolean) => {
+    try {
+      if (isBlocked) {
+        await dispatch(unblockUser(userId)).unwrap();
+        notifications.show({
+          title: 'Success',
+          message: 'User has been unblocked',
+          color: 'green',
+        });
+      } else {
+        await dispatch(blockUser(userId)).unwrap();
+        notifications.show({
+          title: 'Success',
+          message: 'User has been blocked',
+          color: 'red',
+        });
+      }
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to update user status',
+        color: 'red',
+      });
+    }
+  };
 
   const loadUsers = useCallback(
     (page: number, search: string) => {
@@ -146,11 +174,11 @@ export default function UserManagement() {
                     </Table.Td>
                     <Table.Td>
                       <Badge 
-                        color={user.isVerified ? 'green' : 'red'}
+                        color={user.isBlocked ? 'red' : 'green'}
                         variant="light"
                         size="lg"
                       >
-                        {user.isVerified ? 'Verified' : 'Unverified'}
+                        {user.isBlocked ? 'Blocked' : 'Active'}
                       </Badge>
                     </Table.Td>
                     <Table.Td>
@@ -159,14 +187,15 @@ export default function UserManagement() {
                       </Text>
                     </Table.Td>
                     <Table.Td>
-                      <Button
-                        variant="subtle"
-                        color={user.isVerified ? 'red' : 'green'}
-                        size="sm"
-                        radius="xl"
-                      >
-                        {user.isVerified ? 'Block' : 'Unblock'}
-                      </Button>
+                      <Tooltip label={user.isBlocked ? 'Unblock User' : 'Block User'}>
+                        <ActionIcon
+                          variant="subtle"
+                          color={user.isBlocked ? 'green' : 'red'}
+                          onClick={() => handleBlockUser(user.id, user.isBlocked)}
+                        >
+                          {user.isBlocked ? <IconLockOpen size={18} /> : <IconLock size={18} />}
+                        </ActionIcon>
+                      </Tooltip>
                     </Table.Td>
                   </Table.Tr>
                 ))}

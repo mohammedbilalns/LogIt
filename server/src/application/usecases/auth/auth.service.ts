@@ -16,7 +16,8 @@ import {
   MaxRetryAttemptsExceededError,
   EmailAlreadyWithGoogleIdError,
   PasswordResetNotAllowedError,
-  InvalidResetOTPError
+  InvalidResetOTPError,
+  UserBlockedError
 } from '../../errors/auth.errors';
 
 export class AuthService {
@@ -62,6 +63,9 @@ export class AuthService {
     
     const existingUser = await this.userRepository.findByEmail(validatedData.email);
 
+    if(existingUser?.isBlocked) {
+      throw new UserBlockedError();
+    }
     if(!existingUser?.password && existingUser?.googleId) {
       throw new EmailAlreadyWithGoogleIdError();
     }
@@ -105,6 +109,7 @@ export class AuthService {
 
   async verifyOTP(email: string, otp: string) {
     const storedOTP = await this.otpRepository.findByEmail(email);
+
     if (!storedOTP || storedOTP.otp !== otp || storedOTP.type !== 'verification') {
       if (storedOTP) {
         if (storedOTP.retryAttempts >= 4) {
@@ -118,6 +123,9 @@ export class AuthService {
     }
 
     const user = await this.userRepository.findByEmail(email);
+    if(user?.isBlocked) {
+      throw new UserBlockedError();
+    }
     if (!user) {
       throw new UserNotFoundError();
     }
@@ -142,6 +150,9 @@ export class AuthService {
     const user = await this.userRepository.findByEmail(validatedData.email);
     if(!user?.password && user?.googleId) {
       throw new EmailAlreadyWithGoogleIdError();
+    }
+    if(user?.isBlocked) {
+      throw new UserBlockedError();
     }
     if (!user || !user.isVerified || !user.password) {
       throw new InvalidCredentialsError();
@@ -238,11 +249,16 @@ export class AuthService {
         sub: string;
       } | null;
 
+
       if (!decoded) {
         throw new InvalidCredentialsError();
       }
 
       let user = await this.userRepository.findByEmail(decoded.email);
+      
+      if(user?.isBlocked) {
+        throw new UserBlockedError();
+      }
 
       if (!user) {
         user = await this.userRepository.create({
@@ -285,6 +301,9 @@ export class AuthService {
   async initiatePasswordReset(email: string) {
     const user = await this.userRepository.findByEmail(email);
     
+    if(user?.isBlocked) {
+      throw new UserBlockedError();
+    }
     if (!user || user.role === 'admin'|| user.role === 'superadmin') {
       throw new UserNotFoundError();
     }
@@ -336,6 +355,9 @@ export class AuthService {
     const validatedData = this.validationService.validateResetPasswordData({ email, newPassword });
     const user = await this.userRepository.findByEmail(validatedData.email);
     
+    if(user?.isBlocked) {
+      throw new UserBlockedError();
+    }
     if (!user) {
       throw new UserNotFoundError();
     }

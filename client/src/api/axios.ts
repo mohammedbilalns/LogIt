@@ -16,7 +16,6 @@ axiosInstance.interceptors.request.use(
  
     const skipMethods = ['get', 'head', 'options'];
     const method = config.method?.toLowerCase() || '';
-    // Check if the request method is one of the skip methods
     if (skipMethods.includes(method)) {
       return config;
     }
@@ -27,8 +26,6 @@ axiosInstance.interceptors.request.use(
       .split('; ')
       .find(row => row.startsWith('csrf-token='))
       ?.split('=')[1];
-
-    console.log('CSRF Token:', csrfToken);
 
     if (csrfToken) {
       config.headers['x-csrf-token'] = csrfToken;

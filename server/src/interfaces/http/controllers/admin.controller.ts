@@ -25,4 +25,9 @@ export class AdminController {
     }
   };
 
+  updateUser = async (req: Request, res: Response): Promise<void> => {
+    const {id} = req.params;
+    const updatedUser = await this.userManagementService.updateUser(id, {...req.body});
+    res.json(updatedUser);
+  }
 }

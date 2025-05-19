@@ -31,12 +31,5 @@ export class UserManagementService {
     };
   }
 
-  async deleteUser(email: string) {
-    const user = await this.userRepository.findByEmail(email);
-    if (!user) {
-      throw new UserNotFoundError();
-    }
-    await this.userRepository.delete(email);
-    return { message: 'User deleted successfully' };
-  }
+  
 }

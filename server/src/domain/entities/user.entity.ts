@@ -4,6 +4,7 @@ export interface User {
   email: string;
   password?: string;
   isVerified: boolean;
+  isBlocked?: boolean;
   createdAt: Date;
   updatedAt: Date;
   googleId?: string;

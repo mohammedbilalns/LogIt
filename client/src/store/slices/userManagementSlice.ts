@@ -7,6 +7,7 @@ interface User {
   name: string;
   email: string;
   isVerified: boolean;
+  isBlocked: boolean;
   role: string;
   provider: string;
   createdAt: string;
@@ -44,6 +45,22 @@ export const fetchUsers = createAsyncThunk(
         search: search || state.userManagement.searchQuery,
       },
     });
+    return response.data;
+  }
+);
+
+export const blockUser = createAsyncThunk(
+  'userManagement/blockUser',
+  async (id: string) => {
+    const response = await axiosInstance.patch(`/admin/users/${id}`, { isBlocked: true });
+    return response.data;
+  }
+);
+
+export const unblockUser = createAsyncThunk(
+  'userManagement/unblockUser',
+  async (id: string) => {
+    const response = await axiosInstance.patch(`/admin/users/${id}`, { isBlocked: false });
     return response.data;
   }
 );
@@ -88,6 +105,18 @@ const userManagementSlice = createSlice({
       .addCase(fetchUsers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch users';
+      })
+      .addCase(blockUser.fulfilled, (state, action) => {
+        const userIndex = state.users.findIndex(user => user.id === action.payload.id);
+        if (userIndex !== -1) {
+          state.users[userIndex] = { ...state.users[userIndex], isBlocked: true };
+        }
+      })
+      .addCase(unblockUser.fulfilled, (state, action) => {
+        const userIndex = state.users.findIndex(user => user.id === action.payload.id);
+        if (userIndex !== -1) {
+          state.users[userIndex] = { ...state.users[userIndex], isBlocked: false };
+        }
       });
   },
 });

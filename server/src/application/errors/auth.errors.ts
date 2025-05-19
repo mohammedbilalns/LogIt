@@ -34,6 +34,11 @@ export class UserNotFoundError extends AuthError {
     super('User not found');
   }
 }
+export class UserBlockedError extends AuthError {
+  constructor() {
+    super('User is blocked');
+  }
+}
 
 export class InvalidTokenError extends AuthError {
   constructor() {
