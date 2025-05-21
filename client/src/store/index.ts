@@ -3,6 +3,7 @@ import authReducer from './slices/authSlice';
 import userManagementReducer from './slices/userManagementSlice';
 import articleReducer from './slices/articleSlice';
 import tagReducer from './slices/tagSlice';
+import uploadReducer from './slices/uploadSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     userManagement: userManagementReducer,
     articles: articleReducer,
     tags: tagReducer,
+    upload: uploadReducer,
   },
 });
 

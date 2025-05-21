@@ -1,18 +1,33 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TextInput, Button, Box, Group, LoadingOverlay, Text } from '@mantine/core';
 import { RichTextEditor, Link } from '@mantine/tiptap';
-import { useEditor } from '@tiptap/react';
+import { useEditor, BubbleMenu } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Underline from '@tiptap/extension-underline';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import { createLowlight } from 'lowlight';
 import { IconUpload } from '@tabler/icons-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { createArticle, updateArticle, fetchArticle, clearCurrentArticle } from '../store/slices/articleSlice';
 import { fetchTags } from '../store/slices/tagSlice';
+import { uploadImage, clearUploadState } from '../store/slices/uploadSlice';
 import { AppDispatch, RootState } from '../store';
 import TagSelector from './TagSelector';
 import { notifications } from '@mantine/notifications';
+import ts from 'highlight.js/lib/languages/typescript';
+import javascript from 'highlight.js/lib/languages/javascript';
+import html from 'highlight.js/lib/languages/xml';
+import css from 'highlight.js/lib/languages/css';
+import python from 'highlight.js/lib/languages/python';
+import ruby from 'highlight.js/lib/languages/ruby';
+import java from 'highlight.js/lib/languages/java';
+import csharp from 'highlight.js/lib/languages/csharp';
+import php from 'highlight.js/lib/languages/php';
+import go from 'highlight.js/lib/languages/go';
+import swift from 'highlight.js/lib/languages/swift';
+import kotlin from 'highlight.js/lib/languages/kotlin';
 
 import '@mantine/tiptap/styles.css';
 
@@ -27,14 +42,17 @@ interface FormErrors {
   content?: string;
 }
 
+const lowlight = createLowlight();
+lowlight.register({ts, javascript, html, css, python, ruby, java, csharp, php, go, swift, kotlin});
+
 export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleEditorFormProps) {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { currentArticle, loading: articleLoading } = useSelector((state: RootState) => state.articles);
   const { loading: tagsLoading } = useSelector((state: RootState) => state.tags);
+  const { loading: isUploading, error: uploadError } = useSelector((state: RootState) => state.upload);
   const [title, setTitle] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
   const [editorContent, setEditorContent] = useState('');
   const [featuredImage, setFeaturedImage] = useState<string | undefined>(undefined);
   const [hasUploadedImage, setHasUploadedImage] = useState(false);
@@ -42,8 +60,9 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({codeBlock: false}),
       Image,
+      CodeBlockLowlight.configure({ lowlight }),
       Underline,
       Link.configure({
         openOnClick: false,
@@ -101,6 +120,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
   useEffect(() => {
     return () => {
       void dispatch(clearCurrentArticle());
+      void dispatch(clearUploadState());
     };
   }, [dispatch]);
 
@@ -139,41 +159,23 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
       return;
     }
     try {
-      setIsUploading(true);
+      const imageUrl = await dispatch(uploadImage(file)).unwrap();
       
-      const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', uploadPreset);
-
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok || !data.secure_url) {
-        throw new Error(`Upload failed: ${data.error?.message || response.statusText}`);
-      }
-
       if (!hasUploadedImage) {
-        setFeaturedImage(data.secure_url);
+        setFeaturedImage(imageUrl);
         setHasUploadedImage(true);
       }
 
-      editor.chain().focus().setImage({ src: data.secure_url }).run();
+      editor.chain().focus().setImage({ src: imageUrl }).run();
     } catch (error) {
       console.error('Error uploading image:', error);
-    } finally {
-      setIsUploading(false);
+      notifications.show({
+        title: 'Error',
+        message: uploadError || 'Failed to upload image. Please try again.',
+        color: 'red',
+      });
     }
-  }, [editor, hasUploadedImage]);
+  }, [editor, hasUploadedImage, dispatch, uploadError]);
 
   const handleSubmit = async () => {
     if (!editor || !validateForm()) {
@@ -242,11 +244,21 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
 
       <Box mb="xl">
         <RichTextEditor editor={editor}>
+          
           <RichTextEditor.Toolbar sticky stickyOffset={60}>
             <RichTextEditor.ControlsGroup>
+              { editor && ( <BubbleMenu editor={editor}>
+                <RichTextEditor.ControlsGroup>
+
               <RichTextEditor.Bold />
               <RichTextEditor.Italic />
               <RichTextEditor.Underline />
+              </RichTextEditor.ControlsGroup>
+
+             </BubbleMenu>
+              )}
+                 <RichTextEditor.Strikethrough />
+                 <RichTextEditor.ClearFormatting />
               <RichTextEditor.Strikethrough />
               <RichTextEditor.ClearFormatting />
             </RichTextEditor.ControlsGroup>

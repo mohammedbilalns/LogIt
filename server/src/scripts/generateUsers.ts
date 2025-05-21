@@ -25,7 +25,7 @@ const generateRandomUser = async (): Promise<Omit<User, 'id' | 'createdAt' | 'up
   };
 };
 
-const generateUsers = async (count: number = 1000) => {
+const generateUsers = async (count: number = 10000) => {
   try {
     // Connect to MongoDB
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/logit');
