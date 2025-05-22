@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import env from '../config/env';
-import { MongoUserRepository } from '../infrastructure/repositories/mongodb/user.repository';
+import { MongoUserRepository } from '../infrastructure/repositories/user.repository';
 
 const SUPERADMIN_EMAIL = 'superadmin@gmail.com';
 const SUPERADMIN_PASSWORD = '1234Bilal@';

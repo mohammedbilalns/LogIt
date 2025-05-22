@@ -1,20 +1,7 @@
-import mongoose, { Schema } from 'mongoose';
-import { OTP } from '../../../domain/entities/otp.entity';
-import { IOTPRepository } from '../../../domain/repositories/otp.repository.interface';
-
-const otpSchema = new Schema<OTP>({
-  email: { type: String, required: true, unique: true },
-  otp: { type: String, required: true },
-  createdAt: { type: Date, required: true },
-  expiresAt: { type: Date, required: true },
-  retryAttempts: { type: Number, default: 0 },
-  type: { type: String, enum: ['verification', 'reset'], default: 'verification' }
-});
-
-//  TTL index on expiresAt field
-otpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-
-const OTPModel = mongoose.model<OTP>('OTP', otpSchema);
+import mongoose from 'mongoose';
+import { OTP } from '../../domain/entities/otp.entity';
+import { IOTPRepository } from '../../domain/repositories/otp.repository.interface';
+import OTPModel from '../mongodb/otp.schema';
 
 export class MongoOTPRepository implements IOTPRepository {
   async create(otp: Omit<OTP, 'id'>): Promise<OTP> {

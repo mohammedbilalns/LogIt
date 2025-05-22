@@ -1,14 +1,8 @@
-import mongoose, { Schema } from 'mongoose';
-import { Tag } from '../../../domain/entities/tag.entity';
-import { ITagRepository } from '../../../domain/repositories/tag.repository.interface';
+import mongoose from 'mongoose';
+import { Tag } from '../../domain/entities/tag.entity';
+import { ITagRepository } from '../../domain/repositories/tag.repository.interface';
+import TagModel from '../mongodb/tag.schema';
 
-const tagSchema = new Schema<Tag>({
-  name: { type: String, required: true, unique: true },
-  usageCount: { type: Number, default: 0 },
-  promoted: { type: Boolean, default: false }
-});
-
-const TagModel = mongoose.model<Tag>('Tag', tagSchema);
 
 export class MongoTagRepository implements ITagRepository {
   async create(tag: Omit<Tag, 'id'>): Promise<Tag> {

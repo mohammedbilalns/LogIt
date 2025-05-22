@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { User } from '../domain/entities/user.entity';
-import { MongoUserRepository } from '../infrastructure/repositories/mongodb/user.repository';
+import { MongoUserRepository } from '../infrastructure/repositories/user.repository';
 import bcrypt from 'bcryptjs';
 
 dotenv.config();

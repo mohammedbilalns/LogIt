@@ -1,7 +1,7 @@
 import { Article, ArticleWithTags } from '../../../domain/entities/article.entity';
 import { IArticleRepository } from '../../../domain/repositories/article.repository.interface';
 import { ITagRepository } from '../../../domain/repositories/tag.repository.interface';
-import { MongoArticleTagRepository } from '../../../infrastructure/repositories/mongodb/article-tag.repository';
+import { MongoArticleTagRepository } from '../../../infrastructure/repositories/article-tag.repository';
 import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
 
 export class ArticleService {

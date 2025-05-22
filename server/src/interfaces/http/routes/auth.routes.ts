@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
 import { AuthService } from '../../../application/usecases/auth/auth.service';
-import { MongoUserRepository } from '../../../infrastructure/repositories/mongodb/user.repository';
-import { MongoOTPRepository } from '../../../infrastructure/repositories/mongodb/otp.repository';
+import { MongoUserRepository } from '../../../infrastructure/repositories/user.repository';
+import { MongoOTPRepository } from '../../../infrastructure/repositories/otp.repository';
 import { authMiddleware, authorizeRoles } from '../middlewares/auth.middleware';
 import { csrfMiddleware } from '../middlewares/csrf.middleware';
 import { asyncHandler } from '../../../utils/asyncHandler'

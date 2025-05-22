@@ -1,18 +1,7 @@
-import mongoose, { Schema } from 'mongoose';
-import { Article } from '../../../domain/entities/article.entity';
-import { IArticleRepository } from '../../../domain/repositories/article.repository.interface';
-
-const articleSchema = new Schema<Article>({
-  authorId: { type: String, required: true },
-  title: { type: String, required: true },
-  isActive: { type: Boolean, default: true },
-  content: { type: String, required: true },
-  featured_image: { type: String },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-});
-
-const ArticleModel = mongoose.model<Article>('Article', articleSchema);
+import mongoose from 'mongoose';
+import { Article } from '../../domain/entities/article.entity';
+import { IArticleRepository } from '../../domain/repositories/article.repository.interface';
+import ArticleModel from '../mongodb/article.shema';
 
 export class MongoArticleRepository implements IArticleRepository {
   async create(article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>): Promise<Article> {

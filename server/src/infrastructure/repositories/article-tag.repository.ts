@@ -1,15 +1,7 @@
-import mongoose, { Schema } from 'mongoose';
-import { ArticleTag } from '../../../domain/entities/article-tag.entity';
+import mongoose from 'mongoose';
+import { ArticleTag } from '../../domain/entities/article-tag.entity';
+import ArticleTagModel from '../mongodb/article-tag.schema';
 
-const articleTagSchema = new Schema<ArticleTag>({
-  articleId: { type: String, required: true },
-  tagId: { type: String, required: true }
-});
-
-//  compound index to ensure uniqueness of article-tag pairs
-articleTagSchema.index({ articleId: 1, tagId: 1 }, { unique: true });
-
-const ArticleTagModel = mongoose.model<ArticleTag>('ArticleTag', articleTagSchema);
 
 export class MongoArticleTagRepository {
   async create(articleTag: Omit<ArticleTag, 'id'>): Promise<ArticleTag> {

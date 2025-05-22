@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { ArticleController } from '../controllers/ArticleController';
 import { ArticleService } from '../../../application/usecases/articles/article.service';
-import { MongoArticleRepository } from '../../../infrastructure/repositories/mongodb/article.repository';
-import { MongoTagRepository } from '../../../infrastructure/repositories/mongodb/tag.repository';
-import { MongoArticleTagRepository } from '../../../infrastructure/repositories/mongodb/article-tag.repository';
-import { MongoUserRepository } from '../../../infrastructure/repositories/mongodb/user.repository';
+import { MongoArticleRepository } from '../../../infrastructure/repositories/article.repository';
+import { MongoTagRepository } from '../../../infrastructure/repositories/tag.repository';
+import { MongoArticleTagRepository } from '../../../infrastructure/repositories/article-tag.repository';
+import { MongoUserRepository } from '../../../infrastructure/repositories/user.repository';
 import { authMiddleware, authorizeRoles } from '../middlewares/auth.middleware';
 import { csrfMiddleware } from '../middlewares/csrf.middleware';
 import { asyncHandler } from '../../../utils/asyncHandler';

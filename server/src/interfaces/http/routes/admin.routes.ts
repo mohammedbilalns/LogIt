@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { AdminController } from '../controllers/admin.controller';
 import { UserManagementService } from '../../../application/usecases/usermanagement/usermanagement.service';
-import { MongoUserRepository } from '../../../infrastructure/repositories/mongodb/user.repository';
+import { MongoUserRepository } from '../../../infrastructure/repositories/user.repository';
 import { authMiddleware, authorizeRoles } from '../middlewares/auth.middleware';
 import { csrfMiddleware } from '../middlewares/csrf.middleware';
 
