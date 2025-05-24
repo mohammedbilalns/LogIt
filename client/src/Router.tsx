@@ -21,6 +21,7 @@ const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
 const AdminLayout = lazy(() => import('./components/admin/AdminLayout'));
 const UserManagement = lazy(() => import('./pages/admin/UserManagement'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const Profile = lazy(() => import('./pages/user/Profile'));
 
 export const router = createBrowserRouter([
   {
@@ -62,6 +63,10 @@ export const router = createBrowserRouter([
             path: '/network',
             element: <Home />,
           },
+          {
+            path: '/profile', 
+            element: <Profile />,
+          }
         ],
       },
       // Admin Protected Routes

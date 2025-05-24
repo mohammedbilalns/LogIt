@@ -1,4 +1,4 @@
-import { ActionIcon, Paper, Stack, useMantineColorScheme, Group, Text, UnstyledButton, Box, Divider, Avatar } from '@mantine/core';
+import { ActionIcon, Paper, Stack, useMantineColorScheme, Group, Text, UnstyledButton, Box, Divider, Avatar, Image } from '@mantine/core';
 import { IconHome, IconArticle, IconNotes, IconMessage, IconNetwork } from '@tabler/icons-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -112,15 +112,43 @@ export default function UserSidebar() {
       </Stack>
       <Box>
         <Divider my="sm" />
-        <Group gap="sm" align="center">
-          <Avatar color="blue" radius="xl">
-            {getInitials(user?.name)}
-          </Avatar>
-          <Box>
-            <Text size="sm" fw={600}>{user?.name || 'User'}</Text>
-            <Text size="xs" c="dimmed">{user?.email || ''}</Text>
-          </Box>
-        </Group>
+        <UnstyledButton
+  onClick={() => navigate('/profile')}
+  style={{
+    borderRadius: 'var(--mantine-radius-md)',
+    backgroundColor: location.pathname === '/profile'
+      ? (isDark ? 'var(--mantine-color-blue-9)' : 'var(--mantine-color-blue-0)')
+      : 'transparent',
+    padding: '0.5rem',
+    transition: 'background-color 150ms ease',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    width: '100%',
+  }}
+>
+  <Group gap="sm" align="center" style={{ flexWrap: 'nowrap', width: '100%' }}>
+    <Avatar color="blue" radius="xl">
+      {user?.profileImage ? <Image src={user.profileImage} alt="Profile" /> : getInitials(user?.name)}
+    </Avatar>
+    <Box style={{ overflow: 'hidden' }}>
+      <Text
+        size="sm"
+        fw={600}
+        truncate
+        c={location.pathname === '/profile'
+          ? (isDark ? 'white' : 'var(--mantine-color-blue-9)')
+          : undefined}
+      >
+        {user?.name || 'User'}
+      </Text>
+      <Text size="xs" c="dimmed" truncate>
+        {user?.email || ''}
+      </Text>
+    </Box>
+  </Group>
+</UnstyledButton>
+
       </Box>
     </Paper>
   );

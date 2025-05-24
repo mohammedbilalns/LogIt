@@ -6,6 +6,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   role: 'user' | 'admin' | 'superadmin';
+  profileImage?: string;
 }
 
 export interface AuthResponse {
