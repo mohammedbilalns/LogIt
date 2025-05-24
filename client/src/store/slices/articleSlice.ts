@@ -17,21 +17,25 @@ interface Article {
 
 interface ArticleState {
   articles: Article[];
+  userArticles: Article[];
   currentArticle: Article | null;
   loading: boolean;
   error: string | null;
   total: number;
   hasMore: boolean;
+  userArticlesHasMore: boolean;
   searchQuery: string;
 }
 
 const initialState: ArticleState = {
   articles: [],
+  userArticles: [],
   currentArticle: null,
   loading: false,
   error: null,
   total: 0,
   hasMore: true,
+  userArticlesHasMore: true,
   searchQuery: '',
 };
 
@@ -99,24 +103,31 @@ export const fetchArticles = createAsyncThunk(
 
 export const fetchUserArticles = createAsyncThunk(
   'articles/fetchUserArticles',
-  async ({ page, limit, search, sortBy, sortOrder }: { 
-    page: number; 
-    limit: number; 
-    search?: string; 
-    sortBy?: string; 
-    sortOrder?: 'asc' | 'desc';
-  }, { getState }) => {
-    const state = getState() as RootState;
-    const response = await axiosInstance.get('/articles/user/articles', {
-      params: {
-        page,
-        limit,
-        search: search || state.articles.searchQuery,
-        sortBy,
-        sortOrder,
-      },
-    });
-    return response.data;
+  async ({ page, limit }: { page: number; limit: number }, { rejectWithValue, getState }) => {
+    try {
+      const state = getState() as RootState;
+      const userId = state.auth.user?._id;
+      
+      if (!userId) {
+        return rejectWithValue('User not authenticated');
+      }
+
+      const response = await axiosInstance.get('/articles', {
+        params: {
+          page,
+          limit,
+          sortBy: 'createdAt',
+          sortOrder: 'desc',
+          filters: JSON.stringify({
+            authorId: userId,
+            isActive: true
+          })
+        }
+      });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch user articles');
+    }
   }
 );
 
@@ -214,19 +225,15 @@ const articleSlice = createSlice({
       .addCase(fetchUserArticles.fulfilled, (state, action) => {
         state.loading = false;
         if (action.meta.arg.page === 1) {
-          state.articles = action.payload.articles;
+          state.userArticles = action.payload.articles;
         } else {
-          const newArticles = action.payload.articles.filter(
-            (newArticle: Article) => !state.articles.some(existingArticle => existingArticle._id === newArticle._id)
-          );
-          state.articles = [...state.articles, ...newArticles];
+          state.userArticles = [...state.userArticles, ...action.payload.articles];
         }
-        state.total = action.payload.total;
-        state.hasMore = state.articles.length < action.payload.total;
+        state.userArticlesHasMore = state.userArticles.length < action.payload.total;
       })
       .addCase(fetchUserArticles.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to fetch user articles';
+        state.error = action.payload as string;
       })
       // Fetch Single Article
       .addCase(fetchArticle.pending, (state) => {

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { ArticleController } from '../controllers/ArticleController';
+import { ArticleController } from '../controllers/article.controller';
 import { ArticleService } from '../../../application/usecases/articles/article.service';
 import { MongoArticleRepository } from '../../../infrastructure/repositories/article.repository';
 import { MongoTagRepository } from '../../../infrastructure/repositories/tag.repository';
@@ -26,6 +26,7 @@ router.use(
   asyncHandler((req, res, next) => authMiddleware()(req, res, next)),
   asyncHandler((req, res, next) => csrfMiddleware()(req, res, next))
 );
+
 
 router.post('/', 
   asyncHandler((req, res, next) => authorizeRoles('user')(req, res, next)),

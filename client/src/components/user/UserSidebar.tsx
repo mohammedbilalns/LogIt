@@ -1,4 +1,4 @@
-import { ActionIcon, Paper, Stack, useMantineColorScheme, Group, Text, UnstyledButton, Box, Divider, Avatar, Image } from '@mantine/core';
+import { ActionIcon, Paper, Stack, useMantineColorScheme, Group, Text, UnstyledButton, Box, Divider, Avatar } from '@mantine/core';
 import { IconHome, IconArticle, IconNotes, IconMessage, IconNetwork } from '@tabler/icons-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -128,8 +128,12 @@ export default function UserSidebar() {
   }}
 >
   <Group gap="sm" align="center" style={{ flexWrap: 'nowrap', width: '100%' }}>
-    <Avatar color="blue" radius="xl">
-      {user?.profileImage ? <Image src={user.profileImage} alt="Profile" /> : getInitials(user?.name)}
+    <Avatar 
+      color="blue" 
+      radius="xl"
+      src={user?.profileImage}
+    >
+      {getInitials(user?.name)}
     </Avatar>
     <Box style={{ overflow: 'hidden' }}>
       <Text

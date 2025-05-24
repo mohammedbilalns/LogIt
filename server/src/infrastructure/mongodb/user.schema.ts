@@ -11,6 +11,8 @@ const userSchema = new Schema<User>({
     updatedAt: {type: Date, default: Date.now},
     googleId: {type: String},
     profileImage: {type: String},
+    profession: {type: String},
+    bio: {type: String},
     provider: {type: String, enum: ["local", "google"], default: "local"},
     role: {type: String, enum: ["user", "admin", "superadmin"], default: "user"}
 });

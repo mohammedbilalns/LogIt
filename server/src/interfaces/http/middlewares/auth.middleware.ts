@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import env from '../../../config/env';
+import { logger } from '../../../utils/logger';
 
 declare global {
   namespace Express {
@@ -18,10 +19,12 @@ export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       let token = req.cookies.accessToken;
+      logger.cyan("ACCESS_TOKEN", token)
 
       if (!token) {
         // Check for refresh token
         const refreshToken = req.cookies.refreshToken;
+        logger.cyan("REFRESH_TOKEN", refreshToken)
         if (!refreshToken) {
           res.status(401).json({ message: 'Authentication required' });
           return;

@@ -42,7 +42,17 @@ export class MongoArticleRepository implements IArticleRepository {
   }): Promise<{ articles: Article[]; total: number }> {
     const { page = 1, limit = 10, search = '', sortBy = 'createdAt', sortOrder = 'desc', filters = {} } = params;
     
-    const query: any = { ...filters };
+    const query: any = {};
+    
+    // Handle filters
+    if (filters.authorId) {
+      query.authorId = filters.authorId;
+    }
+    if (filters.isActive !== undefined) {
+      query.isActive = filters.isActive;
+    }
+    
+    // Handle search
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -57,7 +67,6 @@ export class MongoArticleRepository implements IArticleRepository {
         tagId: { $in: filters.tags }
       });
       query._id = { $in: articleIds };
-      delete query.tags; // Remove tags from the query 
     }
 
     const skip = (page - 1) * limit;

@@ -6,6 +6,8 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   role: 'user' | 'admin' | 'superadmin';
+  profession: string;
+  bio: string;
   profileImage?: string;
 }
 
