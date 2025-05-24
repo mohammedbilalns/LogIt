@@ -1,4 +1,4 @@
-import { Box, Button, Group, Stack, Text, Title, Select, Chip, Center, Loader } from '@mantine/core';
+import { Box, Button, Group, Stack, Text, Title, Select, Chip, Center } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store';
@@ -6,6 +6,7 @@ import { fetchArticles } from '../store/slices/articleSlice';
 import { fetchTags } from '../store/slices/tagSlice';
 import CreateButton from '../components/CreateButton';
 import ArticleRow from '../components/article/ArticleRow';
+import ArticleRowSkeleton from '../components/article/ArticleRowSkeleton';
 
 export default function ArticlesPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -34,13 +35,11 @@ export default function ArticlesPage() {
     }
   };
 
-  if (loading && page === 1) {
-    return (
-      <Center h="100vh">
-        <Loader size="lg" />
-      </Center>
-    );
-  }
+  const renderSkeletons = () => {
+    return Array(3).fill(0).map((_, index) => (
+      <ArticleRowSkeleton key={index} />
+    ));
+  };
 
   return (
     <Box ml={290} mt={100} mr={30} pl="md" pb={100}>
@@ -92,9 +91,13 @@ export default function ArticlesPage() {
       </Group>
 
       <Stack gap="md">
-        {articles.map((article) => (
-          <ArticleRow key={article._id} article={article} />
-        ))}
+        {loading && page === 1 ? (
+          renderSkeletons()
+        ) : (
+          articles.map((article) => (
+            <ArticleRow key={article._id} article={article} />
+          ))
+        )}
       </Stack>
 
       {hasMore && (
@@ -102,7 +105,7 @@ export default function ArticlesPage() {
           <Button 
             variant="light" 
             onClick={handleLoadMore}
-            loading={loading}
+            loading={loading && page > 1}
           >
             Load More
           </Button>

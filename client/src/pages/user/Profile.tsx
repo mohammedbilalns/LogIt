@@ -6,8 +6,6 @@ import {
     Stack,
     Text,
     Title,
-    Center,
-    Loader
 } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -15,6 +13,7 @@ import { AppDispatch, RootState } from '../../store';
 import { fetchUserArticles } from '../../store/slices/articleSlice';
 import CreateButton from '../../components/CreateButton';
 import ArticleRow from '../../components/article/ArticleRow';
+import ArticleRowSkeleton from '../../components/article/ArticleRowSkeleton';
 
 export default function ProfilePage() {
     const dispatch = useDispatch<AppDispatch>();
@@ -44,13 +43,11 @@ export default function ProfilePage() {
         return parts[0][0] + parts[parts.length - 1][0];
     };
 
-    if (loading && page === 1) {
-        return (
-            <Center h="100vh">
-                <Loader size="lg" />
-            </Center>
-        );
-    }
+    const renderSkeletons = () => {
+        return Array(3).fill(0).map((_, index) => (
+            <ArticleRowSkeleton key={index} />
+        ));
+    };
 
     return (
         <Box ml={290} mt={100} mr={30} pl="md" pb={100}>
@@ -86,27 +83,31 @@ export default function ProfilePage() {
                     Recent Articles
                 </Title>
                 <Stack gap="md">
-                    {userArticles.map((article) => (
-                        <ArticleRow 
-                            key={article._id} 
-                            article={{
-                                _id: article._id,
-                                title: article.title,
-                                content: article.content,
-                                author: article.author,
-                                featured_image: article.featured_image,
-                                tagNames: article.tagNames || [],
-                                createdAt: article.createdAt
-                            }} 
-                        />
-                    ))}
+                    {loading && page === 1 ? (
+                        renderSkeletons()
+                    ) : (
+                        userArticles.map((article) => (
+                            <ArticleRow 
+                                key={article._id} 
+                                article={{
+                                    _id: article._id,
+                                    title: article.title,
+                                    content: article.content,
+                                    author: article.author,
+                                    featured_image: article.featured_image,
+                                    tagNames: article.tagNames || [],
+                                    createdAt: article.createdAt
+                                }} 
+                            />
+                        ))
+                    )}
                 </Stack>
                 {userArticlesHasMore && (
                     <Group justify="center" mt="xl">
                         <Button 
                             variant="light" 
                             onClick={handleLoadMore}
-                            loading={loading}
+                            loading={loading && page > 1}
                         >
                             Load More
                         </Button>
