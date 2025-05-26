@@ -65,6 +65,7 @@ export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
           email: string; 
           role: 'user' | 'admin' | 'superadmin' 
         };
+        logger.cyan("decoded data: ", JSON.stringify(decoded))
         req.user = decoded;
       }
 

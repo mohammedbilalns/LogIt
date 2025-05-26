@@ -1,20 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { RootState } from '../index';
 import axiosInstance from '../../api/axios';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  isVerified: boolean;
-  isBlocked: boolean;
-  role: string;
-  provider: string;
-  createdAt: string;
-  updatedAt: string;
-  profileImage?: string;
-  profession?: string;
-}
+import { User } from '../../types/user.types';
 
 interface UserManagementState {
   users: User[];
@@ -65,6 +52,30 @@ export const unblockUser = createAsyncThunk(
   }
 );
 
+export const updateProfile = createAsyncThunk(
+  'userManagement/updateProfile',
+  async (profileData: {
+    name?: string;
+    profileImage?: string;
+    profession?: string;
+    bio?: string;
+  }) => {
+    const response = await axiosInstance.put('/user/update-profile', profileData);
+    return response.data;
+  }
+);
+
+export const changePassword = createAsyncThunk(
+  'userManagement/changePassword',
+  async (passwordData: {
+    oldPassword: string;
+    newPassword: string;
+  }) => {
+    const response = await axiosInstance.put('/user/change-password', passwordData);
+    return response.data;
+  }
+);
+
 const userManagementSlice = createSlice({
   name: 'userManagement',
   initialState,
@@ -82,6 +93,9 @@ const userManagementSlice = createSlice({
       state.hasMore = true;
       state.searchQuery = '';
     },
+    clearError: (state) => {
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -95,7 +109,7 @@ const userManagementSlice = createSlice({
           state.users = action.payload.users;
         } else {
           const newUsers = action.payload.users.filter(
-            (newUser: User) => !state.users.some(existingUser => existingUser.id === newUser.id)
+            (newUser: User) => !state.users.some(existingUser => existingUser._id === newUser._id)
           );
           state.users = [...state.users, ...newUsers];
         }
@@ -107,19 +121,41 @@ const userManagementSlice = createSlice({
         state.error = action.error.message || 'Failed to fetch users';
       })
       .addCase(blockUser.fulfilled, (state, action) => {
-        const userIndex = state.users.findIndex(user => user.id === action.payload.id);
+        const userIndex = state.users.findIndex(user => user._id === action.payload.id);
         if (userIndex !== -1) {
           state.users[userIndex] = { ...state.users[userIndex], isBlocked: true };
         }
       })
       .addCase(unblockUser.fulfilled, (state, action) => {
-        const userIndex = state.users.findIndex(user => user.id === action.payload.id);
+        const userIndex = state.users.findIndex(user => user._id === action.payload.id);
         if (userIndex !== -1) {
           state.users[userIndex] = { ...state.users[userIndex], isBlocked: false };
         }
+      })
+      .addCase(updateProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateProfile.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to update profile';
+      })
+      .addCase(changePassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to change password';
       });
   },
 });
 
-export const { setSearchQuery, resetState } = userManagementSlice.actions;
+export const { setSearchQuery, resetState, clearError } = userManagementSlice.actions;
 export default userManagementSlice.reducer; 

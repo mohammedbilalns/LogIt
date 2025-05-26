@@ -136,7 +136,7 @@ export const router = createBrowserRouter([
           },
         ],
       },
-      // 404 Route - Must be last
+      // 404 Route 
       {
         path: '*',
         element: <NotFound />,

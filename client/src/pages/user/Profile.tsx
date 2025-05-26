@@ -14,10 +14,14 @@ import { fetchUserArticles } from '../../store/slices/articleSlice';
 import CreateButton from '../../components/CreateButton';
 import ArticleRow from '../../components/article/ArticleRow';
 import ArticleRowSkeleton from '../../components/article/ArticleRowSkeleton';
+// import UpdateProfileModal from '../../components/user/UpdateProfileModal';
+import ChangePasswordModal from '../../components/user/ChangePasswordModal';
 
 export default function ProfilePage() {
     const dispatch = useDispatch<AppDispatch>();
     const [page, setPage] = useState(1);
+    // const [ setUpdateProfileOpened] = useState(false);
+    const [changePasswordOpened, setChangePasswordOpened] = useState(false);
     const { user } = useSelector((state: RootState) => state.auth);
     const { userArticles, loading, userArticlesHasMore } = useSelector((state: RootState) => state.articles);
 
@@ -68,8 +72,12 @@ export default function ProfilePage() {
                         {user?.bio}
                     </Text>
                     <Group mt="sm">
-                        <Button variant="filled">Edit Profile</Button>
-                        <Button variant="default">Change Password</Button>
+                        <Button variant="filled" >
+                            Edit Profile
+                        </Button>
+                        <Button variant="default" onClick={() => setChangePasswordOpened(true)}>
+                            Change Password
+                        </Button>
                         <Button variant="outline" leftSection={<Avatar size={18} radius="xl" />}>
                             Upgrade to Pro
                         </Button>
@@ -119,6 +127,21 @@ export default function ProfilePage() {
             <Box pos="fixed" bottom={24} right={24}>
                 <CreateButton />
             </Box>
+
+            {/* Modals */}
+            {/* <UpdateProfileModal
+                opened={updateProfileOpened}
+                onClose={() => setUpdateProfileOpened(false)}
+                initialValues={{
+                    name: user?.name || '',
+                    profession: user?.profession || '',
+                    bio: user?.bio || '',
+                }}
+            /> */}
+            <ChangePasswordModal
+                opened={changePasswordOpened}
+                onClose={() => setChangePasswordOpened(false)}
+            />
         </Box>
     );
 }

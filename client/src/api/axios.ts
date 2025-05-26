@@ -24,7 +24,7 @@ axiosInstance.interceptors.request.use(
     // Get CSRF token from cookie
     const csrfToken = document.cookie
       .split('; ')
-      .find(row => row.startsWith('csrf-token='))
+      .find(row => row.startsWith('csrfToken='))
       ?.split('=')[1];
 
     if (csrfToken) {

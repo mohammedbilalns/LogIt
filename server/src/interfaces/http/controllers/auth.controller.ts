@@ -8,7 +8,7 @@ export class AuthController {
 
   private setCsrfToken(res: Response): void {
     const csrfToken = this.authService.generateCsrfToken();
-    res.cookie('csrf-token', csrfToken, {
+    res.cookie('csrfToken', csrfToken, {
       ...COOKIE_OPTIONS,
       httpOnly: false,
       maxAge: ACCESS_COOKIE_EXPIRY
@@ -95,16 +95,24 @@ export class AuthController {
   };
 
   refresh = async (req: Request, res: Response): Promise<void> => {
-    console.log('Refresh request received');
+    logger.cyan("Refresh request recieved", "refresh")
     // Set CSRF token 
-    this.setCsrfToken(res);
+    const csrfToken = req.cookies.csrfToken
+
+    logger.magenta("CSRF Token", csrfToken)
+    if(!csrfToken){
+      this.setCsrfToken(res);
+
+    }
     
     try {
       // Check for existing access token first
       const accessToken = req.cookies.accessToken;
+      logger.cyan("Access Token", accessToken)
       if (accessToken) {
         try {
           const user = await this.authService.validateAccessToken(accessToken);
+          logger.cyan("user", JSON.stringify(user))
           res.json({
             message: 'Access token is still valid',
             user
@@ -116,6 +124,7 @@ export class AuthController {
       }
 
       const refreshToken = req.cookies.refreshToken;
+      logger.red("Referesh Token", refreshToken)
       if (!refreshToken) {
         res.status(401).json({ message: 'Refresh token required' });
         return;
