@@ -8,6 +8,7 @@ interface AuthState {
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
+  profileImage: string | null;
   verificationEmail: string | null;
   isInitialized: boolean;
   resendLoading: boolean;
@@ -20,6 +21,7 @@ const initialState: AuthState = {
   isAuthenticated: false,
   loading: false,
   error: null,
+  profileImage: null,
   verificationEmail: null,
   isInitialized: false,
   resendLoading: false,

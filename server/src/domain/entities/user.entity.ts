@@ -9,6 +9,8 @@ export interface User {
   updatedAt: Date;
   googleId?: string;
   profileImage?: string;
+  profession?: string;
+  bio?: string;
   provider?: 'local' | 'google';
   role: 'user' | 'admin' | 'superadmin';
 }

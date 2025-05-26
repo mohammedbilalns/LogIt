@@ -6,6 +6,7 @@ import authRoutes from './interfaces/http/routes/auth.routes';
 import adminRoutes from './interfaces/http/routes/admin.routes';
 import articleRoutes from './interfaces/http/routes/article.route';
 import tagRoutes from './interfaces/http/routes/tag.routes';
+import userRoutes from './interfaces/http/routes/user.route'
 import env from './config/env';
 import morgan from 'morgan';
 import { logger } from './utils/logger';
@@ -28,6 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/tags', tagRoutes);
+app.unsubscribe('/api/user', userRoutes )
 
 // Connect to DB 
 mongoose.connect(MONGODB_URI)
