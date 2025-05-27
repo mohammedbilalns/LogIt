@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { TextInput, Button, Box, Group, LoadingOverlay, Text } from '@mantine/core';
+import { TextInput, Button, Box, Group, LoadingOverlay, Text, useMantineColorScheme } from '@mantine/core';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor, BubbleMenu } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -16,6 +16,7 @@ import { uploadImage, clearUploadState } from '../store/slices/uploadSlice';
 import { AppDispatch, RootState } from '../store';
 import TagSelector from './TagSelector';
 import { notifications } from '@mantine/notifications';
+import { useMediaQuery } from '@mantine/hooks';
 import ts from 'highlight.js/lib/languages/typescript';
 import javascript from 'highlight.js/lib/languages/javascript';
 import html from 'highlight.js/lib/languages/xml';
@@ -48,6 +49,9 @@ lowlight.register({ts, javascript, html, css, python, ruby, java, csharp, php, g
 export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleEditorFormProps) {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === 'dark';
   const { currentArticle, loading: articleLoading } = useSelector((state: RootState) => state.articles);
   const { loading: tagsLoading } = useSelector((state: RootState) => state.tags);
   const { loading: isUploading, error: uploadError } = useSelector((state: RootState) => state.upload);
@@ -221,7 +225,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
   };
 
   return (
-    <Box pos="relative" ml={290} mt={100} mb={5} mr={30} pl="md">
+    <Box pos="relative">
       <LoadingOverlay visible={articleLoading || tagsLoading || isUploading} overlayProps={{ radius: "sm", blur: 2 }} />
 
       <Box mb="xl">
@@ -237,28 +241,31 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
           }}
           error={errors.title}
           required
-          size="lg"
+          size={isMobile ? "md" : "lg"}
           maxLength={150}
         />
       </Box>
 
       <Box mb="xl">
         <RichTextEditor editor={editor}>
-          
-          <RichTextEditor.Toolbar sticky stickyOffset={60}>
+          <RichTextEditor.Toolbar 
+            sticky 
+            stickyOffset={isMobile ? 0 : 60}
+            style={{
+              backgroundColor: isDark ? 'var(--mantine-color-dark-7)' : 'white',
+              borderBottom: `1px solid ${isDark ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-3)'}`
+            }}
+          >
             <RichTextEditor.ControlsGroup>
-              { editor && ( <BubbleMenu editor={editor}>
-                <RichTextEditor.ControlsGroup>
-
-              <RichTextEditor.Bold />
-              <RichTextEditor.Italic />
-              <RichTextEditor.Underline />
-              </RichTextEditor.ControlsGroup>
-
-             </BubbleMenu>
+              {editor && (
+                <BubbleMenu editor={editor}>
+                  <RichTextEditor.ControlsGroup>
+                    <RichTextEditor.Bold />
+                    <RichTextEditor.Italic />
+                    <RichTextEditor.Underline />
+                  </RichTextEditor.ControlsGroup>
+                </BubbleMenu>
               )}
-                 <RichTextEditor.Strikethrough />
-                 <RichTextEditor.ClearFormatting />
               <RichTextEditor.Strikethrough />
               <RichTextEditor.ClearFormatting />
             </RichTextEditor.ControlsGroup>
@@ -311,7 +318,13 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
           </RichTextEditor.Toolbar>
 
           <RichTextEditor.Content
-            style={{ minHeight: '400px', maxHeight: '800px', overflowY: 'auto' }}
+            style={{ 
+              minHeight: isMobile ? '300px' : '400px', 
+              maxHeight: isMobile ? '600px' : '800px', 
+              overflowY: 'auto',
+              backgroundColor: isDark ? 'var(--mantine-color-dark-6)' : 'white',
+              color: isDark ? 'var(--mantine-color-gray-0)' : 'inherit'
+            }}
             onPaste={(e) => {
               const items = e.clipboardData?.items;
               if (items) {
@@ -342,11 +355,18 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
         />
       </Box>
 
-      <Group justify="flex-end" gap="md">
-        <Button variant="outline" onClick={onClose}>Cancel</Button>
+      <Group justify="flex-end" gap="md" wrap="wrap">
+        <Button 
+          variant="outline" 
+          onClick={onClose}
+          size={isMobile ? "sm" : "md"}
+        >
+          Cancel
+        </Button>
         <Button
           onClick={handleSubmit}
           disabled={!title.trim() || !editor?.getText().trim() || articleLoading || tagsLoading || isUploading}
+          size={isMobile ? "sm" : "md"}
         >
           {mode === 'create' ? 'Publish Article' : 'Update Article'}
         </Button>

@@ -1,4 +1,4 @@
-import { Box, Button, Chip, Group, Image, Paper, Text } from '@mantine/core';
+import { Box, Button, Chip, Group, Image, Paper, Text, useMantineColorScheme } from '@mantine/core';
 import { IconArticle } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
@@ -23,6 +23,8 @@ interface ArticleRowProps {
 export default function ArticleRow({ article }: ArticleRowProps) {
   const navigate = useNavigate();
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const renderArticleContent = (content: string, articleId: string) => {
     return (
@@ -51,7 +53,9 @@ export default function ArticleRow({ article }: ArticleRowProps) {
               left: 0,
               right: 0,
               height: '2em',
-              background: 'linear-gradient(transparent, white)',
+              background: isDark 
+                ? 'linear-gradient(transparent, var(--mantine-color-dark-6))'
+                : 'linear-gradient(transparent, white)',
               pointerEvents: 'none'
             }}
           />
@@ -86,16 +90,16 @@ export default function ArticleRow({ article }: ArticleRowProps) {
       <Box
         w={isMobile ? 80 : 120}
         h={isMobile ? 80 : 100}
-        bg="gray.1"
+        bg={isDark ? "dark.5" : "gray.1"}
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           borderRadius: '8px',
-          border: '1px solid #eee'
+          border: `1px solid ${isDark ? 'var(--mantine-color-dark-4)' : '#eee'}`
         }}
       >
-        <IconArticle size={isMobile ? 24 : 32} color="#666" />
+        <IconArticle size={isMobile ? 24 : 32} color={isDark ? "#999" : "#666"} />
       </Box>
     );
   };

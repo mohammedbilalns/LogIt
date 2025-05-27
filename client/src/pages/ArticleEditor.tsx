@@ -23,12 +23,17 @@ export default function ArticleEditor({ mode }: ArticleEditorProps) {
       mr={isMobile ? 16 : 30} 
       pl={isMobile ? 0 : "md"} 
       pb={100}
+      style={{
+        maxWidth: '1200px',
+        margin: isMobile ? '100px 16px 100px 16px' : '100px auto 100px auto',
+        padding: isMobile ? '0' : '0 16px'
+      }}
     >
-    <ArticleEditorForm
-      mode={mode}
-      articleId={id}
-      onClose={handleClose}
-    />
+      <ArticleEditorForm
+        mode={mode}
+        articleId={id}
+        onClose={handleClose}
+      />
     </Box>
   );
 } 
