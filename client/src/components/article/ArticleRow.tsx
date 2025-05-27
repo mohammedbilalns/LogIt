@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
+import { useMediaQuery } from '@mantine/hooks';
 
 const MAX_VISIBLE_LINES = 2;
 
@@ -21,6 +22,7 @@ interface ArticleRowProps {
 
 export default function ArticleRow({ article }: ArticleRowProps) {
   const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const renderArticleContent = (content: string, articleId: string) => {
     return (
@@ -36,7 +38,7 @@ export default function ArticleRow({ article }: ArticleRowProps) {
             components={{
               img: () => null,
               p: ({ children }) => (
-                <Text size="sm" lineClamp={MAX_VISIBLE_LINES}>{children}</Text>
+                <Text size="sm" lineClamp={MAX_VISIBLE_LINES} style={{ wordBreak: 'break-word' }}>{children}</Text>
               )
             }}
           >
@@ -72,8 +74,8 @@ export default function ArticleRow({ article }: ArticleRowProps) {
         <Image 
           src={article.featured_image} 
           alt={article.title}
-          w={120} 
-          h={100} 
+          w={isMobile ? 80 : 120} 
+          h={isMobile ? 80 : 100} 
           fit="cover" 
           radius="md"
         />
@@ -82,8 +84,8 @@ export default function ArticleRow({ article }: ArticleRowProps) {
 
     return (
       <Box
-        w={120}
-        h={100}
+        w={isMobile ? 80 : 120}
+        h={isMobile ? 80 : 100}
         bg="gray.1"
         style={{
           display: 'flex',
@@ -93,7 +95,7 @@ export default function ArticleRow({ article }: ArticleRowProps) {
           border: '1px solid #eee'
         }}
       >
-        <IconArticle size={32} color="#666" />
+        <IconArticle size={isMobile ? 24 : 32} color="#666" />
       </Box>
     );
   };
@@ -102,7 +104,7 @@ export default function ArticleRow({ article }: ArticleRowProps) {
     <Paper 
       shadow="sm" 
       radius="md" 
-      p="md" 
+      p={isMobile ? "sm" : "md"} 
       withBorder
       style={{ 
         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
@@ -114,16 +116,16 @@ export default function ArticleRow({ article }: ArticleRowProps) {
       }}
       onClick={() => navigate(`/articles/${article._id}`)}
     >
-      <Group align="flex-start" wrap="nowrap">
+      <Group align="flex-start" wrap="nowrap" gap={isMobile ? "xs" : "md"}>
         {renderArticleImage(article)}
-        <Box style={{ flex: 1 }}>
-          <Text fw={600} size="lg">{article.title}</Text>
-          <Group gap="xs">
+        <Box style={{ flex: 1, minWidth: 0 }}>
+          <Text fw={600} size={isMobile ? "md" : "lg"} style={{ wordBreak: 'break-word' }}>{article.title}</Text>
+          <Group gap="xs" wrap="wrap">
             <Text size="sm" c="dimmed" fw={500}>By {article.author}</Text>
           </Group>
           {renderArticleContent(article.content, article._id)}
           <Group gap="xs" mt={6} style={{ flexWrap: 'wrap' }}>
-            {article.tagNames.slice(0, 5).map(tag => (
+            {article.tagNames.slice(0, isMobile ? 3 : 5).map(tag => (
               <Chip 
                 key={tag} 
                 size="xs" 
@@ -135,14 +137,14 @@ export default function ArticleRow({ article }: ArticleRowProps) {
                 {tag}
               </Chip>
             ))}
-            {article.tagNames.length > 5 && (
+            {article.tagNames.length > (isMobile ? 3 : 5) && (
               <Chip 
                 size="xs" 
                 variant="light"
                 color="blue"
                 disabled
               >
-                +{article.tagNames.length - 5} more
+                +{article.tagNames.length - (isMobile ? 3 : 5)} more
               </Chip>
             )}
           </Group>

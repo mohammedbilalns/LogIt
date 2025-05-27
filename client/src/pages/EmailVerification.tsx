@@ -17,6 +17,7 @@ import { IconMailCheck } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '../store';
 import { verifyEmail, clearError, resendOTP, setVerificationEmail } from '../store/slices/authSlice';
 import { notifications } from '@mantine/notifications';
+import { useMediaQuery } from '@mantine/hooks';
 
 const OTP_EXPIRY_TIME = 5 * 60; 
 const RESEND_COOLDOWN = 60; 
@@ -30,6 +31,7 @@ export default function EmailVerification() {
   const { loading, resendLoading, error, isAuthenticated, verificationEmail } = useSelector(
     (state: RootState) => state.auth
   );
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -118,8 +120,8 @@ export default function EmailVerification() {
   };
 
   return (
-    <Container size={420} my={100}>
-      <Paper radius="lg" p="xl" withBorder>
+    <Container size={580} my={100} px={isMobile ? 'xs' : 'md'}>
+      <Paper radius="lg" p={isMobile ? 'md' : 'xl'} withBorder>
         <Center mb="xl">
           <IconMailCheck size={50} color="var(--mantine-color-blue-6)" />
         </Center>
@@ -140,7 +142,7 @@ export default function EmailVerification() {
             <Box ta="center">
               <PinInput
                 length={6}
-                size="lg"
+                size={isMobile ? "md" : "lg"}
                 value={otp}
                 onChange={handleOTPChange}
                 error={Boolean(error)}

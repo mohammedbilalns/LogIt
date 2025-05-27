@@ -8,6 +8,7 @@ import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import { IconEdit } from '@tabler/icons-react';
+import { useMediaQuery } from '@mantine/hooks';
 
 export default function ArticleDetailPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -15,6 +16,7 @@ export default function ArticleDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { currentArticle: article, loading } = useSelector((state: RootState) => state.articles);
   const { user } = useSelector((state: RootState) => state.auth);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     if (id) {
@@ -41,13 +43,19 @@ export default function ArticleDetailPage() {
   const isAuthor = user?._id === article.authorId;
 
   return (
-    <Box ml={290} mt={100} mr={30} pl="md" pb={100}>
-      <Paper shadow="sm" radius="md" p="xl" withBorder>
+    <Box 
+      ml={isMobile ? 16 : 290} 
+      mt={100} 
+      mr={isMobile ? 16 : 30} 
+      pl={isMobile ? 0 : "md"} 
+      pb={100}
+    >
+      <Paper shadow="sm" radius="md" p={isMobile ? "md" : "xl"} withBorder>
         <Stack gap="md">
-          <Group justify="space-between" align="flex-start">
-            <Box>
-              <Title order={1}>{article.title}</Title>
-              <Group gap="xs" mt={4}>
+          <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
+            <Box style={{ minWidth: 0, flex: 1 }}>
+              <Title order={1} size={isMobile ? "h2" : "h1"} style={{ wordBreak: 'break-word' }}>{article.title}</Title>
+              <Group gap="xs" mt={4} wrap="wrap">
                 <Text size="sm" c="dimmed" fw={500}>By {article.author}</Text>
                 <Text size="sm" c="dimmed">•</Text>
                 <Text size="sm" c="dimmed">
@@ -60,13 +68,14 @@ export default function ArticleDetailPage() {
               <Button
                 leftSection={<IconEdit size={16} />}
                 onClick={() => navigate(`/articles/${article._id}/edit`)}
+                size={isMobile ? "sm" : "md"}
               >
                 Edit Article
               </Button>
             )}
           </Group>
 
-          <Box mt="md">
+          <Box mt="md" style={{ wordBreak: 'break-word' }}>
             <ReactMarkdown 
               rehypePlugins={[rehypeRaw]} 
               remarkPlugins={[remarkGfm]}
@@ -79,11 +88,29 @@ export default function ArticleDetailPage() {
                       style={{ 
                         maxWidth: '100%', 
                         height: 'auto',
-                        maxHeight: '400px',
+                        maxHeight: isMobile ? '300px' : '400px',
                         objectFit: 'contain'
                       }} 
                     />
                   </Box>
+                ),
+                p: ({ children }) => (
+                  <Text size={isMobile ? "sm" : "md"} style={{ wordBreak: 'break-word' }}>{children}</Text>
+                ),
+                h1: ({ children }) => (
+                  <Title order={1} size={isMobile ? "h2" : "h1"} style={{ wordBreak: 'break-word' }}>{children}</Title>
+                ),
+                h2: ({ children }) => (
+                  <Title order={2} size={isMobile ? "h3" : "h2"} style={{ wordBreak: 'break-word' }}>{children}</Title>
+                ),
+                h3: ({ children }) => (
+                  <Title order={3} size={isMobile ? "h4" : "h3"} style={{ wordBreak: 'break-word' }}>{children}</Title>
+                ),
+                pre: ({ children }) => (
+                  <Box style={{ overflowX: 'auto', maxWidth: '100%' }}>{children}</Box>
+                ),
+                code: ({ children }) => (
+                  <Box component="code" style={{ wordBreak: 'break-word' }}>{children}</Box>
                 )
               }}
             >
@@ -91,7 +118,7 @@ export default function ArticleDetailPage() {
             </ReactMarkdown>
           </Box>
 
-          <Group gap="xs" mt="xl">
+          <Group gap="xs" mt="xl" wrap="wrap">
             {article.tagNames.map(tag => (
               <Chip 
                 key={tag} 

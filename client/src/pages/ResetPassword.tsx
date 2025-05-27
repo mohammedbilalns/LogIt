@@ -300,7 +300,7 @@ export default function ResetPassword() {
   };
 
   return (
-    <Container size={420} my={40}>
+    <Container size={470} my={40} mt={200}>
       <Paper radius="lg" p="xl" withBorder>
         <Center mb="lg">
           {!resetPasswordEmail ? (

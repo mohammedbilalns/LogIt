@@ -7,11 +7,13 @@ import { fetchTags } from '../store/slices/tagSlice';
 import CreateButton from '../components/CreateButton';
 import ArticleRow from '../components/article/ArticleRow';
 import ArticleRowSkeleton from '../components/article/ArticleRowSkeleton';
+import { useMediaQuery } from '@mantine/hooks';
 
 export default function ArticlesPage() {
   const dispatch = useDispatch<AppDispatch>();
   const [page, setPage] = useState(1);
   const limit = 10;
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const { articles, loading, hasMore } = useSelector((state: RootState) => state.articles);
   const { tags } = useSelector((state: RootState) => state.tags);
@@ -42,8 +44,15 @@ export default function ArticlesPage() {
   };
 
   return (
-    <Box ml={290} mt={100} mr={30} pl="md" pb={100}>
-      <Group justify="space-between" mb="md">
+    <Box 
+      ml={isMobile ? 16 : 290} 
+      mt={100} 
+      mr={isMobile ? 16 : 30} 
+      pl={isMobile ? 0 : "md"} 
+      pb={100}
+    >
+      <Stack gap="md">
+        <Group justify="space-between" wrap="wrap" gap="md">
         <Title order={2}>Articles</Title>
 
         <Group>
@@ -64,9 +73,9 @@ export default function ArticlesPage() {
       </Group>
 
       {/* Recent Tags */}
-      <Group mb="md" align="flex-start">
-        <Text fw={500} mt={6}>Recent Tags:</Text>
-        <Group gap="xs">
+        <Stack gap="xs">
+          <Text fw={500}>Recent Tags:</Text>
+          <Group gap="xs" wrap="wrap">
           {tags.map((tag) => (
             <Chip
               key={tag._id}
@@ -88,7 +97,7 @@ export default function ArticlesPage() {
             </Button>
           )}
         </Group>
-      </Group>
+        </Stack>
 
       <Stack gap="md">
         {loading && page === 1 ? (
@@ -111,8 +120,11 @@ export default function ArticlesPage() {
           </Button>
         </Center>
       )}
+      </Stack>
 
+      <Box pos="fixed" bottom={24} right={24}>
       <CreateButton />
+      </Box>
     </Box>
   );
 }

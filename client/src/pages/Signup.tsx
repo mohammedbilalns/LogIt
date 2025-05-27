@@ -10,7 +10,6 @@ import {
   Title,
   Center,
   Divider,
-  Group,
 } from '@mantine/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
@@ -19,11 +18,13 @@ import { AppDispatch, RootState } from '../store';
 import { signup, clearError } from '../store/slices/authSlice';
 import { useEffect } from 'react';
 import { GoogleButton } from '../components/user/GoogleButton';
+import { useMediaQuery } from '@mantine/hooks';
 
 export default function Signup() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { loading, error, verificationEmail } = useSelector((state: RootState) => state.auth);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const form = useForm({
     initialValues: {
@@ -82,8 +83,8 @@ export default function Signup() {
   };
 
   return (
-    <Container size={580} my={20} mt={100}>
-      <Paper radius="lg" p="xl" withBorder>
+    <Container size={580} my={20} mt={100} px={isMobile ? 'xs' : 'md'}>
+      <Paper radius="lg" p={isMobile ? 'md' : 'xl'} withBorder>
         <Center mb="lg">
           <IconUserPlus size={42} color="var(--mantine-color-blue-6)" />
         </Center>
@@ -156,20 +157,20 @@ export default function Signup() {
               my="xs"
             />
 
-            <Group grow wrap="wrap" gap="sm">
+            <Stack gap="sm">
               <Button
                 component={Link}
                 to="/login"
                 variant="light"
                 radius="xl"
                 size="md"
-                style={{ flex: '1 1 calc(50% - 8px)' }}
+                fullWidth
               >
                 Sign in
               </Button>
 
-              <GoogleButton style={{ flex: '1 1 calc(50% - 8px)' }} />
-            </Group>
+              <GoogleButton style={{ width: '100%' }} />
+            </Stack>
           </Stack>
         </form>
       </Paper>

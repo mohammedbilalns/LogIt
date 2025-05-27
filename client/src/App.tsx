@@ -26,6 +26,7 @@ function AppContent() {
 
   useEffect(() => {
     if (isInitialized) {
+      console.log("root loader removing function is called ")
       const rootLoader = document.getElementById('root-loader');
       if (rootLoader) {
         rootLoader.remove();
@@ -34,6 +35,7 @@ function AppContent() {
   }, [isInitialized]);
 
   if (!isInitialized) {
+    console.log("App not initalized showsing loading ui ")
     return <LoadingUI />;
   }
 

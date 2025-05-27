@@ -23,7 +23,7 @@ export default function Home() {
         </Button>
       </Group>
 
-      <CreateButton  />
+      <CreateButton position="right" />
     </Container>
   );
 } 

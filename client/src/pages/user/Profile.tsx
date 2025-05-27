@@ -11,19 +11,26 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
 import { fetchUserArticles } from '../../store/slices/articleSlice';
+import { useDisclosure } from "@mantine/hooks";
 import CreateButton from '../../components/CreateButton';
 import ArticleRow from '../../components/article/ArticleRow';
 import ArticleRowSkeleton from '../../components/article/ArticleRowSkeleton';
-// import UpdateProfileModal from '../../components/user/UpdateProfileModal';
 import ChangePasswordModal from '../../components/user/ChangePasswordModal';
+import { useMediaQuery } from '@mantine/hooks';
+
+interface ChangePasswordForm {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+}
 
 export default function ProfilePage() {
     const dispatch = useDispatch<AppDispatch>();
     const [page, setPage] = useState(1);
-    // const [ setUpdateProfileOpened] = useState(false);
-    const [changePasswordOpened, setChangePasswordOpened] = useState(false);
     const { user } = useSelector((state: RootState) => state.auth);
     const { userArticles, loading, userArticlesHasMore } = useSelector((state: RootState) => state.articles);
+    const [opened, { open, close }] = useDisclosure(false);
+    const isMobile = useMediaQuery('(max-width: 768px)');
 
     useEffect(() => {
         dispatch(fetchUserArticles({ page: 1, limit: 5 }));
@@ -34,6 +41,11 @@ export default function ProfilePage() {
             setPage(prev => prev + 1);
             dispatch(fetchUserArticles({ page: page + 1, limit: 5 }));
         }
+    };
+
+    const handleChangePassword = (values: ChangePasswordForm) => {
+        console.log(values);
+        close();
     };
 
     const getInitials = (name?: string) => {
@@ -54,13 +66,19 @@ export default function ProfilePage() {
     };
 
     return (
-        <Box ml={290} mt={100} mr={30} pl="md" pb={100}>
+        <Box 
+            ml={isMobile ? 16 : 290} 
+            mt={100} 
+            mr={isMobile ? 16 : 30} 
+            pl={isMobile ? 0 : "md"} 
+            pb={100}
+        >
             {/* Profile Header */}
             <Box mb={40}>
                 <Stack align="center" gap="xs">
                     <Avatar
                         src={user?.profileImage}
-                        size={120}
+                        size={isMobile ? 80 : 120}
                         radius="xl"
                     >
                         {getInitials(user?.name)}
@@ -71,11 +89,11 @@ export default function ProfilePage() {
                     <Text size="sm" ta="center" maw={600}>
                         {user?.bio}
                     </Text>
-                    <Group mt="sm">
-                        <Button variant="filled" >
+                    <Group mt="sm" wrap="wrap" justify="center">
+                        <Button variant="filled">
                             Edit Profile
                         </Button>
-                        <Button variant="default" onClick={() => setChangePasswordOpened(true)}>
+                        <Button variant="default" onClick={open}>
                             Change Password
                         </Button>
                         <Button variant="outline" leftSection={<Avatar size={18} radius="xl" />}>
@@ -123,24 +141,14 @@ export default function ProfilePage() {
                 )}
             </Box>
 
-            {/* Create Floating Button */}
             <Box pos="fixed" bottom={24} right={24}>
                 <CreateButton />
             </Box>
 
-            {/* Modals */}
-            {/* <UpdateProfileModal
-                opened={updateProfileOpened}
-                onClose={() => setUpdateProfileOpened(false)}
-                initialValues={{
-                    name: user?.name || '',
-                    profession: user?.profession || '',
-                    bio: user?.bio || '',
-                }}
-            /> */}
-            <ChangePasswordModal
-                opened={changePasswordOpened}
-                onClose={() => setChangePasswordOpened(false)}
+            <ChangePasswordModal 
+                opened={opened}
+                onClose={close}
+                onSubmit={handleChangePassword}
             />
         </Box>
     );

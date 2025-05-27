@@ -12,6 +12,7 @@ import {
   Divider,
   Group,
 } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { IconLock } from '@tabler/icons-react';
@@ -25,6 +26,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { loading, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const form = useForm({
     initialValues: {
@@ -70,8 +72,8 @@ export default function Login() {
   };
 
   return (
-    <Container size={580} my={40} mt={100}>
-      <Paper radius="lg" p="xl" withBorder>
+    <Container size={580} my={40} mt={140} px={isMobile ? 'xs' : 'md'}>
+      <Paper radius="lg" p={isMobile ? 'md' : 'xl'} withBorder>
         <Center mb="lg">
           <IconLock size={42} color="var(--mantine-color-blue-6)" />
         </Center>
@@ -138,20 +140,20 @@ export default function Login() {
               my="xs"
             />
 
-            <Group grow wrap="wrap" gap="sm">
+            <Stack gap="sm">
               <Button
                 component={Link}
                 to="/signup"
                 variant="light"
                 radius="xl"
                 size="md"
-                style={{ flex: '1 1 calc(50% - 8px)' }}
+                fullWidth
               >
                 Create account
               </Button>
 
-              <GoogleButton style={{ flex: '1 1 calc(50% - 8px)' }} />
-            </Group>
+              <GoogleButton style={{ width: '100%' }} />
+            </Stack>
           </Stack>
         </form>
       </Paper>

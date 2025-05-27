@@ -2,7 +2,11 @@ import { Button } from '@mantine/core';
 import { IconPlus } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 
-export default function CreateButton() {
+interface CreateButtonProps {
+  position?: 'right' | 'left';
+}
+
+export default function CreateButton({ position = 'right' }: CreateButtonProps) {
   const navigate = useNavigate();
 
   return (
@@ -14,7 +18,7 @@ export default function CreateButton() {
       style={{
         position: 'fixed',
         bottom: '2rem',
-        right: '2rem',
+        [position]: '2rem',
         zIndex: 200,
         boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
       }}
