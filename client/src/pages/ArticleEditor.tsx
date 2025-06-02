@@ -28,10 +28,10 @@ export default function ArticleEditor({ mode }: ArticleEditorProps) {
         marginTop: '100px',
         paddingBottom: '100px',
         transition: 'margin-left 0.3s ease',
-        height: 'calc(100vh - 200px)',
-        overflow: 'hidden',
+        height: 'calc(100vh - 100px)',
+        overflow: 'auto',
         display: 'flex',
-        justifyContent: 'center',
+        flexDirection: 'column',
       }}
     >
       <Container 
@@ -40,6 +40,9 @@ export default function ArticleEditor({ mode }: ArticleEditorProps) {
           width: '100%',
           maxWidth: '1400px',
           padding: isMobile ? '0' : '0 24px',
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         <ArticleEditorForm

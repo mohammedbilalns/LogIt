@@ -388,7 +388,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
         />
       </Box>
 
-      <Group justify="flex-end" gap="md" wrap="wrap">
+      <Group justify="flex-end" gap="md" wrap="wrap" mt="xl" style={{ position: 'sticky', bottom: 0, backgroundColor: isDark ? 'var(--mantine-color-dark-7)' : 'white', padding: '1rem 0', zIndex: 100 }}>
         <Button 
           variant="outline" 
           onClick={onClose}
@@ -400,6 +400,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
           onClick={handleSubmit}
           disabled={!title.trim() || !editor?.getText().trim() || articleLoading || tagsLoading || isUploading}
           size={isMobile ? "sm" : "md"}
+          loading={articleLoading || tagsLoading || isUploading}
         >
           {mode === 'create' ? 'Publish Article' : 'Update Article'}
         </Button>
