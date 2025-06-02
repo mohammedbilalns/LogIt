@@ -16,10 +16,10 @@ import { useMediaQuery } from '@mantine/hooks';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { IconLock } from '@tabler/icons-react';
-import { AppDispatch, RootState } from '../store';
-import { login, clearError } from '../store/slices/authSlice';
+import { AppDispatch, RootState } from '@/store';
+import { login, clearError } from '@slices/authSlice';
 import { useEffect } from 'react';
-import { GoogleButton } from '../components/user/GoogleButton';
+import { GoogleButton } from '@components/user/GoogleButton';
 
 export default function Login() {
   const dispatch = useDispatch<AppDispatch>();

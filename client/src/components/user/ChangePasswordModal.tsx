@@ -56,10 +56,19 @@ export default function ChangePasswordModal({ opened, onClose, onSubmit }: Chang
     return (
         <Modal 
             opened={opened} 
-            onClose={onClose} 
+            onClose={onClose}
             title="Change Password" 
             centered
             size="md"
+            zIndex={2000}
+            styles={{
+                overlay: {
+                    zIndex: 2000
+                },
+                content: {
+                    zIndex: 2001
+                }
+            }}
         >
             <form onSubmit={form.onSubmit(handleSubmit)}>
                 <Stack>

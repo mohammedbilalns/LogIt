@@ -1,19 +1,31 @@
 import { ActionIcon, Paper, Stack, useMantineColorScheme, Group, Text, UnstyledButton, Box, Divider, Avatar, Portal } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconHome, IconArticle, IconNotes, IconMessage, IconNetwork, IconMenu2 } from '@tabler/icons-react';
+import { IconHome, IconArticle, IconNotes, IconMessage, IconNetwork, IconMenu2, IconChevronLeft } from '@tabler/icons-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store';
-import { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '@/store';
+import { toggleSidebar } from '@/store/slices/uiSlice';
 
-export default function UserSidebar() {
+interface UserSidebarProps {
+  isModalOpen?: boolean;
+}
+
+export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const { user } = useSelector((state: RootState) => state.auth);
-  const [isOpen, setIsOpen] = useState(false);
+  const isOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
   const isMobile = useMediaQuery('(max-width: 768px)');
+
+  // Don't render sidebar on mobile when modal is open
+  const shouldRenderSidebar = !(isMobile && isModalOpen);
+
+  if (!shouldRenderSidebar) {
+    return null;
+  }
 
   const sidebarItems = [
     {
@@ -54,27 +66,27 @@ export default function UserSidebar() {
     return parts[0][0] + parts[parts.length - 1][0];
   };
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
+  const handleToggleSidebar = () => {
+    dispatch(toggleSidebar());
   };
 
   const handleNavigation = (path: string) => {
     navigate(path);
     if (isMobile) {
-      setIsOpen(false);
+      dispatch(toggleSidebar());
     }
   };
 
   return (
     <>
-      {isMobile && !isOpen && (
+      {!isOpen && (
         <Portal>
           <ActionIcon
             variant="filled"
             size="lg"
             color="blue"
             radius="xl"
-            onClick={toggleSidebar}
+            onClick={handleToggleSidebar}
             style={{
               position: 'fixed',
               bottom: '2rem',
@@ -100,7 +112,7 @@ export default function UserSidebar() {
               backgroundColor: 'rgba(0, 0, 0, 0.5)',
               zIndex: 1000,
             }}
-            onClick={toggleSidebar}
+            onClick={handleToggleSidebar}
           />
         </Portal>
       )}
@@ -111,7 +123,7 @@ export default function UserSidebar() {
           p="md"
           style={{
             position: 'fixed',
-            left: isMobile ? (isOpen ? '1rem' : '-300px') : '1rem',
+            left: isMobile ? (isOpen ? '1rem' : '-300px') : (isOpen ? '1rem' : '-300px'),
             top: '5rem',
             backgroundColor: isDark ? 'var(--mantine-color-dark-6)' : 'var(--mantine-color-white)',
             borderRadius: 'var(--mantine-radius-lg)',
@@ -126,44 +138,62 @@ export default function UserSidebar() {
           }}
         >
           <Stack gap="xs" style={{ overflowY: 'auto' }}>
-            {sidebarItems.map((item) => {
+            {sidebarItems.map((item, index) => {
               const isActive = item.path === '/articles' 
                 ? location.pathname.startsWith('/articles')
                 : location.pathname === item.path;
               return (
-                <UnstyledButton
-                  key={item.label}
-                  onClick={() => handleNavigation(item.path)}
-                  style={{
-                    borderRadius: 'var(--mantine-radius-md)',
-                    backgroundColor: isActive 
-                      ? (isDark ? 'var(--mantine-color-blue-9)' : 'var(--mantine-color-blue-0)')
-                      : 'transparent',
-                    padding: '0.5rem',
-                    transition: 'background-color 150ms ease',
-                    '&:hover': {
-                      backgroundColor: isDark ? 'var(--mantine-color-dark-5)' : 'var(--mantine-color-gray-0)',
-                    },
-                  }}
-                >
-                  <Group gap="md">
+                <Group key={item.label} justify="space-between" align="center" wrap="nowrap">
+                  <UnstyledButton
+                    onClick={() => handleNavigation(item.path)}
+                    style={{
+                      borderRadius: 'var(--mantine-radius-md)',
+                      backgroundColor: isActive 
+                        ? (isDark ? 'var(--mantine-color-blue-9)' : 'var(--mantine-color-blue-0)')
+                        : 'transparent',
+                      padding: '0.5rem',
+                      transition: 'background-color 150ms ease',
+                      flex: 1,
+                      '&:hover': {
+                        backgroundColor: isDark ? 'var(--mantine-color-dark-5)' : 'var(--mantine-color-gray-0)',
+                      },
+                    }}
+                  >
+                    <Group gap="md">
+                      <ActionIcon
+                        variant={isActive ? "filled" : "light"}
+                        size="lg"
+                        color="blue"
+                        radius="md"
+                      >
+                        <item.icon size={20} />
+                      </ActionIcon>
+                      <Text 
+                        size="sm" 
+                        fw={isActive ? 600 : 400}
+                        c={isActive ? (isDark ? 'white' : 'var(--mantine-color-blue-9)') : undefined}
+                      >
+                        {item.label}
+                      </Text>
+                    </Group>
+                  </UnstyledButton>
+                  {index === 0 && (
                     <ActionIcon
-                      variant={isActive ? "filled" : "light"}
-                      size="lg"
+                      variant="light"
                       color="blue"
-                      radius="md"
+                      radius="xl"
+                      onClick={handleToggleSidebar}
+                      size="sm"
+                      style={{
+                        transform: isOpen ? 'rotate(0deg)' : 'rotate(180deg)',
+                        transition: 'transform 0.3s ease',
+                        marginLeft: '0.5rem',
+                      }}
                     >
-                      <item.icon size={20} />
+                      <IconChevronLeft size={16} />
                     </ActionIcon>
-                    <Text 
-                      size="sm" 
-                      fw={isActive ? 600 : 400}
-                      c={isActive ? (isDark ? 'white' : 'var(--mantine-color-blue-9)') : undefined}
-                    >
-                      {item.label}
-                    </Text>
-                  </Group>
-                </UnstyledButton>
+                  )}
+                </Group>
               );
             })}
           </Stack>

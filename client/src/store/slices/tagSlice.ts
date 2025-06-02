@@ -1,19 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axiosInstance from '../../api/axios';
+import axiosInstance from '@axios';
+import { TagState} from "@type/tag.types"
 
-interface Tag {
-  _id: string;
-  name: string;
-  usageCount: number;
-  promoted: boolean;
-}
 
-interface TagState {
-  tags: Tag[];
-  searchResults: Tag[];
-  loading: boolean;
-  error: string | null;
-}
+
 
 const initialState: TagState = {
   tags: [],

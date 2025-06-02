@@ -17,8 +17,8 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { IconSearch, IconLock, IconLockOpen } from '@tabler/icons-react';
-import { AppDispatch, RootState } from '../../store';
-import { fetchUsers, setSearchQuery, blockUser, unblockUser } from '../../store/slices/userManagementSlice';
+import { AppDispatch, RootState } from '@/store';
+import { fetchUsers, setSearchQuery, blockUser, unblockUser } from '@slices/userManagementSlice';
 import { useDebouncedValue } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 

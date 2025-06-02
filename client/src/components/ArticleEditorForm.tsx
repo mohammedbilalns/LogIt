@@ -11,10 +11,10 @@ import { IconUpload } from '@tabler/icons-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { createArticle, updateArticle, fetchArticle, clearCurrentArticle } from '../store/slices/articleSlice';
-import { fetchTags } from '../store/slices/tagSlice';
-import { uploadImage, clearUploadState } from '../store/slices/uploadSlice';
-import { AppDispatch, RootState } from '../store';
-import TagSelector from './TagSelector';
+import { fetchTags } from '@slices/tagSlice';
+import { uploadImage, clearUploadState } from '@slices/uploadSlice';
+import { AppDispatch, RootState } from '@/store';
+import TagSelector from '@components/TagSelector';
 import { notifications } from '@mantine/notifications';
 import { useMediaQuery } from '@mantine/hooks';
 import ts from 'highlight.js/lib/languages/typescript';
@@ -225,7 +225,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
   };
 
   return (
-    <Box pos="relative">
+    <Box pos="relative" style={{ width: '100%' }}>
       <LoadingOverlay visible={articleLoading || tagsLoading || isUploading} overlayProps={{ radius: "sm", blur: 2 }} />
 
       <Box mb="xl">
@@ -243,28 +243,35 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
           required
           size={isMobile ? "md" : "lg"}
           maxLength={150}
+          styles={{
+            input: {
+              fontSize: isMobile ? '1rem' : '1.25rem',
+              padding: isMobile ? '0.75rem' : '1rem',
+            }
+          }}
         />
       </Box>
 
-      <Box mb="xl">
-        <RichTextEditor editor={editor}>
+      <Box mb="xl" style={{ width: '100%' }}>
+        <RichTextEditor editor={editor} style={{ width: '100%' }}>
           <RichTextEditor.Toolbar 
             sticky 
             stickyOffset={isMobile ? 0 : 60}
             style={{
               backgroundColor: isDark ? 'var(--mantine-color-dark-7)' : 'white',
-              borderBottom: `1px solid ${isDark ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-3)'}`
+              borderBottom: `1px solid ${isDark ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-3)'}`,
+              width: '100%',
             }}
           >
             <RichTextEditor.ControlsGroup>
               {editor && (
                 <BubbleMenu editor={editor}>
-                  <RichTextEditor.ControlsGroup>
-                    <RichTextEditor.Bold />
-                    <RichTextEditor.Italic />
-                    <RichTextEditor.Underline />
-                  </RichTextEditor.ControlsGroup>
-                </BubbleMenu>
+                <RichTextEditor.ControlsGroup>
+              <RichTextEditor.Bold />
+              <RichTextEditor.Italic />
+              <RichTextEditor.Underline />
+              </RichTextEditor.ControlsGroup>
+             </BubbleMenu>
               )}
               <RichTextEditor.Strikethrough />
               <RichTextEditor.ClearFormatting />
@@ -319,11 +326,37 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
 
           <RichTextEditor.Content
             style={{ 
-              minHeight: isMobile ? '300px' : '400px', 
-              maxHeight: isMobile ? '600px' : '800px', 
+              minHeight: isMobile ? '300px' : '500px', 
+              maxHeight: isMobile ? '600px' : 'calc(100vh - 400px)', 
               overflowY: 'auto',
               backgroundColor: isDark ? 'var(--mantine-color-dark-6)' : 'white',
-              color: isDark ? 'var(--mantine-color-gray-0)' : 'inherit'
+              color: isDark ? 'var(--mantine-color-gray-0)' : 'inherit',
+              padding: '1.5rem',
+              width: '100%',
+              '& .ProseMirror': {
+                minHeight: isMobile ? '300px' : '500px',
+                maxHeight: isMobile ? '600px' : 'calc(100vh - 400px)',
+                overflowY: 'auto',
+                '& > *:first-child': {
+                  marginTop: 0,
+                },
+                '& > *:last-child': {
+                  marginBottom: 0,
+                },
+                '& p': {
+                  fontSize: isMobile ? '1rem' : '1.125rem',
+                  lineHeight: 1.6,
+                },
+                '& h1': {
+                  fontSize: isMobile ? '1.75rem' : '2rem',
+                },
+                '& h2': {
+                  fontSize: isMobile ? '1.5rem' : '1.75rem',
+                },
+                '& h3': {
+                  fontSize: isMobile ? '1.25rem' : '1.5rem',
+                },
+              }
             }}
             onPaste={(e) => {
               const items = e.clipboardData?.items;

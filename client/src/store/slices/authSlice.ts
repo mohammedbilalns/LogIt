@@ -1,20 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../../api/axios';
-import { User, AuthResponse, LoginRequest, SignupRequest } from '../../types/user.types';
+import api from '@axios';
+import { AuthResponse, LoginRequest, SignupRequest } from '@type/user.types';
+import { AuthState } from '@type/auth.types';
 
-
-interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  loading: boolean;
-  error: string | null;
-  profileImage: string | null;
-  verificationEmail: string | null;
-  isInitialized: boolean;
-  resendLoading: boolean;
-  resetPasswordEmail: string | null;
-  resetPasswordVerified: boolean;
-}
 
 const initialState: AuthState = {
   user: null,

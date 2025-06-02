@@ -2,8 +2,8 @@ import { Box, Button, Group, Stack, Text, Title, Chip, Paper, Loader, Center } f
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AppDispatch, RootState } from '../store';
-import { fetchArticle } from '../store/slices/articleSlice';
+import { AppDispatch, RootState } from '@/store';
+import { fetchArticle } from '@slices/articleSlice';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
@@ -17,6 +17,7 @@ export default function ArticleDetailPage() {
   const { currentArticle: article, loading } = useSelector((state: RootState) => state.articles);
   const { user } = useSelector((state: RootState) => state.auth);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
 
   useEffect(() => {
     if (id) {
@@ -44,11 +45,14 @@ export default function ArticleDetailPage() {
 
   return (
     <Box 
-      ml={isMobile ? 16 : 290} 
-      mt={100} 
-      mr={isMobile ? 16 : 30} 
-      pl={isMobile ? 0 : "md"} 
-      pb={100}
+      style={{
+        marginLeft: isMobile ? '16px' : (isSidebarOpen ? '290px' : '16px'),
+        marginRight: isMobile ? '16px' : '30px',
+        paddingLeft: isMobile ? '0' : '16px',
+        marginTop: '100px',
+        paddingBottom: '100px',
+        transition: 'margin-left 0.3s ease',
+      }}
     >
       <Paper shadow="sm" radius="md" p={isMobile ? "md" : "xl"} withBorder>
         <Stack gap="md">

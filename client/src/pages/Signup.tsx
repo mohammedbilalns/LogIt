@@ -14,10 +14,10 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { IconUserPlus } from '@tabler/icons-react';
-import { AppDispatch, RootState } from '../store';
-import { signup, clearError } from '../store/slices/authSlice';
+import { AppDispatch, RootState } from '@/store';
+import { signup, clearError } from '@slices/authSlice';
 import { useEffect } from 'react';
-import { GoogleButton } from '../components/user/GoogleButton';
+import { GoogleButton } from '@components/user/GoogleButton';
 import { useMediaQuery } from '@mantine/hooks';
 
 export default function Signup() {

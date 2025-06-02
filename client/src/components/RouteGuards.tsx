@@ -1,11 +1,10 @@
 import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { RootState } from '../store';
+import { RootState } from '@/store';
 import { Suspense } from 'react';
 import { LoadingOverlay, Box } from '@mantine/core';
-import Navbar from './Navbar';
-import UserSidebar from './user/UserSidebar';
-
+import Navbar from '@components/Navbar';
+import UserSidebar from '@components/user/UserSidebar';
 
 export function Layout() {
   const { user } = useSelector((state: RootState) => state.auth);

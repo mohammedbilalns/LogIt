@@ -29,7 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/tags', tagRoutes);
-app.unsubscribe('/api/user', userRoutes )
+app.use('/api/user', userRoutes )
 
 // Connect to DB 
 mongoose.connect(MONGODB_URI)

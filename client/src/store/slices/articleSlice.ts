@@ -1,31 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axiosInstance from '../../api/axios';
-import { RootState } from '../../store';
-
-interface Article {
-  _id: string;
-  title: string;
-  content: string;
-  tags: string[];
-  tagNames: string[];
-  author: string;
-  authorId: string;
-  featured_image?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface ArticleState {
-  articles: Article[];
-  userArticles: Article[];
-  currentArticle: Article | null;
-  loading: boolean;
-  error: string | null;
-  total: number;
-  hasMore: boolean;
-  userArticlesHasMore: boolean;
-  searchQuery: string;
-}
+import axiosInstance from '@axios';
+import { RootState } from '@/store';
+import { Article, ArticleState } from '@type/article.types';
 
 const initialState: ArticleState = {
   articles: [],

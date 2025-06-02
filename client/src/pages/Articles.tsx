@@ -1,12 +1,12 @@
 import { Box, Button, Group, Stack, Text, Title, Select, Chip, Center } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '../store';
-import { fetchArticles } from '../store/slices/articleSlice';
-import { fetchTags } from '../store/slices/tagSlice';
-import CreateButton from '../components/CreateButton';
-import ArticleRow from '../components/article/ArticleRow';
-import ArticleRowSkeleton from '../components/article/ArticleRowSkeleton';
+import { AppDispatch, RootState } from '@/store';
+import { fetchArticles } from '@slices/articleSlice';
+import { fetchTags } from '@slices/tagSlice';
+import CreateButton from '@components/CreateButton';
+import ArticleRow from '@components/article/ArticleRow';
+import ArticleRowSkeleton from '@components/article/ArticleRowSkeleton';
 import { useMediaQuery } from '@mantine/hooks';
 
 export default function ArticlesPage() {
@@ -14,6 +14,7 @@ export default function ArticlesPage() {
   const [page, setPage] = useState(1);
   const limit = 10;
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
 
   const { articles, loading, hasMore } = useSelector((state: RootState) => state.articles);
   const { tags } = useSelector((state: RootState) => state.tags);
@@ -45,85 +46,88 @@ export default function ArticlesPage() {
 
   return (
     <Box 
-      ml={isMobile ? 16 : 290} 
-      mt={100} 
-      mr={isMobile ? 16 : 30} 
-      pl={isMobile ? 0 : "md"} 
-      pb={100}
+      style={{
+        marginLeft: isMobile ? '16px' : (isSidebarOpen ? '290px' : '16px'),
+        marginRight: isMobile ? '16px' : '30px',
+        paddingLeft: isMobile ? '0' : '16px',
+        marginTop: '100px',
+        paddingBottom: '100px',
+        transition: 'margin-left 0.3s ease',
+      }}
     >
       <Stack gap="md">
         <Group justify="space-between" wrap="wrap" gap="md">
-        <Title order={2}>Articles</Title>
+          <Title order={2}>Articles</Title>
 
-        <Group>
-          <Text fw={500}>Sort By:</Text>
-          <Select
-            data={[
-              { value: 'new', label: 'New To Old' },
-              { value: 'old', label: 'Old To New' },
-              { value: 'tagUsage', label: 'Most Used Tags' },
-            ]}
-            value="new"
-            size="xs"
-            radius="md"
-            checkIconPosition="right"
-            disabled
-          />
+          <Group>
+            <Text fw={500}>Sort By:</Text>
+            <Select
+              data={[
+                { value: 'new', label: 'New To Old' },
+                { value: 'old', label: 'Old To New' },
+                { value: 'tagUsage', label: 'Most Used Tags' },
+              ]}
+              value="new"
+              size="xs"
+              radius="md"
+              checkIconPosition="right"
+              disabled
+            />
+          </Group>
         </Group>
-      </Group>
 
-      {/* Recent Tags */}
+        {/* Recent Tags */}
         <Stack gap="xs">
           <Text fw={500}>Recent Tags:</Text>
           <Group gap="xs" wrap="wrap">
-          {tags.map((tag) => (
-            <Chip
-              key={tag._id}
-              checked={false}
-              size="sm"
-              variant="light"
-              color="blue"
-            >
-              {tag.name}
-            </Chip>
-          ))}
-          {tags.length > 5 && (
-            <Button 
-              variant="subtle" 
-              size="xs" 
-              disabled
-            >
-              View More Tags
-            </Button>
-          )}
-        </Group>
+            {tags.map((tag) => (
+              <Chip
+                key={tag._id}
+                checked={false}
+                size="sm"
+                variant="light"
+                color="blue"
+              >
+                {tag.name}
+              </Chip>
+            ))}
+            {tags.length > 5 && (
+              <Button 
+                variant="subtle" 
+                size="xs" 
+                disabled
+              >
+                View More Tags
+              </Button>
+            )}
+          </Group>
         </Stack>
 
-      <Stack gap="md">
-        {loading && page === 1 ? (
-          renderSkeletons()
-        ) : (
-          articles.map((article) => (
-            <ArticleRow key={article._id} article={article} />
-          ))
+        <Stack gap="md">
+          {loading && page === 1 ? (
+            renderSkeletons()
+          ) : (
+            articles.map((article) => (
+              <ArticleRow key={article._id} article={article} />
+            ))
+          )}
+        </Stack>
+
+        {hasMore && (
+          <Center mt="xl">
+            <Button 
+              variant="light" 
+              onClick={handleLoadMore}
+              loading={loading && page > 1}
+            >
+              Load More
+            </Button>
+          </Center>
         )}
       </Stack>
 
-      {hasMore && (
-        <Center mt="xl">
-          <Button 
-            variant="light" 
-            onClick={handleLoadMore}
-            loading={loading && page > 1}
-          >
-            Load More
-          </Button>
-        </Center>
-      )}
-      </Stack>
-
       <Box pos="fixed" bottom={24} right={24}>
-      <CreateButton />
+        <CreateButton />
       </Box>
     </Box>
   );

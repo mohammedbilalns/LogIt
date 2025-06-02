@@ -1,15 +1,13 @@
 import { useEffect, Suspense } from 'react';
-import { MantineProvider } from '@mantine/core';
+import { MantineProvider, LoadingOverlay } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { RouterProvider } from 'react-router-dom';
 import { Provider, useDispatch, useSelector } from 'react-redux';
-import { store, AppDispatch, RootState } from './store';
-import { router } from './Router';
-import { theme } from './theme';
-import { checkAuth } from './store/slices/authSlice';
-import { LoadingUI } from './components/LoadingUI';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-
+import { store, AppDispatch, RootState } from '@/store';
+import { router } from '@/Router';
+import { theme } from '@/theme';
+import { checkAuth } from '@slices/authSlice';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 
@@ -20,13 +18,11 @@ function AppContent() {
   const { isInitialized } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
-    console.log("App Initialized")
     dispatch(checkAuth());
   }, [dispatch]);
 
   useEffect(() => {
     if (isInitialized) {
-      console.log("root loader removing function is called ")
       const rootLoader = document.getElementById('root-loader');
       if (rootLoader) {
         rootLoader.remove();
@@ -36,11 +32,11 @@ function AppContent() {
 
   if (!isInitialized) {
     console.log("App not initalized showsing loading ui ")
-    return <LoadingUI />;
+    return <LoadingOverlay />;
   }
 
   return (
-    <Suspense fallback={<LoadingUI />}>
+    <Suspense fallback={<LoadingOverlay />}>
       <RouterProvider router={router} />
     </Suspense>
   );

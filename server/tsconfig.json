@@ -23,11 +23,10 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../shared/*"]
+      "@shared/*": ["../shared/*"],
+      "@routes/*": ["./interfaces/http/routes/*"]
     }
   },
-  "exclude": [
-    "node_modules",
-  ],
+  "exclude": ["node_modules"],
   "include": ["./src/**/*.ts", "../shared/**/*.ts"]
-} 
+}

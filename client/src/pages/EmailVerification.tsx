@@ -14,8 +14,8 @@ import {
   Box,
 } from '@mantine/core';
 import { IconMailCheck } from '@tabler/icons-react';
-import { AppDispatch, RootState } from '../store';
-import { verifyEmail, clearError, resendOTP, setVerificationEmail } from '../store/slices/authSlice';
+import { AppDispatch, RootState } from '@/store';
+import { verifyEmail, clearError, resendOTP, setVerificationEmail } from '@slices/authSlice';
 import { notifications } from '@mantine/notifications';
 import { useMediaQuery } from '@mantine/hooks';
 

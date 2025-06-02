@@ -23,7 +23,7 @@ import {
   updatePassword,
   clearResetPasswordState,
   clearError,
-} from '../store/slices/authSlice';
+} from '@slices/authSlice';
 import { useEffect, useState, useCallback } from 'react';
 import { notifications } from '@mantine/notifications';
 

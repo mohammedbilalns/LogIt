@@ -19,7 +19,12 @@
     "paths": {
       "@/*": ["./src/*"],
       "@test-utils": ["./test-utils"],
-      "@shared/*": ["../shared/*"]
+      "@shared/*": ["../shared/*"], 
+      "@type/*": ["./src/types/*"],
+      "@slices/*": ["./src/store/slices/*"],
+      "@pages/*" : ["./src/pages/*"], 
+      "@components/*": ["./src/components/*"],
+      "@axios": ["./src/api/axios.ts"]
     }
   },
   "include": ["src", "test-utils", "../shared"]

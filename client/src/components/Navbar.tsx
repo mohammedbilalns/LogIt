@@ -20,8 +20,8 @@ import {
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '../store';
-import { logout } from '../store/slices/authSlice';
+import { AppDispatch, RootState } from '@/store';
+import { logout } from '@slices/authSlice';
 import { useMediaQuery } from '@mantine/hooks';
 
 export default function Navbar() {

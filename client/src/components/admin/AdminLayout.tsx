@@ -1,6 +1,6 @@
 import { Box } from '@mantine/core';
 import { Outlet } from 'react-router-dom';
-import AdminSidebar from './AdminSidebar';
+import AdminSidebar from '@components/admin/AdminSidebar';
 
 export default function AdminLayout() {
   return (

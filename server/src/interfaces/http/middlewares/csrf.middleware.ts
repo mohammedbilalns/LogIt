@@ -13,7 +13,6 @@ export const csrfMiddleware = () => {
     }
 
     const csrfToken = req.headers['x-csrf-token'];
-    console.log('CSRF token:', csrfToken);
     const storedToken = req.cookies['csrfToken'];
     console.log('Stored token:', storedToken);
     if (!csrfToken || !storedToken || csrfToken !== storedToken) {

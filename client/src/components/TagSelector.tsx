@@ -1,8 +1,8 @@
 import { useState, useCallback, useMemo, useEffect, memo } from 'react';
 import { MultiSelect } from '@mantine/core';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchTags, createTag } from '../store/slices/tagSlice';
-import { AppDispatch, RootState } from '../store';
+import { fetchTags, createTag } from '@slices/tagSlice';
+import { AppDispatch, RootState } from '@/store';
 
 interface Tag {
   _id: string;
