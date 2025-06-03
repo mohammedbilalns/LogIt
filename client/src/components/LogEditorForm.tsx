@@ -10,11 +10,12 @@ import {
     Image,
     SimpleGrid,
     ActionIcon,
+    Modal,
 } from '@mantine/core';
 import { DateTimePicker } from '@mantine/dates';
 import { useForm, isNotEmpty } from '@mantine/form';
 import { IconPhotoPlus, IconX } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -28,6 +29,8 @@ import { uploadImage } from '@/store/slices/uploadSlice';
 import { AppDispatch, RootState } from '@/store';
 import TagSelector from './TagSelector';
 import { notifications } from '@mantine/notifications';
+import Cropper from 'react-cropper';
+import 'cropperjs/dist/cropper.css';
 
 interface LogEditorFormProps {
   mode: 'create' | 'edit';
@@ -54,7 +57,9 @@ export default function LogEditorForm({
   const { loading: logLoading } = useSelector((state: RootState) => state.logs);
   const { loading: tagsLoading } = useSelector((state: RootState) => state.tags);
   const [uploadingImages, setUploadingImages] = useState(false);
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [currentImage, setCurrentImage] = useState<File | null>(null);
+  const cropperRef = useRef<any>(null);
 
   const form = useForm({
     initialValues: {
@@ -84,31 +89,104 @@ export default function LogEditorForm({
   }, [dispatch, mode, logId]);
 
   const handleImageUpload = async (files: File[]) => {
-    setUploadingImages(true);
+    if (files.length === 0) {
+      return;
+    }
+    
+    // For the first image, open cropper
+    if (files.length === 1) {
+      setCurrentImage(files[0]);
+      setCropperOpen(true);
+    } else {
+      // For multiple files, upload directly
+      setUploadingImages(true);
+      try {
+        const uploadPromises = files.map(file => dispatch(uploadImage(file)).unwrap());
+        const uploadedUrls = await Promise.all(uploadPromises);
+        
+        form.setFieldValue('mediaUrls', [...form.values.mediaUrls, ...uploadedUrls]);
+        
+        notifications.show({
+          title: 'Success',
+          message: 'Images uploaded successfully',
+          color: 'green',
+        });
+      } catch (error: any) {
+        notifications.show({
+          title: 'Error',
+          message: error.message || 'Failed to upload images',
+          color: 'red',
+        });
+      } finally {
+        setUploadingImages(false);
+      }
+    }
+  };
+
+  const handleCrop = async () => {
+    if (!cropperRef.current || !currentImage) {
+      return;
+    }
+
     try {
-      const uploadPromises = files.map(file => dispatch(uploadImage(file)).unwrap());
-      const uploadedUrls = await Promise.all(uploadPromises);
+      setUploadingImages(true);
+      const cropper = cropperRef.current.cropper;
       
-      // Update form with new media URLs
-      form.setFieldValue('mediaUrls', [...form.values.mediaUrls, ...uploadedUrls]);
+      if (!cropper) {
+        throw new Error('Cropper not initialized');
+      }
+
+      // Get the cropped canvas
+      const canvas = cropper.getCroppedCanvas({
+        maxWidth: 1920,
+        maxHeight: 1080,
+        fillColor: '#fff',
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high',
+      });
+
+      if (!canvas) {
+        throw new Error('Failed to get cropped canvas');
+      }
+
+      // Convert canvas to blob
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((blob: Blob | null) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Failed to convert canvas to blob'));
+          }
+        }, 'image/jpeg', 0.95);
+      });
+
+      // Create a File object from the blob
+      const croppedFile = new File([blob], currentImage.name, {
+        type: 'image/jpeg',
+        lastModified: Date.now(),
+      });
+
+      // Upload the cropped image
+      const uploadedUrl = await dispatch(uploadImage(croppedFile)).unwrap();
       
-      // Create preview URLs for new images
-      const newPreviewUrls = files.map(file => URL.createObjectURL(file));
-      setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
+      form.setFieldValue('mediaUrls', [...form.values.mediaUrls, uploadedUrl]);
       
       notifications.show({
         title: 'Success',
-        message: 'Images uploaded successfully',
+        message: 'Image uploaded successfully',
         color: 'green',
       });
     } catch (error: any) {
+      console.error('Crop error:', error);
       notifications.show({
         title: 'Error',
-        message: error.message || 'Failed to upload images',
+        message: error.message || 'Failed to upload image',
         color: 'red',
       });
     } finally {
       setUploadingImages(false);
+      setCropperOpen(false);
+      setCurrentImage(null);
     }
   };
 
@@ -116,10 +194,6 @@ export default function LogEditorForm({
     const newMediaUrls = [...form.values.mediaUrls];
     newMediaUrls.splice(index, 1);
     form.setFieldValue('mediaUrls', newMediaUrls);
-    
-    const newPreviewUrls = [...previewUrls];
-    newPreviewUrls.splice(index, 1);
-    setPreviewUrls(newPreviewUrls);
   };
 
   const handleSubmit = async (values: typeof form.values) => {
@@ -204,7 +278,7 @@ export default function LogEditorForm({
           disabled={uploadingImages || form.values.mediaUrls.length >= 4}
         />
 
-        {(form.values.mediaUrls.length > 0 || previewUrls.length > 0) && (
+        {form.values.mediaUrls.length > 0 && (
           <Stack gap="xs">
             <Text size="sm" fw={500}>
               Media Preview:
@@ -217,6 +291,7 @@ export default function LogEditorForm({
                     alt={`Media ${index + 1}`}
                     height={200}
                     fit="cover"
+                    radius="sm"
                   />
                   <ActionIcon
                     color="red"
@@ -250,6 +325,44 @@ export default function LogEditorForm({
           </Button>
         </Group>
       </Stack>
+
+      <Modal
+        opened={cropperOpen}
+        onClose={() => {
+          setCropperOpen(false);
+          setCurrentImage(null);
+        }}
+        title="Crop Image"
+        size="xl"
+      >
+        <Stack>
+          {currentImage && (
+            <Cropper
+              ref={cropperRef}
+              src={URL.createObjectURL(currentImage)}
+              style={{ height: 400, width: '100%' }}
+              aspectRatio={16 / 9}
+              guides
+              viewMode={1}
+              autoCropArea={1}
+              background={false}
+              responsive
+              restore={false}
+            />
+          )}
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => {
+              setCropperOpen(false);
+              setCurrentImage(null);
+            }}>
+              Cancel
+            </Button>
+            <Button onClick={handleCrop} loading={uploadingImages}>
+              Crop & Upload
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </form>
   );
 }

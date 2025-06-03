@@ -24,6 +24,7 @@ export default function LogRow({ log, onEdit, onDelete }: LogRowProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const formatDate = (dateString: string) => {
     try {
@@ -83,14 +84,36 @@ export default function LogRow({ log, onEdit, onDelete }: LogRowProps) {
         {log.mediaUrls && log.mediaUrls.length > 0 && (
           <SimpleGrid cols={2} spacing="sm">
             {log.mediaUrls.map((url, index) => (
-              <Image
+              <button
+                type="button"
                 key={url}
-                src={url}
-                alt={`Media ${index + 1}`}
-                height={200}
-                fit="cover"
-                radius="sm"
-              />
+                onClick={() => setSelectedImage(url)}
+                style={{
+                  position: 'relative',
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                  borderRadius: '4px',
+                  border: 'none',
+                  padding: 0,
+                  background: 'none',
+                  width: '100%',
+                }}
+                aria-label={`View full size image ${index + 1}`}
+              >
+                <Image
+                  src={url}
+                  alt={`Media ${index + 1}`}
+                  height={200}
+                  fit="cover"
+                  radius="sm"
+                  style={{
+                    transition: 'transform 0.2s ease',
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                    },
+                  }}
+                />
+              </button>
             ))}
           </SimpleGrid>
         )}
@@ -126,6 +149,23 @@ export default function LogRow({ log, onEdit, onDelete }: LogRowProps) {
             Delete
           </Button>
         </Group>
+      </Modal>
+
+      <Modal
+        opened={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        size="xl"
+        centered
+        padding={0}
+      >
+        {selectedImage && (
+          <Image
+            src={selectedImage}
+            alt="Full size media"
+            fit="contain"
+            style={{ maxHeight: '80vh' }}
+          />
+        )}
       </Modal>
     </>
   );
