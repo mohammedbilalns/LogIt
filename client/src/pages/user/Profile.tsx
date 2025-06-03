@@ -18,6 +18,8 @@ import ArticleRowSkeleton from '@components/article/ArticleRowSkeleton';
 import ChangePasswordModal from '@components/user/ChangePasswordModal';
 import UpdateProfileModal from '@components/user/UpdateProfileModal';
 import UserSidebar from '@components/user/UserSidebar';
+import { changePassword } from '@/store/slices/authSlice';
+import { notifications } from '@mantine/notifications';
 
 interface ChangePasswordForm {
     currentPassword: string;
@@ -46,12 +48,33 @@ export default function ProfilePage() {
         }
     };
 
-    const handleChangePassword = (values: ChangePasswordForm) => {
-        console.log(values);
-        closePassword();
+    const handleChangePassword = async (values: ChangePasswordForm) => {
+        try {
+            const result = await dispatch(changePassword({
+                currentPassword: values.currentPassword,
+                newPassword: values.newPassword
+            })).unwrap();
+            
+            if (result) {
+                notifications.show({
+                    title: 'Success',
+                    message: 'Password changed successfully',
+                    color: 'green'
+                });
+            }
+        } catch (error: any) {
+            notifications.show({
+                title: 'Error',
+                message: error || 'Failed to change password',
+                color: 'red'
+            });
+        } finally {
+            closePassword();
+        }
     };
 
     const handleUpdateProfile = (values: any) => {
+         console.log("handle update profile")
         console.log(values);
         closeProfile();
     };

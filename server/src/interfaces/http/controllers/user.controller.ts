@@ -38,29 +38,35 @@ export class UserController {
 
   async changePassword(req: Request, res: Response) {
     try {
-      logger.cyan("Change password request ", "dsf")
       const userId = req.user?.id;
-      logger.cyan("User id " , String(userId))
       if (!userId) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
-      const { oldPassword, newPassword } = req.body;
-      if (!oldPassword || !newPassword) {
-        return res.status(400).json({ message: 'Old password and new password are required' });
+      const { currentPassword, newPassword } = req.body;
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: 'Current password and new password are required' });
       }
 
-      await this.userService.changePassword(userId, oldPassword, newPassword);
+      await this.userService.changePassword(userId, currentPassword, newPassword);
       return res.json({ message: 'Password updated successfully' });
     } catch (error: any) {
       logger.red('Error changing password:', error);
        
       if (error.name === 'UserNotFoundError') {
-        return res.status(404).json({ message: error.message });
+        return res.status(404).json({ message: 'User account not found' });
       }
       
-      if (error.name === 'InvalidPasswordError' || error.name === 'PasswordMismatchError') {
-        return res.status(400).json({ message: error.message });
+      if (error.name === 'InvalidPasswordError') {
+        return res.status(400).json({ message: 'Current password is incorrect' });
+      }
+
+      if (error.name === 'PasswordMismatchError') {
+        return res.status(400).json({ message: 'New password cannot be the same as current password' });
+      }
+
+      if (error.name === 'UserBlockedError') {
+        return res.status(403).json({ message: 'Your account has been blocked' });
       }
 
       return res.status(500).json({ message: 'Internal server error' });

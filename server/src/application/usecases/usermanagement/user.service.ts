@@ -61,13 +61,34 @@ export class UserService {
     // Verify old password
     const isPasswordValid = await this.userRepository.verifyPassword(userId, oldPassword);
     if (!isPasswordValid) {
-      throw new InvalidPasswordError();
+      throw new InvalidPasswordError('Current password is incorrect');
     }
 
     // Check if new password is same as old password
     const isSamePassword = await this.userRepository.verifyPassword(userId, newPassword);
     if (isSamePassword) {
-      throw new PasswordMismatchError();
+      throw new PasswordMismatchError('New password cannot be the same as current password');
+    }
+
+    // Validate new password requirements
+    if (newPassword.length < 8) {
+      throw new InvalidPasswordError('Password must be at least 8 characters long');
+    }
+
+    if (!/[A-Z]/.test(newPassword)) {
+      throw new InvalidPasswordError('Password must contain at least one uppercase letter');
+    }
+
+    if (!/[a-z]/.test(newPassword)) {
+      throw new InvalidPasswordError('Password must contain at least one lowercase letter');
+    }
+
+    if (!/[0-9]/.test(newPassword)) {
+      throw new InvalidPasswordError('Password must contain at least one number');
+    }
+
+    if (!/[!@#$%^&*]/.test(newPassword)) {
+      throw new InvalidPasswordError('Password must contain at least one special character');
     }
 
     // Hash new password

@@ -1,20 +1,20 @@
 export class UserNotFoundError extends Error {
-  constructor() {
-    super('User not found');
+  constructor(message: string = 'User not found') {
+    super(message);
     this.name = 'UserNotFoundError';
   }
 }
 
 export class InvalidPasswordError extends Error {
-  constructor() {
-    super('Invalid password');
+  constructor(message: string = 'Invalid password') {
+    super(message);
     this.name = 'InvalidPasswordError';
   }
 }
 
 export class PasswordMismatchError extends Error {
-  constructor() {
-    super('New password cannot be the same as the old password');
+  constructor(message: string = 'New password cannot be the same as the old password') {
+    super(message);
     this.name = 'PasswordMismatchError';
   }
 }
@@ -27,8 +27,8 @@ export class InvalidProfileDataError extends Error {
 }
 
 export class UserBlockedError extends Error {
-  constructor() {
-    super('Your account has been blocked. Please contact support.');
+  constructor(message: string = 'Your account has been blocked. Please contact support.') {
+    super(message);
     this.name = 'UserBlockedError';
   }
 } 

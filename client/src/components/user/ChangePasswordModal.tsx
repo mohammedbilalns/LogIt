@@ -49,8 +49,10 @@ export default function ChangePasswordModal({ opened, onClose, onSubmit }: Chang
     });
 
     const handleSubmit = (values: ChangePasswordForm) => {
-        onSubmit(values);
-        form.reset();
+        if (form.isValid()) {
+            onSubmit(values);
+            form.reset();
+        }
     };
 
     return (
