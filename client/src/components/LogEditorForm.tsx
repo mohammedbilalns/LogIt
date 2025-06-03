@@ -55,7 +55,7 @@ export default function LogEditorForm({
 }: LogEditorFormProps) {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { loading: logLoading } = useSelector((state: RootState) => state.logs);
+  const { loading: logLoading, currentLog } = useSelector((state: RootState) => state.logs);
   const { loading: tagsLoading } = useSelector((state: RootState) => state.tags);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [cropperOpen, setCropperOpen] = useState(false);
@@ -88,6 +88,18 @@ export default function LogEditorForm({
       dispatch(clearCurrentLog());
     };
   }, [dispatch, mode, logId]);
+
+  useEffect(() => {
+    if (mode === 'edit' && currentLog) {
+      form.setValues({
+        title: currentLog.title,
+        content: currentLog.content,
+        tags: currentLog.tags.map(tag => tag.id),
+        mediaUrls: currentLog.mediaUrls,
+        createdAt: new Date(currentLog.createdAt),
+      });
+    }
+  }, [currentLog, mode]);
 
   const handleImageUpload = async (files: File[]) => {
     if (files.length === 0) {
