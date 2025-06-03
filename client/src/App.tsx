@@ -8,8 +8,10 @@ import { store, AppDispatch, RootState } from '@/store';
 import { router } from '@/Router';
 import { theme } from '@/theme';
 import { initializeApp } from '@slices/initSlice';
+import { setupAxiosInterceptors } from '@/api/axios';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
+import '@mantine/dates/styles.css';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -43,6 +45,11 @@ function AppContent() {
 }
 
 export default function App() {
+  // Set up axios interceptors after store is created
+  useEffect(() => {
+    setupAxiosInterceptors(store);
+  }, []);
+
   return (
     <Provider store={store}>
       <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>

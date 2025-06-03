@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { TextInput, Button, Box, Group, LoadingOverlay, Text, useMantineColorScheme } from '@mantine/core';
+import { TextInput, Button, Box, Group, Text, useMantineColorScheme } from '@mantine/core';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor, BubbleMenu } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -225,9 +225,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
   };
 
   return (
-    <Box pos="relative" style={{ width: '100%' }}>
-      <LoadingOverlay visible={articleLoading || tagsLoading || isUploading} overlayProps={{ radius: "sm", blur: 2 }} />
-
+    <Box pos="relative" style={{ width: '100%', zIndex: 0 }}>
       <Box mb="xl">
         <TextInput
           label="Title"
@@ -252,15 +250,18 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
         />
       </Box>
 
-      <Box mb="xl" style={{ width: '100%' }}>
+      <Box mb="xl" style={{ width: '100%', position: 'relative', zIndex: 0 }}>
         <RichTextEditor editor={editor} style={{ width: '100%' }}>
           <RichTextEditor.Toolbar 
             sticky 
-            stickyOffset={isMobile ? 0 : 60}
+            stickyOffset={isMobile ? 60 : 80}
             style={{
               backgroundColor: isDark ? 'var(--mantine-color-dark-7)' : 'white',
               borderBottom: `1px solid ${isDark ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-3)'}`,
               width: '100%',
+              position: 'sticky',
+              top: isMobile ? '60px' : '80px',
+              zIndex: 100
             }}
           >
             <RichTextEditor.ControlsGroup>
@@ -327,16 +328,14 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
           <RichTextEditor.Content
             style={{ 
               minHeight: isMobile ? '300px' : '500px', 
-              maxHeight: isMobile ? '600px' : 'calc(100vh - 400px)', 
-              overflowY: 'auto',
+              maxHeight: 'none',
               backgroundColor: isDark ? 'var(--mantine-color-dark-6)' : 'white',
               color: isDark ? 'var(--mantine-color-gray-0)' : 'inherit',
               padding: '1.5rem',
               width: '100%',
               '& .ProseMirror': {
                 minHeight: isMobile ? '300px' : '500px',
-                maxHeight: isMobile ? '600px' : 'calc(100vh - 400px)',
-                overflowY: 'auto',
+                maxHeight: 'none',
                 '& > *:first-child': {
                   marginTop: 0,
                 },
@@ -388,7 +387,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
         />
       </Box>
 
-      <Group justify="flex-end" gap="md" wrap="wrap" mt="xl" style={{ position: 'sticky', bottom: 0, backgroundColor: isDark ? 'var(--mantine-color-dark-7)' : 'white', padding: '1rem 0', zIndex: 100 }}>
+      <Group justify="flex-end" gap="md" wrap="wrap" mt="xl" mb="xl">
         <Button 
           variant="outline" 
           onClick={onClose}
@@ -401,6 +400,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
           disabled={!title.trim() || !editor?.getText().trim() || articleLoading || tagsLoading || isUploading}
           size={isMobile ? "sm" : "md"}
           loading={articleLoading || tagsLoading || isUploading}
+          loaderProps={{ size: 'sm', color: 'white' }}
         >
           {mode === 'create' ? 'Publish Article' : 'Update Article'}
         </Button>

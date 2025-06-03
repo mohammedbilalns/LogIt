@@ -1,6 +1,4 @@
-import { logout } from '@/store/slices/authSlice';
 import axios, { AxiosError } from 'axios';
-import { store } from '@/store';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -55,69 +53,72 @@ const processQueue = (error: any = null, token: string | null = null) => {
   failedQueue = [];
 };
 
-axiosInstance.interceptors.response.use(
-  (response) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config;
-    if (!originalRequest) {
-      return Promise.reject(error);
-    }
-
-    if(error.response?.status === 403 && 
-       typeof error.response?.data === 'object' && 
-       error.response?.data !== null &&
-       'message' in error.response.data &&
-       error.response.data.message === "User is blocked"){
-      // Clear Redux state
-      store.dispatch(logout());
-      // Redirect to login page 
-      window.location.href = '/login?error=blocked';
-      return Promise.reject(error);
-    }
-
-    // If the error is not 401 or the request is already a refresh token request, reject
-    if (error.response?.status !== 401 || originalRequest.url?.includes('/auth/refresh')) {
-      return Promise.reject(error);
-    }
-
-    if (isRefreshing) {
-      // If a refresh is already in progress, add the request to the queue
-      return new Promise((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
-      })
-        .then((token) => {
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-          }
-          return axiosInstance(originalRequest);
-        })
-        .catch((err) => {
-          return Promise.reject(err);
-        });
-    }
-
-    isRefreshing = true;
-
-    try {
-      // Attempt to refresh the token
-      const response = await axiosInstance.post('/auth/refresh');
-      const { accessToken } = response.data;
-
-      // Process all queued requests
-      processQueue(null, accessToken);
-
-      // Retry the original request
-      if (originalRequest.headers) {
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+// Create a function to set up the response interceptor
+export const setupAxiosInterceptors = (store: any) => {
+  axiosInstance.interceptors.response.use(
+    (response) => response,
+    async (error: AxiosError) => {
+      const originalRequest = error.config;
+      if (!originalRequest) {
+        return Promise.reject(error);
       }
-      return axiosInstance(originalRequest);
-    } catch (refreshError) {
-      processQueue(refreshError, null);
-      return Promise.reject(refreshError);
-    } finally {
-      isRefreshing = false;
+
+      if(error.response?.status === 403 && 
+         typeof error.response?.data === 'object' && 
+         error.response?.data !== null &&
+         'message' in error.response.data &&
+         error.response.data.message === "User is blocked"){
+        // Clear Redux state using the store passed as parameter
+        store.dispatch({ type: 'auth/logout' });
+        // Redirect to login page 
+        window.location.href = '/login?error=blocked';
+        return Promise.reject(error);
+      }
+
+      // If the error is not 401 or the request is already a refresh token request, reject
+      if (error.response?.status !== 401 || originalRequest.url?.includes('/auth/refresh')) {
+        return Promise.reject(error);
+      }
+
+      if (isRefreshing) {
+        // If a refresh is already in progress, add the request to the queue
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            return axiosInstance(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      isRefreshing = true;
+
+      try {
+        // Attempt to refresh the token
+        const response = await axiosInstance.post('/auth/refresh');
+        const { accessToken } = response.data;
+
+        // Process all queued requests
+        processQueue(null, accessToken);
+
+        // Retry the original request
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        }
+        return axiosInstance(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
     }
-  }
-);
+  );
+};
 
 export default axiosInstance; 

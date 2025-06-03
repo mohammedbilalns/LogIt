@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { TagController } from '../controllers/TagController';
+import { TagController } from '../controllers/tag.controller';
 import { TagService } from '../../../application/usecases/articles/tag.service';
 import { MongoTagRepository } from '../../../infrastructure/repositories/tag.repository';
 import { authorizeRoles , authMiddleware} from '../middlewares/auth.middleware';

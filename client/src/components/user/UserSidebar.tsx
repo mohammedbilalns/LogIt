@@ -20,8 +20,7 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
   const isOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  // Don't render sidebar on mobile when modal is open
-  const shouldRenderSidebar = !(isMobile && isModalOpen);
+  const shouldRenderSidebar = !isModalOpen;
 
   if (!shouldRenderSidebar) {
     return null;
@@ -141,6 +140,8 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
             {sidebarItems.map((item, index) => {
               const isActive = item.path === '/articles' 
                 ? location.pathname.startsWith('/articles')
+                : item.path === '/logs'
+                ? location.pathname.startsWith('/logs')
                 : location.pathname === item.path;
               return (
                 <Group key={item.label} justify="space-between" align="center" wrap="nowrap">

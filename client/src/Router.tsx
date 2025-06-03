@@ -22,6 +22,8 @@ const AdminLayout = lazy(() => import('@components/admin/AdminLayout'));
 const UserManagement = lazy(() => import('@pages/admin/UserManagement'));
 const NotFound = lazy(() => import('@pages/NotFound'));
 const Profile = lazy(() => import('@pages/user/Profile'));
+const LogsPage = lazy(()=> import('@pages/LogsPage'));
+const LogEditor = lazy(()=> import('@pages/LogEditor'));
 
 export const router = createBrowserRouter([
   {
@@ -53,7 +55,15 @@ export const router = createBrowserRouter([
           },
           {
             path: '/logs',
-            element: <Home />,
+            element: <LogsPage />,
+          },
+          {
+            path: '/logs/create',
+            element: <LogEditor mode="create" />,
+          },
+          {
+            path: '/logs/edit/:id',
+            element: <LogEditor mode="edit" />,
           },
           {
             path: '/chats',
