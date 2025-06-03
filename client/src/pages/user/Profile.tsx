@@ -78,7 +78,7 @@ export default function ProfilePage() {
                 color: 'red'
             });
         } finally {
-            closePassword();
+        closePassword();
         }
     };
 

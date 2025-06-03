@@ -1,4 +1,4 @@
-import { Box, Button, Group, Stack, Text, Title, Select, Chip, Center } from '@mantine/core';
+import { Box, Group, Stack, Text, Title, Select, Chip, Center, Pagination } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
@@ -9,14 +9,20 @@ import ArticleRow from '@components/article/ArticleRow';
 import ArticleRowSkeleton from '@components/article/ArticleRowSkeleton';
 import { useMediaQuery } from '@mantine/hooks';
 
+interface ArticleFilters {
+  tagIds: string[];
+  isActive: boolean;
+}
+
 export default function ArticlesPage() {
   const dispatch = useDispatch<AppDispatch>();
   const [page, setPage] = useState(1);
-  const limit = 10;
+  const [pageSize, setPageSize] = useState(10);
+  const [sortBy, setSortBy] = useState('new');
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
 
-  const { articles, loading, hasMore } = useSelector((state: RootState) => state.articles);
+  const { articles, loading, total } = useSelector((state: RootState) => state.articles);
   const { tags } = useSelector((state: RootState) => state.tags);
 
   useEffect(() => {
@@ -24,17 +30,24 @@ export default function ArticlesPage() {
   }, [dispatch]);
 
   useEffect(() => {
+    const filters: ArticleFilters = {
+      tagIds: [],
+      isActive: true
+    };
+
     dispatch(fetchArticles({
       page,
-      limit,
-      sortBy: 'createdAt',
-      sortOrder: 'desc'
+      limit: pageSize,
+      sortBy: sortBy === 'new' ? 'createdAt' : 'createdAt',
+      sortOrder: sortBy === 'old' ? 'asc' : 'desc',
+      filters: JSON.stringify(filters)
     }));
-  }, [dispatch, page]);
+  }, [dispatch, page, pageSize, sortBy]);
 
-  const handleLoadMore = () => {
-    if (hasMore) {
-      setPage(prev => prev + 1);
+  const handleSortChange = (value: string | null) => {
+    if (value) {
+      setSortBy(value);
+      setPage(1); // Reset to first page when changing sort
     }
   };
 
@@ -65,25 +78,25 @@ export default function ArticlesPage() {
               data={[
                 { value: 'new', label: 'New To Old' },
                 { value: 'old', label: 'Old To New' },
-                { value: 'tagUsage', label: 'Most Used Tags' },
               ]}
-              value="new"
+              value={sortBy}
+              onChange={handleSortChange}
               size="xs"
               radius="md"
               checkIconPosition="right"
-              disabled
             />
           </Group>
         </Group>
 
-        {/* Recent Tags */}
+        {/* Tags Filter */}
         <Stack gap="xs">
-          <Text fw={500}>Recent Tags:</Text>
+          <Text fw={500}>Filter by Tags:</Text>
           <Group gap="xs" wrap="wrap">
             {tags.map((tag) => (
               <Chip
                 key={tag._id}
                 checked={false}
+                disabled
                 size="sm"
                 variant="light"
                 color="blue"
@@ -91,39 +104,51 @@ export default function ArticlesPage() {
                 {tag.name}
               </Chip>
             ))}
-            {tags.length > 5 && (
-              <Button 
-                variant="subtle" 
-                size="xs" 
-                disabled
-              >
-                View More Tags
-              </Button>
-            )}
           </Group>
         </Stack>
 
         <Stack gap="md">
-          {loading && page === 1 ? (
+          {loading ? (
             renderSkeletons()
-          ) : (
+          ) : articles.length > 0 ? (
             articles.map((article) => (
               <ArticleRow key={article._id} article={article} />
             ))
+          ) : (
+            <Center py="xl">
+              <Text c="dimmed" size="sm">No articles found</Text>
+            </Center>
+          )}
+
+          {!loading && articles.length > 0 && (
+            <Stack gap="md" mt="md">
+              <Group justify="space-between" wrap="wrap" gap="md">
+                <Select
+                  label="Page size"
+                  value={pageSize.toString()}
+                  onChange={(value) => {
+                    setPageSize(Number(value));
+                    setPage(1);
+                  }}
+                  data={[
+                    { value: '5', label: '5 per page' },
+                    { value: '10', label: '10 per page' },
+                    { value: '20', label: '20 per page' },
+                    { value: '50', label: '50 per page' },
+                  ]}
+                  style={{ width: '150px' }}
+                />
+                <Pagination
+                  total={Math.ceil(total / pageSize)}
+                  value={page}
+                  onChange={setPage}
+                  withEdges
+                  size={isMobile ? 'sm' : 'md'}
+                />
+              </Group>
+            </Stack>
           )}
         </Stack>
-
-        {hasMore && (
-          <Center mt="xl">
-            <Button 
-              variant="light" 
-              onClick={handleLoadMore}
-              loading={loading && page > 1}
-            >
-              Load More
-            </Button>
-          </Center>
-        )}
       </Stack>
 
       <Box pos="fixed" bottom={24} right={24}>

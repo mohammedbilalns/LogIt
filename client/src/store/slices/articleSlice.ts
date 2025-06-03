@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '@axios';
 import { RootState } from '@/store';
-import { Article, ArticleState } from '@type/article.types';
+import {  ArticleState } from '@type/article.types';
 
 const initialState: ArticleState = {
   articles: [],
@@ -56,12 +56,13 @@ export const deleteArticle = createAsyncThunk(
 
 export const fetchArticles = createAsyncThunk(
   'articles/fetchAll',
-  async ({ page, limit, search, sortBy, sortOrder }: { 
+  async ({ page, limit, search, sortBy, sortOrder, filters }: { 
     page: number; 
     limit: number; 
     search?: string; 
     sortBy?: string; 
     sortOrder?: 'asc' | 'desc';
+    filters?: string;
   }, { getState }) => {
     const state = getState() as RootState;
     const response = await axiosInstance.get('/articles', {
@@ -71,6 +72,7 @@ export const fetchArticles = createAsyncThunk(
         search: search || state.articles.searchQuery,
         sortBy: sortBy === 'tagUsage' ? 'tagUsageCount' : sortBy,
         sortOrder,
+        filters
       },
     });
     return response.data;
@@ -178,14 +180,7 @@ const articleSlice = createSlice({
       })
       .addCase(fetchArticles.fulfilled, (state, action) => {
         state.loading = false;
-        if (action.meta.arg.page === 1) {
-          state.articles = action.payload.articles;
-        } else {
-          const newArticles = action.payload.articles.filter(
-            (newArticle: Article) => !state.articles.some(existingArticle => existingArticle._id === newArticle._id)
-          );
-          state.articles = [...state.articles, ...newArticles];
-        }
+        state.articles = action.payload.articles;
         state.total = action.payload.total;
         state.hasMore = state.articles.length < action.payload.total;
       })
