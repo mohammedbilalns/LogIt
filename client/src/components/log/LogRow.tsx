@@ -1,4 +1,4 @@
-import { Paper, Text, Group, ActionIcon, useMantineColorScheme, Image, SimpleGrid, Modal, Button } from '@mantine/core';
+import { Paper, Text, Group, ActionIcon, useMantineColorScheme, Image, SimpleGrid, Modal } from '@mantine/core';
 import { IconPencil, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
 
@@ -23,7 +23,6 @@ interface LogRowProps {
 export default function LogRow({ log, onEdit, onDelete }: LogRowProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const formatDate = (dateString: string) => {
@@ -39,17 +38,6 @@ export default function LogRow({ log, onEdit, onDelete }: LogRowProps) {
       console.error('Invalid date string:', dateString, error);
       return 'Invalid Date';
     }
-  };
-
-  const handleDelete = () => {
-    setShowDeleteModal(true);
-  };
-
-  const confirmDelete = () => {
-    if (onDelete) {
-      onDelete(log._id);
-    }
-    setShowDeleteModal(false);
   };
 
   return (
@@ -126,7 +114,7 @@ export default function LogRow({ log, onEdit, onDelete }: LogRowProps) {
               </ActionIcon>
             )}
             {onDelete && (
-              <ActionIcon variant="subtle" color="red" onClick={handleDelete}>
+              <ActionIcon variant="subtle" color="red" onClick={() => onDelete(log._id)}>
                 <IconTrash size={16} />
               </ActionIcon>
             )}
@@ -135,28 +123,20 @@ export default function LogRow({ log, onEdit, onDelete }: LogRowProps) {
       </Paper>
 
       <Modal
-        opened={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        title="Delete Log"
-        centered
-      >
-        <Text>Are you sure you want to delete this log? This action cannot be undone.</Text>
-        <Group justify="flex-end" mt="md">
-          <Button variant="subtle" onClick={() => setShowDeleteModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="filled" color="red" onClick={confirmDelete}>
-            Delete
-          </Button>
-        </Group>
-      </Modal>
-
-      <Modal
         opened={!!selectedImage}
         onClose={() => setSelectedImage(null)}
         size="xl"
         centered
         padding={0}
+        zIndex={2000}
+        styles={{
+          overlay: {
+            zIndex: 2000
+          },
+          content: {
+            zIndex: 2001
+          }
+        }}
       >
         {selectedImage && (
           <Image

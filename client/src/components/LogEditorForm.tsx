@@ -31,6 +31,7 @@ import TagSelector from './TagSelector';
 import { notifications } from '@mantine/notifications';
 import Cropper from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
+import UserSidebar from '@components/user/UserSidebar';
 
 interface LogEditorFormProps {
   mode: 'create' | 'edit';
@@ -230,140 +231,153 @@ export default function LogEditorForm({
   };
 
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)}>
-      <Stack gap="md">
-        <Title order={2}>{mode === 'create' ? 'Create New Log' : 'Edit Log'}</Title>
+    <>
+      <UserSidebar isModalOpen={cropperOpen} />
+      <form onSubmit={form.onSubmit(handleSubmit)}>
+        <Stack gap="md">
+          <Title order={2}>{mode === 'create' ? 'Create New Log' : 'Edit Log'}</Title>
 
-        <TextInput
-          label="Title"
-          placeholder="Log Title"
-          withAsterisk
-          {...form.getInputProps('title')}
-        />
+          <TextInput
+            label="Title"
+            placeholder="Log Title"
+            withAsterisk
+            {...form.getInputProps('title')}
+          />
 
-        <Textarea
-          label="Details"
-          placeholder="Write the details..."
-          withAsterisk
-          autosize
-          minRows={4}
-          {...form.getInputProps('content')}
-        />
+          <Textarea
+            label="Details"
+            placeholder="Write the details..."
+            withAsterisk
+            autosize
+            minRows={4}
+            {...form.getInputProps('content')}
+          />
 
-        <DateTimePicker
-          label="Date and Time"
-          placeholder="Pick date and time"
-          valueFormat="DD MMM YYYY hh:mm A"
-          size="md"
-          clearable
-          {...form.getInputProps('createdAt')}
-        />
+          <DateTimePicker
+            label="Date and Time"
+            placeholder="Pick date and time"
+            valueFormat="DD MMM YYYY hh:mm A"
+            size="md"
+            clearable
+            {...form.getInputProps('createdAt')}
+          />
 
-        <TagSelector
-          value={form.values.tags}
-          onChange={(tags) => form.setFieldValue('tags', tags)}
-        />
+          <TagSelector
+            value={form.values.tags}
+            onChange={(tags) => form.setFieldValue('tags', tags)}
+          />
 
-        <FileInput
-          label="Upload Media (Max 4 files)"
-          placeholder="Pick files"
-          leftSection={<IconPhotoPlus size={18} />}
-          multiple
-          accept="image/png,image/jpeg,image/gif,video/mp4,video/quicktime"
-          onChange={(files) => {
-            if (files) {
-              handleImageUpload(Array.from(files));
-            }
-          }}
-          disabled={uploadingImages || form.values.mediaUrls.length >= 4}
-        />
+          <FileInput
+            label="Upload Media (Max 4 files)"
+            placeholder="Pick files"
+            leftSection={<IconPhotoPlus size={18} />}
+            multiple
+            accept="image/png,image/jpeg,image/gif,video/mp4,video/quicktime"
+            onChange={(files) => {
+              if (files) {
+                handleImageUpload(Array.from(files));
+              }
+            }}
+            disabled={uploadingImages || form.values.mediaUrls.length >= 4}
+          />
 
-        {form.values.mediaUrls.length > 0 && (
-          <Stack gap="xs">
-            <Text size="sm" fw={500}>
-              Media Preview:
-            </Text>
-            <SimpleGrid cols={2} spacing="sm">
-              {form.values.mediaUrls.map((url, index) => (
-                <div key={url} style={{ position: 'relative' }}>
-                  <Image
-                    src={url}
-                    alt={`Media ${index + 1}`}
-                    height={200}
-                    fit="cover"
-                    radius="sm"
-                  />
-                  <ActionIcon
-                    color="red"
-                    variant="filled"
-                    size="sm"
-                    style={{
-                      position: 'absolute',
-                      top: 8,
-                      right: 8,
-                    }}
-                    onClick={() => handleRemoveImage(index)}
-                  >
-                    <IconX size={14} />
-                  </ActionIcon>
-                </div>
-              ))}
-            </SimpleGrid>
-          </Stack>
-        )}
-
-        <Group justify="flex-end" mt="xl">
-          <Button variant="default" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button 
-            type="submit" 
-            loading={logLoading || tagsLoading || uploadingImages}
-            disabled={uploadingImages}
-          >
-            {mode === 'create' ? 'Create' : 'Save'}
-          </Button>
-        </Group>
-      </Stack>
-
-      <Modal
-        opened={cropperOpen}
-        onClose={() => {
-          setCropperOpen(false);
-          setCurrentImage(null);
-        }}
-        title="Crop Image"
-        size="xl"
-      >
-        <Stack>
-          {currentImage && (
-            <Cropper
-              ref={cropperRef}
-              src={URL.createObjectURL(currentImage)}
-              style={{ height: 400, width: '100%' }}
-              aspectRatio={16 / 9}
-              guides
-              viewMode={1}
-              autoCropArea={1}
-              background={false}
-              responsive
-              restore={false}
-            />
+          {form.values.mediaUrls.length > 0 && (
+            <Stack gap="xs">
+              <Text size="sm" fw={500}>
+                Media Preview:
+              </Text>
+              <SimpleGrid cols={2} spacing="sm">
+                {form.values.mediaUrls.map((url, index) => (
+                  <div key={url} style={{ position: 'relative' }}>
+                    <Image
+                      src={url}
+                      alt={`Media ${index + 1}`}
+                      height={200}
+                      fit="cover"
+                      radius="sm"
+                    />
+                    <ActionIcon
+                      color="red"
+                      variant="filled"
+                      size="sm"
+                      style={{
+                        position: 'absolute',
+                        top: 8,
+                        right: 8,
+                      }}
+                      onClick={() => handleRemoveImage(index)}
+                    >
+                      <IconX size={14} />
+                    </ActionIcon>
+                  </div>
+                ))}
+              </SimpleGrid>
+            </Stack>
           )}
-          <Group justify="flex-end">
-            <Button variant="default" onClick={() => {
-              setCropperOpen(false);
-              setCurrentImage(null);
-            }}>
+
+          <Group justify="flex-end" mt="xl">
+            <Button variant="default" onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={handleCrop} loading={uploadingImages}>
-              Crop & Upload
+            <Button 
+              type="submit" 
+              loading={logLoading || tagsLoading || uploadingImages}
+              disabled={uploadingImages}
+            >
+              {mode === 'create' ? 'Create' : 'Save'}
             </Button>
           </Group>
         </Stack>
-      </Modal>
-    </form>
+
+        <Modal
+          opened={cropperOpen}
+          onClose={() => {
+            setCropperOpen(false);
+            setCurrentImage(null);
+          }}
+          title="Crop Image"
+          size="xl"
+          centered
+          zIndex={2000}
+          styles={{
+            overlay: {
+              zIndex: 2000
+            },
+            content: {
+              zIndex: 2001
+            }
+          }}
+        >
+          <Stack>
+            {currentImage && (
+              <Cropper
+                ref={cropperRef}
+                src={URL.createObjectURL(currentImage)}
+                style={{ height: 400, width: '100%' }}
+                aspectRatio={16 / 9}
+                guides
+                viewMode={1}
+                autoCropArea={1}
+                background={false}
+                responsive
+                restore={false}
+              />
+            )}
+            <Group justify="flex-end">
+              <Button variant="default" onClick={() => {
+                setCropperOpen(false);
+                setCurrentImage(null);
+              }}>
+                Cancel
+              </Button>
+              <Button onClick={handleCrop} loading={uploadingImages}>
+                Crop & Upload
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
+      </form>
+    </>
   );
 }
   

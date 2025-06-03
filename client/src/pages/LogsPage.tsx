@@ -1,4 +1,4 @@
-import { Box, Group, Stack, Text, Title, Select, Chip, Center, Pagination, Paper, TextInput } from '@mantine/core';
+import { Box, Group, Stack, Text, Title, Select, Chip, Center, Pagination, Paper, TextInput, Modal, Button } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
@@ -26,6 +26,8 @@ export default function LogsPage() {
   const [sortBy, setSortBy] = useState('new');
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch] = useDebouncedValue(searchInput, 500);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [logToDelete, setLogToDelete] = useState<string | null>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
 
@@ -73,9 +75,18 @@ export default function LogsPage() {
     ));
   };
 
-  const handleDeleteLog = async (id: string) => {
+  const handleDeleteLog = (id: string) => {
+    setLogToDelete(id);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!logToDelete) {
+      return;
+    }
+    
     try {
-      await dispatch(deleteLog(id)).unwrap();
+      await dispatch(deleteLog(logToDelete)).unwrap();
       notifications.show({
         title: 'Success',
         message: 'Log deleted successfully',
@@ -87,6 +98,9 @@ export default function LogsPage() {
         message: error.message || 'Failed to delete log',
         color: 'red',
       });
+    } finally {
+      setDeleteModalOpen(false);
+      setLogToDelete(null);
     }
   };
 
@@ -102,7 +116,7 @@ export default function LogsPage() {
 
   return (
     <>
-      <UserSidebar />
+      <UserSidebar isModalOpen={deleteModalOpen} />
       <Box 
         style={{
           marginLeft: isMobile ? '16px' : (isSidebarOpen ? '290px' : '16px'),
@@ -172,7 +186,7 @@ export default function LogsPage() {
                   key={log._id} 
                   log={log} 
                   onEdit={() => handleEditLog(log)} 
-                  onDelete={() => handleDeleteLog(log._id)}
+                  onDelete={handleDeleteLog}
                 />
               ))
             ) : (
@@ -216,6 +230,40 @@ export default function LogsPage() {
           <CreateButton onClick={() => navigate('/logs/create')} />
         </Box>
       </Box>
+
+      <Modal
+        opened={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setLogToDelete(null);
+        }}
+        title="Delete Log"
+        centered
+        zIndex={2000}
+        styles={{
+          overlay: {
+            zIndex: 2000
+          },
+          content: {
+            zIndex: 2001
+          }
+        }}
+      >
+        <Stack>
+          <Text>Are you sure you want to delete this log? This action cannot be undone.</Text>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => {
+              setDeleteModalOpen(false);
+              setLogToDelete(null);
+            }}>
+              Cancel
+            </Button>
+            <Button color="red" onClick={handleDeleteConfirm}>
+              Delete
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </>
   );
 } 
