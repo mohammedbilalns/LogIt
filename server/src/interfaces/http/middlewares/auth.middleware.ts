@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import env from '../../../config/env';
 import { logger } from '../../../utils/logger';
 import { UserService } from '../../../application/usecases/usermanagement/user.service';
-import { COOKIE_OPTIONS } from '../../../config/constants';
 
 declare global {
   namespace Express {
@@ -45,18 +44,24 @@ export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
         next();
       } catch (error) {
         if (error instanceof Error) {
-          // Expire cookies if user is blocked
-          res.cookie('accessToken', '', {
-            ...COOKIE_OPTIONS,
-            maxAge: 0
+          // Clear authentication cookies
+          res.clearCookie('accessToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict'
           });
-
-          res.cookie('refreshToken', '', {
-            ...COOKIE_OPTIONS,
-            maxAge: 0
+          res.clearCookie('refreshToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict'
           });
-
-          res.status(403).json({ message: error.message });
+          res.clearCookie('csrfToken', {
+            httpOnly: false,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict'
+          });
+          
+          res.status(403).json({ message: "User is blocked" });
           return;
         }
         throw error;

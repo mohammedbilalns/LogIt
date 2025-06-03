@@ -11,11 +11,12 @@ import {
   Center,
   Divider,
   Group,
+  Alert,
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { IconLock } from '@tabler/icons-react';
+import { IconLock, IconAlertCircle } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '@/store';
 import { login, clearError } from '@slices/authSlice';
 import { useEffect } from 'react';
@@ -27,6 +28,8 @@ export default function Login() {
   const location = useLocation();
   const { loading, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const searchParams = new URLSearchParams(location.search);
+  const isBlocked = searchParams.get('error') === 'blocked';
 
   const form = useForm({
     initialValues: {
@@ -85,6 +88,18 @@ export default function Login() {
         <Text c="dimmed" size="sm" ta="center" mb="lg">
           Enter your credentials to access your account
         </Text>
+
+        {isBlocked && (
+          <Alert 
+            icon={<IconAlertCircle size={16} />}
+            title="Account Blocked"
+            color="red"
+            mb="lg"
+            variant="filled"
+          >
+            Your account has been blocked. Please contact support for assistance.
+          </Alert>
+        )}
 
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack gap="md">

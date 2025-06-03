@@ -1,4 +1,6 @@
+import { logout } from '@/store/slices/authSlice';
 import axios, { AxiosError } from 'axios';
+import { store } from '@/store';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -58,6 +60,18 @@ axiosInstance.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config;
     if (!originalRequest) {
+      return Promise.reject(error);
+    }
+
+    if(error.response?.status === 403 && 
+       typeof error.response?.data === 'object' && 
+       error.response?.data !== null &&
+       'message' in error.response.data &&
+       error.response.data.message === "User is blocked"){
+      // Clear Redux state
+      store.dispatch(logout());
+      // Redirect to login page 
+      window.location.href = '/login?error=blocked';
       return Promise.reject(error);
     }
 
