@@ -3,13 +3,13 @@ import { RootState } from '@/store';
 import axiosInstance from '@axios';
 import { User } from '@type/user.types';
 
-interface UserManagementState {
+export interface UserManagementState {
   users: User[];
   total: number;
   loading: boolean;
   error: string | null;
-  hasMore: boolean;
   searchQuery: string;
+  totalPages: number;
 }
 
 const initialState: UserManagementState = {
@@ -17,8 +17,8 @@ const initialState: UserManagementState = {
   total: 0,
   loading: false,
   error: null,
-  hasMore: true,
   searchQuery: '',
+  totalPages: 0,
 };
 
 export const fetchUsers = createAsyncThunk(
@@ -83,15 +83,16 @@ const userManagementSlice = createSlice({
     setSearchQuery: (state, action) => {
       state.searchQuery = action.payload;
       state.users = [];
-      state.hasMore = true;
+      state.total = 0;
+      state.totalPages = 0;
     },
     resetState: (state) => {
       state.users = [];
       state.total = 0;
       state.loading = false;
       state.error = null;
-      state.hasMore = true;
       state.searchQuery = '';
+      state.totalPages = 0;
     },
     clearError: (state) => {
       state.error = null;
@@ -105,16 +106,9 @@ const userManagementSlice = createSlice({
       })
       .addCase(fetchUsers.fulfilled, (state, action) => {
         state.loading = false;
-        if (action.meta.arg.page === 1) {
-          state.users = action.payload.users;
-        } else {
-          const newUsers = action.payload.users.filter(
-            (newUser: User) => !state.users.some(existingUser => existingUser._id === newUser._id)
-          );
-          state.users = [...state.users, ...newUsers];
-        }
+        state.users = action.payload.users;
         state.total = action.payload.total;
-        state.hasMore = state.users.length < action.payload.total;
+        state.totalPages = Math.ceil(action.payload.total / action.meta.arg.limit);
       })
       .addCase(fetchUsers.rejected, (state, action) => {
         state.loading = false;

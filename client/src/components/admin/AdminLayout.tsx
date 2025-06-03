@@ -6,7 +6,7 @@ export default function AdminLayout() {
   return (
     <Box>
       <AdminSidebar />
-      <Box style={{ marginLeft: '5rem' }}>
+      <Box style={{ marginLeft: '0rem' }}>
         <Outlet />
       </Box>
     </Box>

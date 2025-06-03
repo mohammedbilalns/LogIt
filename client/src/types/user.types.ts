@@ -10,6 +10,7 @@ export interface User {
   profession: string;
   bio: string;
   profileImage?: string;
+  provider: string;
 }
 
 export interface AuthResponse {
