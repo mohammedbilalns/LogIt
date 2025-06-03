@@ -10,6 +10,7 @@ export interface UserManagementState {
   error: string | null;
   searchQuery: string;
   totalPages: number;
+  success: boolean;
 }
 
 const initialState: UserManagementState = {
@@ -19,6 +20,7 @@ const initialState: UserManagementState = {
   error: null,
   searchQuery: '',
   totalPages: 0,
+  success: false,
 };
 
 export const fetchUsers = createAsyncThunk(
@@ -55,10 +57,11 @@ export const unblockUser = createAsyncThunk(
 export const updateProfile = createAsyncThunk(
   'userManagement/updateProfile',
   async (profileData: {
-    name?: string;
-    profileImage?: string;
-    profession?: string;
-    bio?: string;
+    name: string;
+    email: string;
+    profession: string;
+    bio: string;
+    profileImage: string | null;
   }) => {
     const response = await axiosInstance.put('/user/update-profile', profileData);
     return response.data;
@@ -97,6 +100,11 @@ const userManagementSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    clearUserManagementState: (state) => {
+      state.loading = false;
+      state.error = null;
+      state.success = false;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -129,13 +137,16 @@ const userManagementSlice = createSlice({
       .addCase(updateProfile.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.success = false;
       })
       .addCase(updateProfile.fulfilled, (state) => {
         state.loading = false;
+        state.success = true;
       })
       .addCase(updateProfile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to update profile';
+        state.success = false;
       })
       .addCase(changePassword.pending, (state) => {
         state.loading = true;
@@ -151,5 +162,5 @@ const userManagementSlice = createSlice({
   },
 });
 
-export const { setSearchQuery, resetState, clearError } = userManagementSlice.actions;
+export const { setSearchQuery, resetState, clearError, clearUserManagementState } = userManagementSlice.actions;
 export default userManagementSlice.reducer; 

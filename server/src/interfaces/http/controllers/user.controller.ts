@@ -6,13 +6,16 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   async updateProfile(req: Request, res: Response) {
+    console.log("update profile");
     try {
       const userId = req.user?.id;
+      console.log("userId", userId);
       if (!userId) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
       const { name, profileImage, profession, bio } = req.body;
+      console.log("req.body", req.body);
       const updatedUser = await this.userService.updateProfile(userId, {
         name,
         profileImage,
@@ -25,6 +28,7 @@ export class UserController {
       logger.red('Error updating profile:', error);
       
       if (error.name === 'UserNotFoundError') {
+        logger.red('User not found:', error);
         return res.status(404).json({ message: error.message });
       }
       

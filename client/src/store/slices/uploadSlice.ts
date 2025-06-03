@@ -15,28 +15,36 @@ const initialState: UploadState = {
 export const uploadImage = createAsyncThunk(
   'upload/image',
   async (file: File) => {
-    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    try {
+      const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', uploadPreset);
-
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-      {
-        method: 'POST',
-        body: formData,
+      if (!uploadPreset || !cloudName) {
+        throw new Error('Cloudinary configuration is missing');
       }
-    );
 
-    const data = await response.json();
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', uploadPreset);
 
-    if (!response.ok || !data.secure_url) {
-      throw new Error(`Upload failed: ${data.error?.message || response.statusText}`);
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || 'Failed to upload image');
+      }
+
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to upload image');
     }
-
-    return data.secure_url;
   }
 );
 

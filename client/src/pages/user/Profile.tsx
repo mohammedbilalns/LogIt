@@ -18,13 +18,22 @@ import ArticleRowSkeleton from '@components/article/ArticleRowSkeleton';
 import ChangePasswordModal from '@components/user/ChangePasswordModal';
 import UpdateProfileModal from '@components/user/UpdateProfileModal';
 import UserSidebar from '@components/user/UserSidebar';
-import { changePassword } from '@/store/slices/authSlice';
+import { changePassword, checkAuth } from '@/store/slices/authSlice';
 import { notifications } from '@mantine/notifications';
+import { updateProfile } from '@/store/slices/userManagementSlice';
 
 interface ChangePasswordForm {
     currentPassword: string;
     newPassword: string;
     confirmPassword: string;
+}
+
+interface UpdateProfileForm {
+    name: string;
+    email: string;
+    profession: string;
+    bio: string;
+    profileImage: File | string | null;
 }
 
 export default function ProfilePage() {
@@ -73,10 +82,31 @@ export default function ProfilePage() {
         }
     };
 
-    const handleUpdateProfile = (values: any) => {
-         console.log("handle update profile")
-        console.log(values);
-        closeProfile();
+    const handleUpdateProfile = async (values: UpdateProfileForm) => {
+        try {
+            await dispatch(updateProfile({
+                name: values.name,
+                email: values.email,
+                profession: values.profession,
+                bio: values.bio,
+                profileImage: typeof values.profileImage === 'string' ? values.profileImage : null
+            })).unwrap();
+
+            // Refresh user data after successful update
+            await dispatch(checkAuth());
+
+            notifications.show({
+                title: 'Success',
+                message: 'Profile updated successfully',
+                color: 'green'
+            });
+        } catch (error: any) {
+            notifications.show({
+                title: 'Error',
+                message: error.message || 'Failed to update profile',
+                color: 'red'
+            });
+        }
     };
 
     const getInitials = (name?: string) => {
@@ -195,7 +225,8 @@ export default function ProfilePage() {
                         name: user?.name,
                         email: user?.email,
                         profession: user?.profession,
-                        bio: user?.bio
+                        bio: user?.bio,
+                        profileImage: user?.profileImage || null,
                     }}
                 />
             </Box>

@@ -38,6 +38,7 @@
     "jwt-decode": "4.0.0",
     "lowlight": "^3.3.0",
     "react": "^18.2.0",
+    "react-cropper": "^2.3.3",
     "react-dom": "^18.2.0",
     "react-markdown": "10.1.0",
     "react-redux": "9.2.0",
