@@ -44,6 +44,13 @@ export class TagController {
       promoted: promoted === 'true'
     });
     
+    // Add cache control headers
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
     return res.json(tags);
   }
 
@@ -85,6 +92,13 @@ export class TagController {
     const tags = await this.tagService.getTags({
       search: query,
       limit: 10
+    });
+    
+    // Add cache control headers
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
     });
     
     return res.json(tags.tags);
