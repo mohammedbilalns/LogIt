@@ -7,11 +7,14 @@ import {
     Title,
     FileInput,
     Text,
+    Image,
+    SimpleGrid,
+    ActionIcon,
 } from '@mantine/core';
 import { DateTimePicker } from '@mantine/dates';
 import { useForm, isNotEmpty } from '@mantine/form';
-import { IconPhotoPlus } from '@tabler/icons-react';
-import { useEffect } from 'react';
+import { IconPhotoPlus, IconX } from '@tabler/icons-react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -21,6 +24,7 @@ import {
   clearCurrentLog,
 } from '@/store/slices/logSlice';
 import { fetchTags } from '@/store/slices/tagSlice';
+import { uploadImage } from '@/store/slices/uploadSlice';
 import { AppDispatch, RootState } from '@/store';
 import TagSelector from './TagSelector';
 import { notifications } from '@mantine/notifications';
@@ -49,6 +53,8 @@ export default function LogEditorForm({
   const navigate = useNavigate();
   const { loading: logLoading } = useSelector((state: RootState) => state.logs);
   const { loading: tagsLoading } = useSelector((state: RootState) => state.tags);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
   const form = useForm({
     initialValues: {
@@ -77,17 +83,61 @@ export default function LogEditorForm({
     };
   }, [dispatch, mode, logId]);
 
+  const handleImageUpload = async (files: File[]) => {
+    setUploadingImages(true);
+    try {
+      const uploadPromises = files.map(file => dispatch(uploadImage(file)).unwrap());
+      const uploadedUrls = await Promise.all(uploadPromises);
+      
+      // Update form with new media URLs
+      form.setFieldValue('mediaUrls', [...form.values.mediaUrls, ...uploadedUrls]);
+      
+      // Create preview URLs for new images
+      const newPreviewUrls = files.map(file => URL.createObjectURL(file));
+      setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
+      
+      notifications.show({
+        title: 'Success',
+        message: 'Images uploaded successfully',
+        color: 'green',
+      });
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error.message || 'Failed to upload images',
+        color: 'red',
+      });
+    } finally {
+      setUploadingImages(false);
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    const newMediaUrls = [...form.values.mediaUrls];
+    newMediaUrls.splice(index, 1);
+    form.setFieldValue('mediaUrls', newMediaUrls);
+    
+    const newPreviewUrls = [...previewUrls];
+    newPreviewUrls.splice(index, 1);
+    setPreviewUrls(newPreviewUrls);
+  };
+
   const handleSubmit = async (values: typeof form.values) => {
     try {
       if (mode === 'create') {
-        await dispatch(createLog(values)).unwrap();
+        await dispatch(createLog({
+          ...values,
+        })).unwrap();
         notifications.show({
           title: 'Success',
           message: 'Log created successfully',
           color: 'green',
         });
       } else if (mode === 'edit' && logId) {
-        await dispatch(updateLog({ id: logId, ...values })).unwrap();
+        await dispatch(updateLog({
+          id: logId,
+          ...values,
+        })).unwrap();
         notifications.show({
           title: 'Success',
           message: 'Log updated successfully',
@@ -146,21 +196,44 @@ export default function LogEditorForm({
           leftSection={<IconPhotoPlus size={18} />}
           multiple
           accept="image/png,image/jpeg,image/gif,video/mp4,video/quicktime"
-          {...form.getInputProps('mediaFiles')}
+          onChange={(files) => {
+            if (files) {
+              handleImageUpload(Array.from(files));
+            }
+          }}
+          disabled={uploadingImages || form.values.mediaUrls.length >= 4}
         />
 
-        {form.values.mediaUrls.length > 0 && (
+        {(form.values.mediaUrls.length > 0 || previewUrls.length > 0) && (
           <Stack gap="xs">
             <Text size="sm" fw={500}>
-              Existing Media:
+              Media Preview:
             </Text>
-            {form.values.mediaUrls.map((url) => (
-              <Group key={url} gap="xs">
-                <Text size="sm" truncate>
-                  {url}
-                </Text>
-              </Group>
-            ))}
+            <SimpleGrid cols={2} spacing="sm">
+              {form.values.mediaUrls.map((url, index) => (
+                <div key={url} style={{ position: 'relative' }}>
+                  <Image
+                    src={url}
+                    alt={`Media ${index + 1}`}
+                    height={200}
+                    fit="cover"
+                  />
+                  <ActionIcon
+                    color="red"
+                    variant="filled"
+                    size="sm"
+                    style={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                    }}
+                    onClick={() => handleRemoveImage(index)}
+                  >
+                    <IconX size={14} />
+                  </ActionIcon>
+                </div>
+              ))}
+            </SimpleGrid>
           </Stack>
         )}
 
@@ -168,7 +241,11 @@ export default function LogEditorForm({
           <Button variant="default" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" loading={logLoading || tagsLoading}>
+          <Button 
+            type="submit" 
+            loading={logLoading || tagsLoading || uploadingImages}
+            disabled={uploadingImages}
+          >
             {mode === 'create' ? 'Create' : 'Save'}
           </Button>
         </Group>

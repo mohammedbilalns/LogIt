@@ -1,98 +1,136 @@
 import { Log } from '../../../domain/entities/Log';
-import { LogRepository } from '../../../domain/repositories/LogRepository';
-import { LogTagRepository } from '../../../domain/repositories/LogTagRepository';
-import { LogMediaRepository } from '../../../domain/repositories/LogMediaRepository';
+import { LogRepository } from '../../../domain/repositories/log.repository';
+import { LogTagRepository } from '../../../domain/repositories/logTag.repository';
+import { LogMediaRepository } from '../../../domain/repositories/logMedia.repository';
 import { logger } from '../../../utils/logger';
+import { ITagRepository } from '../../../domain/repositories/tag.repository.interface';
+import { Tag } from '../../../domain/entities/tag.entity';
+
+interface CreateLogData {
+  title: string;
+  content: string;
+  tags?: string[];
+  mediaUrls?: string[];
+  createdAt?: Date;
+}
+
+interface UpdateLogData {
+  title: string;
+  content: string;
+  tags?: string[];
+  mediaUrls?: string[];
+  createdAt?: Date;
+}
+
+interface GetLogsOptions {
+  page?: number;
+  limit?: number;
+  search?: string;
+  tags?: string[];
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+interface TagWithName {
+  id: string;
+  name: string;
+}
+
+interface LogWithRelations extends Log {
+  tags: TagWithName[];
+  mediaUrls: string[];
+}
 
 export class LogService {
   constructor(
     private logRepository: LogRepository,
     private logTagRepository: LogTagRepository,
-    private logMediaRepository: LogMediaRepository
+    private logMediaRepository: LogMediaRepository,
+    private tagRepository: ITagRepository
   ) {}
 
-  async createLog(userId: string, data: { title: string; content: string; tags?: string[]; mediaUrls?: string[] }): Promise<Log> {
+  async createLog(userId: string, data: CreateLogData): Promise<LogWithRelations> {
     try {
       const log = await this.logRepository.create({
-        id: '',
         userId,
         title: data.title,
         content: data.content,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: data.createdAt || new Date(),
+        updatedAt: new Date(),
       });
 
-      if (data.tags?.length) {
-        await Promise.all(data.tags.map(tag => 
-          this.logTagRepository.create({
-            id: '', 
-            logId: log.id,
-            tag
-          })
-        ));
+      if (data.tags && data.tags.length > 0) {
+        await this.logTagRepository.createMany(
+          data.tags.map(tagId => ({
+            logId: log._id,
+            tagId,
+            userId,
+            createdAt: new Date(),
+          }))
+        );
       }
 
-      if (data.mediaUrls?.length) {
-        await Promise.all(data.mediaUrls.map(url =>
-          this.logMediaRepository.create({
-            id: '', 
-            logId: log.id,
-            url
-          })
-        ));
+      if (data.mediaUrls && data.mediaUrls.length > 0) {
+        await this.logMediaRepository.createMany(
+          data.mediaUrls.map(url => ({
+            logId: log._id,
+            url,
+            userId,
+            createdAt: new Date(),
+          }))
+        );
       }
 
-      return log;
+      const logWithRelations = await this.getLogWithRelations(log._id);
+      if (!logWithRelations) {
+        throw new Error('Failed to create log with relations');
+      }
+      return logWithRelations;
     } catch (error) {
       logger.red('CREATE_LOG_ERROR', error instanceof Error ? error.message : 'Failed to create log');
       throw error;
     }
   }
 
-  async getLogs(userId: string, filters: { page?: number; limit?: number; search?: string; tags?: string[] }) {
+  async getLogs(userId: string, options: GetLogsOptions): Promise<{ logs: LogWithRelations[]; total: number }> {
     try {
-      const { page = 1, limit = 10, search, tags } = filters;
-      const skip = (page - 1) * limit;
+      const logs = await this.logRepository.findMany(userId, options);
+      const total = await this.logRepository.count(userId, options);
 
-      const logs = await this.logRepository.findByUserId(userId);
-      const total = logs.length;
+      const logIds = logs.map(log => log._id);
 
-      let filteredLogs = logs;
-      if (search) {
-        filteredLogs = logs.filter(log => 
-          log.title.toLowerCase().includes(search.toLowerCase()) ||
-          log.content.toLowerCase().includes(search.toLowerCase())
-        );
-      }
+      const [tags, media] = await Promise.all([
+        this.logTagRepository.findByLogIds(logIds),
+        this.logMediaRepository.findByLogIds(logIds),
+      ]);
 
-      if (tags?.length) {
-        const logIds = await Promise.all(
-          tags.map(async (tag) => {
-            const logTags = await this.logTagRepository.findByLogId(tag);
-            return logTags.map(lt => lt.logId);
-          })
-        );
-        const uniqueLogIds = [...new Set(logIds.flat())];
-        filteredLogs = filteredLogs.filter(log => uniqueLogIds.includes(log.id));
-      }
-
-      const logsWithDetails = await Promise.all(
-        filteredLogs.slice(skip, skip + limit).map(async (log) => {
-          const logTags = await this.logTagRepository.findByLogId(log.id);
-          const logMedia = await this.logMediaRepository.findByLogId(log.id);
-          return {
-            ...log,
-            tags: logTags.map(lt => lt.tag),
-            media: logMedia.map(lm => lm.url)
-          };
-        })
+      // Get all unique tag IDs
+      const tagIds = [...new Set(tags.map(tag => tag.tagId))];
+      const tagDetails = await Promise.all(
+        tagIds.map(id => this.tagRepository.findById(id))
+      );
+      const tagMap = new Map(
+        tagDetails
+          .filter((tag): tag is Tag => tag !== null)
+          .map(tag => [tag.id || '', tag.name])
       );
 
+      const logsWithRelations = logs.map(log => ({
+        ...log,
+        tags: tags
+          .filter(tag => tag.logId.toString() === log._id.toString())
+          .map(tag => ({
+            id: tag.tagId,
+            name: tagMap.get(tag.tagId) || 'Unknown Tag'
+          })),
+        mediaUrls: media
+          .filter(m => m.logId.toString() === log._id.toString())
+          .map(m => m.url),
+      }));
+
       return {
-        logs: logsWithDetails,
+        logs: logsWithRelations,
         total,
-        page,
-        totalPages: Math.ceil(total / limit)
       };
     } catch (error) {
       logger.red('GET_LOGS_ERROR', error instanceof Error ? error.message : 'Failed to get logs');
@@ -100,43 +138,85 @@ export class LogService {
     }
   }
 
-  async updateLog(userId: string, logId: string, data: { title: string; content: string; tags?: string[]; mediaUrls?: string[] }): Promise<Log | null> {
+  async getLog(userId: string, logId: string): Promise<LogWithRelations | null> {
     try {
-      const existingLog = await this.logRepository.findById(logId);
-      if (!existingLog || existingLog.userId !== userId) {
-        throw new Error('Log not found');
+      const log = await this.logRepository.findById(logId);
+      if (!log || log.userId !== userId) {
+        return null;
       }
 
-      const updatedLog = await this.logRepository.update({
-        ...existingLog,
+      const [tags, media] = await Promise.all([
+        this.logTagRepository.findByLogId(logId),
+        this.logMediaRepository.findByLogId(logId),
+      ]);
+
+      // Get tag details
+      const tagIds = tags.map(tag => tag.tagId);
+      const tagDetails = await Promise.all(
+        tagIds.map(id => this.tagRepository.findById(id))
+      );
+      const tagMap = new Map(
+        tagDetails
+          .filter((tag): tag is Tag => tag !== null)
+          .map(tag => [tag.id || '', tag.name])
+      );
+
+      return {
+        ...log,
+        tags: tags.map(tag => ({
+          id: tag.tagId,
+          name: tagMap.get(tag.tagId) || 'Unknown Tag'
+        })),
+        mediaUrls: media.map(m => m.url),
+      };
+    } catch (error) {
+      logger.red('GET_LOG_ERROR', error instanceof Error ? error.message : 'Failed to get log');
+      throw error;
+    }
+  }
+
+  async updateLog(userId: string, logId: string, data: UpdateLogData): Promise<LogWithRelations | null> {
+    try {
+      const log = await this.logRepository.findById(logId);
+      if (!log || log.userId !== userId) {
+        return null;
+      }
+
+      await this.logRepository.update(logId, {
         title: data.title,
         content: data.content,
-        updatedAt: new Date()
+        ...(data.createdAt && { createdAt: data.createdAt }),
       });
 
-      await this.logTagRepository.deleteByLogId(logId);
-      if (data.tags?.length) {
-        await Promise.all(data.tags.map(tag =>
-          this.logTagRepository.create({
-            id: '', 
-            logId,
-            tag
-          })
-        ));
+      if (data.tags) {
+        await this.logTagRepository.deleteByLogId(logId);
+        if (data.tags.length > 0) {
+          await this.logTagRepository.createMany(
+            data.tags.map(tagId => ({
+              logId,
+              tagId,
+              userId,
+              createdAt: new Date(),
+            }))
+          );
+        }
       }
 
-      await this.logMediaRepository.deleteByLogId(logId);
-      if (data.mediaUrls?.length) {
-        await Promise.all(data.mediaUrls.map(url =>
-          this.logMediaRepository.create({
-            id: '', 
-            logId,
-            url
-          })
-        ));
+      if (data.mediaUrls) {
+        await this.logMediaRepository.deleteByLogId(logId);
+        if (data.mediaUrls.length > 0) {
+          await this.logMediaRepository.createMany(
+            data.mediaUrls.map(url => ({
+              logId,
+              url,
+              userId,
+              createdAt: new Date(),
+            }))
+          );
+        }
       }
 
-      return updatedLog;
+      return this.getLogWithRelations(logId);
     } catch (error) {
       logger.red('UPDATE_LOG_ERROR', error instanceof Error ? error.message : 'Failed to update log');
       throw error;
@@ -145,17 +225,51 @@ export class LogService {
 
   async deleteLog(userId: string, logId: string): Promise<boolean> {
     try {
-      const existingLog = await this.logRepository.findById(logId);
-      if (!existingLog || existingLog.userId !== userId) {
-        throw new Error('Log not found');
+      const log = await this.logRepository.findById(logId);
+      if (!log || log.userId !== userId) {
+        return false;
       }
 
-      await this.logTagRepository.deleteByLogId(logId);
-      await this.logMediaRepository.deleteByLogId(logId);
-      return await this.logRepository.delete(logId);
+      await Promise.all([
+        this.logRepository.delete(logId),
+        this.logTagRepository.deleteByLogId(logId),
+        this.logMediaRepository.deleteByLogId(logId),
+      ]);
+
+      return true;
     } catch (error) {
       logger.red('DELETE_LOG_ERROR', error instanceof Error ? error.message : 'Failed to delete log');
       throw error;
     }
+  }
+
+  private async getLogWithRelations(logId: string): Promise<LogWithRelations | null> {
+    const log = await this.logRepository.findById(logId);
+    if (!log) return null;
+
+    const [tags, media] = await Promise.all([
+      this.logTagRepository.findByLogId(logId),
+      this.logMediaRepository.findByLogId(logId),
+    ]);
+
+    // Get tag details
+    const tagIds = tags.map(tag => tag.tagId);
+    const tagDetails = await Promise.all(
+      tagIds.map(id => this.tagRepository.findById(id))
+    );
+    const tagMap = new Map(
+      tagDetails
+        .filter((tag): tag is Tag => tag !== null)
+        .map(tag => [tag.id || '', tag.name])
+    );
+
+    return {
+      ...log,
+      tags: tags.map(tag => ({
+        id: tag.tagId,
+        name: tagMap.get(tag.tagId) || 'Unknown Tag'
+      })),
+      mediaUrls: media.map(m => m.url),
+    };
   }
 } 

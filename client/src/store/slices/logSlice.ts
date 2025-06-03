@@ -2,13 +2,18 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '@axios';
 import { RootState } from '@/store';
 
-interface Log {
+interface Tag {
+    id: string;
+    name: string;
+}
+
+export interface Log {
     _id: string;
     title: string;
     content: string;
-    tags: string[]; // Assuming tags are stored as string IDs or names
+    tags: Tag[];
     createdAt: string;
-    media: string[]; // Add media property
+    mediaUrls: string[];
 }
 
 interface LogState {
@@ -16,7 +21,7 @@ interface LogState {
     loading: boolean;
     error: string | null;
     total: number;
-    searchQuery: string; // Add search query if needed, similar to articles
+    searchQuery: string;
     currentLog: Log | null;
 }
 
@@ -49,12 +54,19 @@ export const fetchLogs = createAsyncThunk(
                     search: search || state.logs.searchQuery,
                     sortBy,
                     sortOrder,
-                    filters
+                    tags: filters ? JSON.parse(filters).tagIds : undefined
                 },
             });
-            return response.data; // Assuming response has { logs: [...], total: N }
+            return {
+                logs: response.data.logs.map((log: any) => ({
+                    ...log,
+                    tags: log.tags || [],
+                    mediaUrls: log.mediaUrls || []
+                })),
+                total: response.data.total
+            };
         } catch (error: any) {
-             return rejectWithValue(error.response?.data?.message || error.message);
+            return rejectWithValue(error.response?.data?.message || error.message);
         }
     }
 );
@@ -64,7 +76,11 @@ export const fetchLog = createAsyncThunk(
     async (id: string, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.get(`/logs/${id}`);
-            return response.data;
+            return {
+                ...response.data,
+                tags: response.data.tags || [],
+                mediaUrls: response.data.mediaUrls || []
+            };
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || error.message);
         }
@@ -73,23 +89,20 @@ export const fetchLog = createAsyncThunk(
 
 export const createLog = createAsyncThunk(
     'logs/create',
-    async (logData: { title: string; content: string; tags: string[]; mediaFiles: File[] | null; createdAt: Date | null }, { rejectWithValue }) => {
+    async (logData: { 
+        title: string; 
+        content: string; 
+        tags: string[]; 
+        mediaUrls: string[]; 
+        createdAt: Date | null;
+    }, { rejectWithValue }) => {
         try {
-            const formData = new FormData();
-            formData.append('title', logData.title);
-            formData.append('content', logData.content);
-            if (logData.createdAt) {
-              formData.append('createdAt', logData.createdAt.toISOString());
-            }
-            logData.tags.forEach(tag => formData.append('tags[]', tag));
-            if (logData.mediaFiles) {
-                logData.mediaFiles.forEach(file => formData.append('mediaFiles', file));
-            }
-
-            const response = await axiosInstance.post('/logs', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
+            const response = await axiosInstance.post('/logs', {
+                title: logData.title,
+                content: logData.content,
+                tags: logData.tags,
+                mediaUrls: logData.mediaUrls,
+                createdAt: logData.createdAt?.toISOString(),
             });
             return response.data;
         } catch (error: any) {
@@ -100,27 +113,26 @@ export const createLog = createAsyncThunk(
 
 export const updateLog = createAsyncThunk(
     'logs/update',
-    async ({ id, ...logData }: { id: string; title: string; content: string; tags: string[]; mediaUrls: string[]; mediaFiles?: File[] | null; createdAt: Date | null }, { rejectWithValue }) => {
+    async ({ 
+        id, 
+        ...logData 
+    }: { 
+        id: string; 
+        title: string; 
+        content: string; 
+        tags: string[]; 
+        mediaUrls: string[]; 
+        createdAt: Date | null;
+    }, { rejectWithValue }) => {
         try {
-             const formData = new FormData();
-             formData.append('title', logData.title);
-             formData.append('content', logData.content);
-             if (logData.createdAt) {
-                formData.append('createdAt', logData.createdAt.toISOString());
-             }
-             logData.tags.forEach(tag => formData.append('tags[]', tag));
-
-             logData.mediaUrls.forEach(url => formData.append('mediaUrls[]', url));
-             if (logData.mediaFiles) {
-                 logData.mediaFiles.forEach(file => formData.append('mediaFiles', file));
-             }
-
-             const response = await axiosInstance.put(`/logs/${id}`, formData, {
-                 headers: {
-                    'Content-Type': 'multipart/form-data',
-                 },
-             });
-             return response.data;
+            const response = await axiosInstance.put(`/logs/${id}`, {
+                title: logData.title,
+                content: logData.content,
+                tags: logData.tags,
+                mediaUrls: logData.mediaUrls,
+                createdAt: logData.createdAt?.toISOString(),
+            });
+            return response.data;
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || error.message);
         }
@@ -132,7 +144,7 @@ export const deleteLog = createAsyncThunk(
     async (id: string, { rejectWithValue }) => {
         try {
             await axiosInstance.delete(`/logs/${id}`);
-            return id; // Return the deleted log's ID
+            return id;
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || error.message);
         }
@@ -167,7 +179,7 @@ const logSlice = createSlice({
             })
             .addCase(fetchLogs.fulfilled, (state, action) => {
                 state.loading = false;
-                state.logs = action.payload.logs; 
+                state.logs = action.payload.logs;
                 state.total = action.payload.total;
             })
             .addCase(fetchLogs.rejected, (state, action) => {
@@ -187,42 +199,42 @@ const logSlice = createSlice({
                 state.error = action.payload as string || action.error.message || 'Failed to fetch log';
             })
             .addCase(createLog.pending, (state) => {
-              state.loading = true;
-              state.error = null;
+                state.loading = true;
+                state.error = null;
             })
             .addCase(createLog.fulfilled, (state, action) => {
-              state.loading = false;
-              state.logs.unshift(action.payload);
-              state.total += 1;
+                state.loading = false;
+                state.logs.unshift(action.payload);
+                state.total += 1;
             })
             .addCase(createLog.rejected, (state, action) => {
-              state.loading = false;
-              state.error = action.payload as string || action.error.message || 'Failed to create log';
+                state.loading = false;
+                state.error = action.payload as string || action.error.message || 'Failed to create log';
             })
-             .addCase(updateLog.pending, (state) => {
-              state.loading = true;
-              state.error = null;
+            .addCase(updateLog.pending, (state) => {
+                state.loading = true;
+                state.error = null;
             })
             .addCase(updateLog.fulfilled, (state, action) => {
-              state.loading = false;
-              const index = state.logs.findIndex(log => log._id === action.payload._id);
-              if (index !== -1) {
-                  state.logs[index] = action.payload;
-              }
-              state.currentLog = action.payload;
+                state.loading = false;
+                const index = state.logs.findIndex(log => log._id === action.payload._id);
+                if (index !== -1) {
+                    state.logs[index] = action.payload;
+                }
+                state.currentLog = action.payload;
             })
             .addCase(updateLog.rejected, (state, action) => {
-              state.loading = false;
-              state.error = action.payload as string || action.error.message || 'Failed to update log';
+                state.loading = false;
+                state.error = action.payload as string || action.error.message || 'Failed to update log';
             })
-             .addCase(deleteLog.pending, (state) => {
+            .addCase(deleteLog.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
             .addCase(deleteLog.fulfilled, (state, action) => {
                 state.loading = false;
                 state.logs = state.logs.filter(log => log._id !== action.payload);
-                state.total -= 1; // Decrease total count
+                state.total -= 1;
             })
             .addCase(deleteLog.rejected, (state, action) => {
                 state.loading = false;

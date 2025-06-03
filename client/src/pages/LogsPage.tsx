@@ -1,8 +1,8 @@
-import { Box, Group, Stack, Text, Title, Select, Chip, Center, Pagination, Paper, TextInput, ActionIcon } from '@mantine/core';
+import { Box, Group, Stack, Text, Title, Select, Chip, Center, Pagination, Paper, TextInput } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
-import { fetchLogs, deleteLog } from '@slices/logSlice';
+import { fetchLogs, deleteLog, Log } from '@slices/logSlice';
 import { fetchTags } from '@slices/tagSlice';
 import LogRow from '@components/log/LogRow';
 import LogRowSkeleton from '@components/log/LogRowSkeleton';
@@ -12,15 +12,6 @@ import CreateButton from '@components/CreateButton';
 import { notifications } from '@mantine/notifications';
 import UserSidebar from '@components/user/UserSidebar';
 import { useNavigate } from 'react-router-dom';
-
-interface Log {
-  _id: string;
-  title: string;
-  content: string;
-  tags: string[];
-  createdAt: string;
-  media: string[];
-}
 
 interface LogFilters {
   tagIds: string[];
@@ -103,7 +94,11 @@ export default function LogsPage() {
     navigate(`/logs/edit/${log._id}`);
   };
 
-  const logsToDisplay: Log[] = logs;
+  const logsToDisplay: Log[] = logs.map(log => ({
+    ...log,
+    tags: log.tags || [],
+    mediaUrls: log.mediaUrls || []
+  }));
 
   return (
     <>
@@ -155,9 +150,6 @@ export default function LogsPage() {
                       {tag.name}
                     </Chip>
                   ))}
-                  <ActionIcon variant="filled" size="sm" color="blue" radius="xl">
-                    +
-                  </ActionIcon>
                 </Group>
               </Stack>
               <TextInput

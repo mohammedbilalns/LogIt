@@ -1,5 +1,7 @@
 export interface LogMedia {
-  id: string;
+  _id: string;
   logId: string;
   url: string;
+  userId: string;
+  createdAt: Date;
 } 

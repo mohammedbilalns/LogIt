@@ -1,5 +1,7 @@
 export interface LogTag {
-  id: string;
+  _id: string;
   logId: string;
-  tag: string;
+  tagId: string;
+  userId: string;
+  createdAt: Date;
 } 
