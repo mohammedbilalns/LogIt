@@ -98,6 +98,11 @@ export class MongoUserRepository implements IUserRepository {
     return user ? this.mapToUser(user) : null;
   }
 
+  async isUserBlocked(id: string): Promise<boolean> {
+    const user = await UserModel.findById(id);
+    return user?.isBlocked || false;
+  }
+
   private mapToUser(doc: mongoose.Document): User {
     const user = doc.toObject();
     return {

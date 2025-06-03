@@ -10,4 +10,5 @@ export interface IUserRepository {
   updateById(id: string, update: Partial<User>): Promise<User | null>;
   delete(email: string): Promise<void>;
   fetch(page?: number, limit?: number, search?: string): Promise<{ users: User[]; total: number; }>;
+  isUserBlocked(id: string): Promise<boolean>;
 } 

@@ -5,6 +5,7 @@ import articleReducer from '@slices/articleSlice';
 import tagReducer from '@slices/tagSlice';
 import uploadReducer from '@slices/uploadSlice';
 import uiReducer from '@slices/uiSlice';
+import initReducer from '@slices/initSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     tags: tagReducer,
     upload: uploadReducer,
     ui: uiReducer,
+    init: initReducer,
   },
 });
 

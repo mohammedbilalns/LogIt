@@ -1,9 +1,14 @@
 import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
 import { User } from '../../../domain/entities/user.entity';
 import { UserNotFoundError } from '../../errors/auth.errors';
+import { MongoUserRepository } from '../../../infrastructure/repositories/user.repository';
 
 export class UserManagementService {
-  constructor(private userRepository: IUserRepository) {}
+  private userRepository: IUserRepository;
+
+  constructor() {
+    this.userRepository = new MongoUserRepository();
+  }
 
   async fetchUsers(page: number = 1, limit: number = 10, search: string = '') {
     return await this.userRepository.fetch(page, limit, search);
@@ -30,6 +35,4 @@ export class UserManagementService {
       password: undefined
     };
   }
-
-  
 }

@@ -16,6 +16,16 @@ export class AuthController {
     res.setHeader('x-csrf-token', csrfToken);
   }
 
+  getCsrfToken = async (_req: Request, res: Response): Promise<void> => {
+    try {
+      this.setCsrfToken(res);
+      res.json({ message: 'CSRF token generated successfully' });
+    } catch (error) {
+      logger.red('CSRF_TOKEN_ERROR', 'Failed to generate CSRF token');
+      res.status(500).json({ message: 'Failed to generate CSRF token' });
+    }
+  };
+
   signup = async (req: Request, res: Response): Promise<void> => {
     try {
       const user = await this.authService.signup(req.body);
@@ -95,24 +105,16 @@ export class AuthController {
   };
 
   refresh = async (req: Request, res: Response): Promise<void> => {
-    logger.cyan("Refresh request recieved", "refresh")
-    // Set CSRF token 
-    const csrfToken = req.cookies.csrfToken
-
-    logger.magenta("CSRF Token", csrfToken)
-    if(!csrfToken){
-      this.setCsrfToken(res);
-
-    }
+    logger.cyan("Refresh request received", "refresh");
     
     try {
       // Check for existing access token first
       const accessToken = req.cookies.accessToken;
-      logger.cyan("Access Token", accessToken)
+      logger.cyan("Access Token", accessToken);
       if (accessToken) {
         try {
           const user = await this.authService.validateAccessToken(accessToken);
-          logger.cyan("user", JSON.stringify(user))
+          logger.cyan("user", JSON.stringify(user));
           res.json({
             message: 'Access token is still valid',
             user
@@ -124,7 +126,7 @@ export class AuthController {
       }
 
       const refreshToken = req.cookies.refreshToken;
-      logger.red("Referesh Token", refreshToken)
+      logger.red("Refresh Token", refreshToken);
       if (!refreshToken) {
         res.status(401).json({ message: 'Refresh token required' });
         return;

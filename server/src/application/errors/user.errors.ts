@@ -24,4 +24,11 @@ export class InvalidProfileDataError extends Error {
     super(message);
     this.name = 'InvalidProfileDataError';
   }
+}
+
+export class UserBlockedError extends Error {
+  constructor() {
+    super('Your account has been blocked. Please contact support.');
+    this.name = 'UserBlockedError';
+  }
 } 

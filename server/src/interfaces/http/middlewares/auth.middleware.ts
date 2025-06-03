@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import env from '../../../config/env';
 import { logger } from '../../../utils/logger';
+import { UserService } from '../../../application/usecases/usermanagement/user.service';
+import { COOKIE_OPTIONS } from '../../../config/constants';
 
 declare global {
   namespace Express {
@@ -16,60 +18,49 @@ declare global {
 }
 
 export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
+  const userService = new UserService();
+  
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      let token = req.cookies.accessToken;
-      logger.cyan("ACCESS_TOKEN", token)
+      const token = req.cookies.accessToken;
+      logger.cyan("ACCESS_TOKEN", token);
 
       if (!token) {
-        // Check for refresh token
-        const refreshToken = req.cookies.refreshToken;
-        logger.cyan("REFRESH_TOKEN", refreshToken)
-        if (!refreshToken) {
-          res.status(401).json({ message: 'Authentication required' });
-          return;
-        }
-
-        try {
-          // Verify refresh token
-          const decoded = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET) as { 
-            id: string; 
-            email: string; 
-            role: 'user' | 'admin' | 'superadmin' 
-          };
-
-          // Generate new access token
-          token = jwt.sign(
-            { id: decoded.id, email: decoded.email, role: decoded.role },
-            jwtSecret,
-            { expiresIn: '15m' }
-          );
-
-          // Set new access token in cookie
-          res.cookie('accessToken', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 15 * 60 * 1000 
-          });
-
-          req.user = decoded;
-        } catch (refreshError) {
-          res.status(401).json({ message: 'Invalid or expired refresh token' });
-          return;
-        }
-      } else {
-        // Verify existing access token
-        const decoded = jwt.verify(token, jwtSecret) as { 
-          id: string; 
-          email: string; 
-          role: 'user' | 'admin' | 'superadmin' 
-        };
-        logger.cyan("decoded data: ", JSON.stringify(decoded))
-        req.user = decoded;
+        res.status(401).json({ message: 'Authentication required' });
+        return;
       }
 
-      next();
+      // Verify access token
+      const decoded = jwt.verify(token, jwtSecret) as { 
+        id: string; 
+        email: string; 
+        role: 'user' | 'admin' | 'superadmin' 
+      };
+      logger.cyan("decoded data: ", JSON.stringify(decoded));
+
+      try {
+        // Check if user is blocked using the service
+        await userService.checkUserBlocked(decoded.id);
+        req.user = decoded;
+        next();
+      } catch (error) {
+        if (error instanceof Error) {
+          // Expire cookies if user is blocked
+          res.cookie('accessToken', '', {
+            ...COOKIE_OPTIONS,
+            maxAge: 0
+          });
+
+          res.cookie('refreshToken', '', {
+            ...COOKIE_OPTIONS,
+            maxAge: 0
+          });
+
+          res.status(403).json({ message: error.message });
+          return;
+        }
+        throw error;
+      }
     } catch (error) {
       res.status(401).json({ message: 'Invalid or expired token' });
       return;

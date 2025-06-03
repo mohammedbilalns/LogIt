@@ -13,6 +13,10 @@ const otpRepository = new MongoOTPRepository();
 const authService = new AuthService(userRepository, otpRepository);
 const authController = new AuthController(authService);
 
+// CSRF token route
+router.get('/csrf',
+  asyncHandler((req, res) => authController.getCsrfToken(req, res))
+);
 
 // Token refresh 
 router.post('/refresh',
@@ -28,7 +32,6 @@ router.use(asyncHandler((req, res, next) => csrfMiddleware()(req,res,next) ));
 router.post('/signup', 
   asyncHandler((req, res) => authController.signup(req, res))
 );
-
 
 
 router.post('/verify-otp',

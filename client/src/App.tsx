@@ -7,7 +7,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { store, AppDispatch, RootState } from '@/store';
 import { router } from '@/Router';
 import { theme } from '@/theme';
-import { checkAuth } from '@slices/authSlice';
+import { initializeApp } from '@slices/initSlice';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 
@@ -15,10 +15,10 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 function AppContent() {
   const dispatch = useDispatch<AppDispatch>();
-  const { isInitialized } = useSelector((state: RootState) => state.auth);
+  const { isInitialized } = useSelector((state: RootState) => state.init);
 
   useEffect(() => {
-    dispatch(checkAuth());
+    dispatch(initializeApp());
   }, [dispatch]);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ function AppContent() {
   }, [isInitialized]);
 
   if (!isInitialized) {
-    console.log("App not initalized showsing loading ui ")
+    console.log("App not initialized showing loading ui");
     return <LoadingOverlay />;
   }
 

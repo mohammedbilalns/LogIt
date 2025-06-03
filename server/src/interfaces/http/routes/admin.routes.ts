@@ -1,15 +1,12 @@
 import { Router } from 'express';
 import { AdminController } from '../controllers/admin.controller';
 import { UserManagementService } from '../../../application/usecases/usermanagement/usermanagement.service';
-import { MongoUserRepository } from '../../../infrastructure/repositories/user.repository';
 import { authMiddleware, authorizeRoles } from '../middlewares/auth.middleware';
 import { csrfMiddleware } from '../middlewares/csrf.middleware';
-
 import { asyncHandler } from '../../../utils/asyncHandler';
 
 const router = Router();
-const userRepository = new MongoUserRepository();
-const userManagementService = new UserManagementService(userRepository);
+const userManagementService = new UserManagementService();
 const adminController = new AdminController(userManagementService);
 
 router.use(

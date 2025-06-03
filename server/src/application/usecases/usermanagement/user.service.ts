@@ -1,10 +1,22 @@
 import { User } from '../../../domain/entities/user.entity';
 import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
-import { UserNotFoundError, InvalidPasswordError, PasswordMismatchError, InvalidProfileDataError } from '../../../application/errors/user.errors';
+import { UserNotFoundError, InvalidPasswordError, PasswordMismatchError, InvalidProfileDataError, UserBlockedError } from '../../../application/errors/user.errors';
+import { MongoUserRepository } from '../../../infrastructure/repositories/user.repository';
 import bcrypt from 'bcryptjs';
 
 export class UserService {
-  constructor(private userRepository: IUserRepository) {}
+  private userRepository: IUserRepository;
+
+  constructor() {
+    this.userRepository = new MongoUserRepository();
+  }
+
+  async checkUserBlocked(userId: string): Promise<void> {
+    const isBlocked = await this.userRepository.isUserBlocked(userId);
+    if (isBlocked) {
+      throw new UserBlockedError();
+    }
+  }
 
   async updateProfile(userId: string, profileData: {
     name?: string;
@@ -16,6 +28,9 @@ export class UserService {
     if (!user) {
       throw new UserNotFoundError();
     }
+
+    // Check if user is blocked
+    await this.checkUserBlocked(userId);
 
     // Validate profile data
     if (profileData.name && profileData.name.length < 2) {
@@ -39,6 +54,9 @@ export class UserService {
     if (!user) {
       throw new UserNotFoundError();
     }
+
+    // Check if user is blocked
+    await this.checkUserBlocked(userId);
 
     // Verify old password
     const isPasswordValid = await this.userRepository.verifyPassword(userId, oldPassword);

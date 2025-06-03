@@ -1,14 +1,12 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/user.controller';
 import { UserService } from '../../../application/usecases/usermanagement/user.service';
-import { MongoUserRepository } from '../../../infrastructure/repositories/user.repository';
 import { authMiddleware, authorizeRoles } from '../middlewares/auth.middleware';
 import { csrfMiddleware } from '../middlewares/csrf.middleware';
 import { asyncHandler } from '../../../utils/asyncHandler';
 
 const router = Router();
-const userRepository = new MongoUserRepository();
-const userService = new UserService(userRepository);
+const userService = new UserService();
 const userController = new UserController(userService);
 
 // Protected routes
