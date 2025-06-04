@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '@axios';
 import { RootState } from '@/store';
+import axios from 'axios';
 
 interface Tag {
     id: string;
@@ -58,15 +59,21 @@ export const fetchLogs = createAsyncThunk(
                 },
             });
             return {
-                logs: response.data.logs.map((log: any) => ({
+                logs: response.data.logs.map((log: Log) => ({
                     ...log,
                     tags: log.tags || [],
                     mediaUrls: log.mediaUrls || []
                 })),
                 total: response.data.total
             };
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data?.message || error.message);
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                return rejectWithValue(error.response?.data?.message || error.message);
+            } else if (error instanceof Error) {
+                return rejectWithValue(error.message);
+            } else {
+                return rejectWithValue('An unknown error occurred');
+            }
         }
     }
 );
@@ -81,8 +88,14 @@ export const fetchLog = createAsyncThunk(
                 tags: response.data.tags || [],
                 mediaUrls: response.data.mediaUrls || []
             };
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data?.message || error.message);
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                return rejectWithValue(error.response?.data?.message || error.message);
+            } else if (error instanceof Error) {
+                return rejectWithValue(error.message);
+            } else {
+                return rejectWithValue('An unknown error occurred');
+            }
         }
     }
 );
@@ -105,8 +118,14 @@ export const createLog = createAsyncThunk(
                 createdAt: logData.createdAt?.toISOString(),
             });
             return response.data;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data?.message || error.message);
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                return rejectWithValue(error.response?.data?.message || error.message);
+            } else if (error instanceof Error) {
+                return rejectWithValue(error.message);
+            } else {
+                return rejectWithValue('An unknown error occurred');
+            }
         }
     }
 );
@@ -133,8 +152,14 @@ export const updateLog = createAsyncThunk(
                 createdAt: logData.createdAt?.toISOString(),
             });
             return response.data;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data?.message || error.message);
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                return rejectWithValue(error.response?.data?.message || error.message);
+            } else if (error instanceof Error) {
+                return rejectWithValue(error.message);
+            } else {
+                return rejectWithValue('An unknown error occurred');
+            }
         }
     }
 );
@@ -145,8 +170,14 @@ export const deleteLog = createAsyncThunk(
         try {
             await axiosInstance.delete(`/logs/${id}`);
             return id;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data?.message || error.message);
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                return rejectWithValue(error.response?.data?.message || error.message);
+            } else if (error instanceof Error) {
+                return rejectWithValue(error.message);
+            } else {
+                return rejectWithValue('An unknown error occurred');
+            }
         }
     }
 );

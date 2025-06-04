@@ -1,3 +1,4 @@
+import React from 'react';
 import { Paper, Text, Group, ActionIcon, useMantineColorScheme, Image, SimpleGrid, Modal } from '@mantine/core';
 import { IconPencil, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';

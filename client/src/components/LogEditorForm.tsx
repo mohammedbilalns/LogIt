@@ -1,3 +1,4 @@
+import React, { useEffect, useState, useRef } from 'react';
 import {
     TextInput,
     Textarea,
@@ -15,7 +16,6 @@ import {
 import { DateTimePicker } from '@mantine/dates';
 import { useForm, isNotEmpty } from '@mantine/form';
 import { IconPhotoPlus, IconX } from '@tabler/icons-react';
-import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -29,9 +29,10 @@ import { uploadImage } from '@/store/slices/uploadSlice';
 import { AppDispatch, RootState } from '@/store';
 import TagSelector from './TagSelector';
 import { notifications } from '@mantine/notifications';
-import Cropper from 'react-cropper';
+import Cropper, { ReactCropperElement } from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
 import UserSidebar from '@components/user/UserSidebar';
+import axios from 'axios'; 
 
 interface LogEditorFormProps {
   mode: 'create' | 'edit';
@@ -60,7 +61,7 @@ export default function LogEditorForm({
   const [uploadingImages, setUploadingImages] = useState(false);
   const [cropperOpen, setCropperOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState<File | null>(null);
-  const cropperRef = useRef<any>(null);
+  const cropperRef = useRef<ReactCropperElement | null>(null);
 
   const form = useForm({
     initialValues: {
@@ -72,13 +73,21 @@ export default function LogEditorForm({
       createdAt: initialValues?.createdAt || new Date(),
     },
     validate: {
-      title: isNotEmpty('Log title cannot be empty'),
+      title:(value)=>{
+        if(!value.trim()){
+          return "Title cannot be empty"
+        }
+        if(value.length >50 || value.length < 5 ){
+          return "Title length must be between 5- 50 characters"
+        }
+      },
       content: isNotEmpty('Log content cannot be empty'),
       mediaFiles: (files) =>
         files && files.length > 4 ? 'You can upload up to 4 images/videos.' : null,
     },
   });
 
+  // Fetch tags and log data
   useEffect(() => {
     dispatch(fetchTags());
     if (mode === 'edit' && logId) {
@@ -89,6 +98,7 @@ export default function LogEditorForm({
     };
   }, [dispatch, mode, logId]);
 
+  // Update form when currentLog changes
   useEffect(() => {
     if (mode === 'edit' && currentLog) {
       form.setValues({
@@ -106,12 +116,11 @@ export default function LogEditorForm({
       return;
     }
     
-    // For the first image, open cropper
+
     if (files.length === 1) {
       setCurrentImage(files[0]);
       setCropperOpen(true);
     } else {
-      // For multiple files, upload directly
       setUploadingImages(true);
       try {
         const uploadPromises = files.map(file => dispatch(uploadImage(file)).unwrap());
@@ -124,12 +133,26 @@ export default function LogEditorForm({
           message: 'Images uploaded successfully',
           color: 'green',
         });
-      } catch (error: any) {
-        notifications.show({
-          title: 'Error',
-          message: error.message || 'Failed to upload images',
-          color: 'red',
-        });
+      } catch (error: unknown) {
+         if (axios.isAxiosError(error)) {
+            notifications.show({
+              title: 'Error',
+              message: error.response?.data?.message || error.message,
+              color: 'red',
+            });
+          } else if (error instanceof Error) {
+            notifications.show({
+              title: 'Error',
+              message: error.message,
+              color: 'red',
+            });
+          } else {
+             notifications.show({
+              title: 'Error',
+              message: 'Failed to upload images',
+              color: 'red',
+            });
+          }
       } finally {
         setUploadingImages(false);
       }
@@ -149,7 +172,6 @@ export default function LogEditorForm({
         throw new Error('Cropper not initialized');
       }
 
-      // Get the cropped canvas
       const canvas = cropper.getCroppedCanvas({
         maxWidth: 1920,
         maxHeight: 1080,
@@ -173,13 +195,11 @@ export default function LogEditorForm({
         }, 'image/jpeg', 0.95);
       });
 
-      // Create a File object from the blob
       const croppedFile = new File([blob], currentImage.name, {
         type: 'image/jpeg',
         lastModified: Date.now(),
       });
 
-      // Upload the cropped image
       const uploadedUrl = await dispatch(uploadImage(croppedFile)).unwrap();
       
       form.setFieldValue('mediaUrls', [...form.values.mediaUrls, uploadedUrl]);
@@ -189,13 +209,27 @@ export default function LogEditorForm({
         message: 'Image uploaded successfully',
         color: 'green',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Crop error:', error);
-      notifications.show({
-        title: 'Error',
-        message: error.message || 'Failed to upload image',
-        color: 'red',
-      });
+       if (axios.isAxiosError(error)) {
+            notifications.show({
+              title: 'Error',
+              message: error.response?.data?.message || error.message,
+              color: 'red',
+            });
+          } else if (error instanceof Error) {
+            notifications.show({
+              title: 'Error',
+              message: error.message,
+              color: 'red',
+            });
+          } else {
+             notifications.show({
+              title: 'Error',
+              message: 'Failed to upload image',
+              color: 'red',
+            });
+          }
     } finally {
       setUploadingImages(false);
       setCropperOpen(false);
@@ -233,12 +267,26 @@ export default function LogEditorForm({
       }
       onClose();
       navigate('/logs');
-    } catch (error: any) {
-      notifications.show({
-        title: 'Error',
-        message: error.message || 'Failed to save log. Please try again.',
-        color: 'red',
-      });
+    } catch (error: unknown) {
+       if (axios.isAxiosError(error)) {
+            notifications.show({
+              title: 'Error',
+              message: error.response?.data?.message || error.message,
+              color: 'red',
+            });
+          } else if (error instanceof Error) {
+            notifications.show({
+              title: 'Error',
+              message: error.message,
+              color: 'red',
+            });
+          } else {
+             notifications.show({
+              title: 'Error',
+              message: 'Failed to save log. Please try again.',
+              color: 'red',
+            });
+          }
     }
   };
 

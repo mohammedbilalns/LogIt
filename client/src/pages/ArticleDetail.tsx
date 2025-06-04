@@ -1,16 +1,35 @@
-import { Box, Button, Group, Stack, Text, Title, Chip, Paper, Loader, Center, useMantineColorScheme, useMantineTheme } from '@mantine/core';
-import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useParams, useNavigate } from 'react-router-dom';
-import { AppDispatch, RootState } from '@/store';
+import React, { useEffect, useState } from 'react';
 import { fetchArticle } from '@slices/articleSlice';
+import { clearReportState, createReport } from '@slices/reportSlice';
+import { IconAlertTriangle, IconEdit } from '@tabler/icons-react';
 import ReactMarkdown, { Components } from 'react-markdown';
-import rehypeRaw from 'rehype-raw';
-import remarkGfm from 'remark-gfm';
-import { IconEdit } from '@tabler/icons-react';
-import { useMediaQuery } from '@mantine/hooks';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import rehypeRaw from 'rehype-raw';
+import remarkGfm from 'remark-gfm';
+import {
+  Box,
+  Button,
+  Center,
+  Chip,
+  Group,
+  Loader,
+  Modal,
+  Paper,
+  Radio,
+  Stack,
+  Text,
+  Textarea,
+  Title,
+  useMantineColorScheme,
+  useMantineTheme,
+} from '@mantine/core';
+import { useForm } from '@mantine/form';
+import { useMediaQuery } from '@mantine/hooks';
+import { notifications } from '@mantine/notifications';
+import { AppDispatch, RootState } from '@/store';
 
 export default function ArticleDetailPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -18,17 +37,61 @@ export default function ArticleDetailPage() {
   const { id } = useParams();
   const { currentArticle: article, loading } = useSelector((state: RootState) => state.articles);
   const { user } = useSelector((state: RootState) => state.auth);
+  const {
+    loading: reportLoading,
+    success: reportSuccess,
+    error: reportError,
+  } = useSelector((state: RootState) => state.report);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = useMantineTheme();
 
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+
+  const reportForm = useForm({
+    initialValues: {
+      reason: '',
+      otherReason: '',
+    },
+    validate: {
+      reason: (value, values) => {
+        if (!value) return 'Please select a reason';
+        if (value === 'Other (please specify)' && !values.otherReason.trim()) {
+          return 'Please specify the reason';
+        }
+        return null;
+      },
+    },
+  });
+
   useEffect(() => {
     if (id) {
       dispatch(fetchArticle(id));
     }
   }, [dispatch, id]);
+
+  useEffect(() => {
+    if (reportSuccess) {
+      notifications.show({
+        title: 'Success',
+        message: 'Article reported successfully.',
+        color: 'green',
+      });
+      setReportModalOpen(false);
+      reportForm.reset();
+      dispatch(clearReportState());
+    }
+    if (reportError) {
+      notifications.show({
+        title: 'Error',
+        message: reportError,
+        color: 'red',
+      });
+      dispatch(clearReportState());
+    }
+  }, [reportSuccess, reportError, dispatch, reportForm]);
 
   if (loading) {
     return (
@@ -41,7 +104,9 @@ export default function ArticleDetailPage() {
   if (!article) {
     return (
       <Center h="100vh">
-        <Text size="xl" c="dimmed">Article not found</Text>
+        <Text size="xl" c="dimmed">
+          Article not found
+        </Text>
       </Center>
     );
   }
@@ -78,41 +143,49 @@ export default function ArticleDetailPage() {
   const components: Components = {
     img: ({ src, alt }) => (
       <Box style={{ maxWidth: '100%', overflow: 'hidden' }}>
-        <img 
-          src={src} 
-          alt={alt} 
-          style={{ 
-            maxWidth: '100%', 
+        <img
+          src={src}
+          alt={alt}
+          style={{
+            maxWidth: '100%',
             height: 'auto',
             maxHeight: isMobile ? '300px' : '400px',
-            objectFit: 'contain'
-          }} 
+            objectFit: 'contain',
+          }}
         />
       </Box>
     ),
     p: ({ children }) => (
-      <Text size={isMobile ? "sm" : "md"} style={{ wordBreak: 'break-word' }}>{children}</Text>
+      <Text size={isMobile ? 'sm' : 'md'} style={{ wordBreak: 'break-word' }}>
+        {children}
+      </Text>
     ),
     h1: ({ children }) => (
-      <Title order={1} size={isMobile ? "h2" : "h1"} style={{ wordBreak: 'break-word' }}>{children}</Title>
+      <Title order={1} size={isMobile ? 'h2' : 'h1'} style={{ wordBreak: 'break-word' }}>
+        {children}
+      </Title>
     ),
     h2: ({ children }) => (
-      <Title order={2} size={isMobile ? "h3" : "h2"} style={{ wordBreak: 'break-word' }}>{children}</Title>
+      <Title order={2} size={isMobile ? 'h3' : 'h2'} style={{ wordBreak: 'break-word' }}>
+        {children}
+      </Title>
     ),
     h3: ({ children }) => (
-      <Title order={3} size={isMobile ? "h4" : "h3"} style={{ wordBreak: 'break-word' }}>{children}</Title>
+      <Title order={3} size={isMobile ? 'h4' : 'h3'} style={{ wordBreak: 'break-word' }}>
+        {children}
+      </Title>
     ),
     pre: ({ children, className }) => {
       const match = /language-(\w+)/.exec(className || '');
       const language = match ? match[1] : undefined;
-      
+
       return language ? (
         renderCodeBlock(language, children)
       ) : (
-        <Box 
-          component="pre" 
-          style={{ 
-            overflowX: 'auto', 
+        <Box
+          component="pre"
+          style={{
+            overflowX: 'auto',
             maxWidth: '100%',
             backgroundColor: isDark ? theme.colors.dark[7] : theme.colors.gray[0],
             padding: theme.spacing.md,
@@ -131,9 +204,9 @@ export default function ArticleDetailPage() {
 
       if (isInline) {
         return (
-          <Box 
-            component="code" 
-            style={{ 
+          <Box
+            component="code"
+            style={{
               backgroundColor: isDark ? theme.colors.dark[7] : theme.colors.gray[0],
               padding: '0.2em 0.4em',
               borderRadius: theme.radius.sm,
@@ -147,69 +220,156 @@ export default function ArticleDetailPage() {
         );
       }
       return renderCodeBlock(language, children);
-    }
+    },
+  };
+
+  const handleReportSubmit = async () => {
+    if (!id) return;
+
+    const reason =
+      reportForm.values.reason === 'Other (please specify)'
+        ? reportForm.values.otherReason.trim()
+        : reportForm.values.reason;
+
+    dispatch(
+      createReport({
+        targetType: 'article',
+        targetId: id,
+        reason: reason,
+      })
+    );
   };
 
   return (
-    <Box 
-      style={{
-        marginLeft: isMobile ? theme.spacing.md : (isSidebarOpen ? '290px' : theme.spacing.md),
-        marginRight: isMobile ? theme.spacing.md : theme.spacing.xl,
-        paddingTop: '30px',
-        transition: 'margin-left 0.3s ease',
-      }}
-    >
-      <Paper shadow="sm" radius="md" p={isMobile ? "md" : "xl"} withBorder>
-        <Stack gap="md">
-          <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
-            <Box style={{ minWidth: 0, flex: 1 }}>
-              <Title order={1} size={isMobile ? "h2" : "h1"} style={{ wordBreak: 'break-word' }}>{article.title}</Title>
-              <Group gap="xs" mt={4} wrap="wrap">
-                <Text size="sm" c="dimmed" fw={500}>By {article.author}</Text>
-                <Text size="sm" c="dimmed">•</Text>
-                <Text size="sm" c="dimmed">
-                  {new Date(article.createdAt).toLocaleDateString()}
-                </Text>
+    <>
+      <Box
+        style={{
+          marginLeft: isMobile ? theme.spacing.md : isSidebarOpen ? '290px' : theme.spacing.md,
+          marginRight: isMobile ? theme.spacing.md : theme.spacing.xl,
+          paddingTop: '30px',
+          transition: 'margin-left 0.3s ease',
+        }}
+      >
+        <Paper shadow="sm" radius="md" p={isMobile ? 'md' : 'xl'} withBorder>
+          <Stack gap="md">
+            <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
+              <Box style={{ minWidth: 0, flex: 1 }}>
+                <Title order={1} size={isMobile ? 'h2' : 'h1'} style={{ wordBreak: 'break-word' }}>
+                  {article.title}
+                </Title>
+                <Group gap="xs" mt={4} wrap="wrap">
+                  <Text size="sm" c="dimmed" fw={500}>
+                    By {article.author}
+                  </Text>
+                  <Text size="sm" c="dimmed">
+                    •
+                  </Text>
+                  <Text size="sm" c="dimmed">
+                    {new Date(article.createdAt).toLocaleDateString()}
+                  </Text>
+                </Group>
+              </Box>
+
+              <Group gap="sm">
+                {isAuthor && (
+                  <Button
+                    leftSection={<IconEdit size={16} />}
+                    onClick={() => navigate(`/articles/${article._id}/edit`)}
+                    size={isMobile ? 'sm' : 'md'}
+                  >
+                    Edit Article
+                  </Button>
+                )}
+                {!isAuthor && (
+                  <Button
+                    leftSection={<IconAlertTriangle size={16} />}
+                    onClick={() => setReportModalOpen(true)}
+                    size={isMobile ? 'sm' : 'md'}
+                    variant="outline"
+                    color="red"
+                    disabled={article.isReported}
+                  >
+                    {article.isReported ? 'Report Submitted' : 'Report Article'}
+                  </Button>
+                )}
               </Group>
+            </Group>
+
+            <Box mt="md" style={{ wordBreak: 'break-word' }}>
+              <ReactMarkdown
+                rehypePlugins={[rehypeRaw]}
+                remarkPlugins={[remarkGfm]}
+                components={components}
+              >
+                {article.content}
+              </ReactMarkdown>
             </Box>
-            
-            {isAuthor && (
-              <Button
-                leftSection={<IconEdit size={16} />}
-                onClick={() => navigate(`/articles/${article._id}/edit`)}
-                size={isMobile ? "sm" : "md"}
-              >
-                Edit Article
-              </Button>
+
+            <Group gap="xs" mt="xl" wrap="wrap">
+              {article.tagNames.map((tag) => (
+                <Chip key={tag} size="sm" checked readOnly variant="light" color="blue">
+                  {tag}
+                </Chip>
+              ))}
+            </Group>
+          </Stack>
+        </Paper>
+      </Box>
+
+      <Modal
+        opened={reportModalOpen}
+        onClose={() => setReportModalOpen(false)}
+        title="Report Article"
+        centered
+        zIndex={2000}
+      >
+        <form onSubmit={reportForm.onSubmit(handleReportSubmit)}>
+          <Stack gap="md">
+            <Text size="sm" fw={500}>
+              Reason for reporting
+            </Text>
+            <Radio.Group {...reportForm.getInputProps('reason')}>
+              <Stack>
+                <Radio value="Spam or misleading" label="Spam or misleading" />
+                <Radio value="Offensive or abusive content" label="Offensive or abusive content" />
+                <Radio value="Copyright Infringement" label="Copyright Infringement" />
+                <Radio value="Misinformation" label="Misinformation" />
+                <Radio value="Other (please specify)" label="Other (please specify)" />
+              </Stack>
+            </Radio.Group>
+
+            {reportForm.values.reason === 'Other (please specify)' && (
+              <Textarea
+                label="Additional Comments"
+                placeholder="Provide more details..."
+                autosize
+                minRows={2}
+                {...reportForm.getInputProps('otherReason')}
+              />
             )}
-          </Group>
 
-          <Box mt="md" style={{ wordBreak: 'break-word' }}>
-            <ReactMarkdown 
-              rehypePlugins={[rehypeRaw]} 
-              remarkPlugins={[remarkGfm]}
-              components={components}
-            >
-              {article.content}
-            </ReactMarkdown>
-          </Box>
+            {reportForm.errors.reason &&
+              reportForm.isTouched('reason') && (
+                <Text c="red" size="sm">
+                  {reportForm.errors.reason}
+                </Text>
+              )}
 
-          <Group gap="xs" mt="xl" wrap="wrap">
-            {article.tagNames.map(tag => (
-              <Chip 
-                key={tag} 
-                size="sm" 
-                checked 
-                readOnly
-                variant="light"
-                color="blue"
+            <Group justify="flex-end" mt="md">
+              <Button
+                variant="default"
+                onClick={() => setReportModalOpen(false)}
+                disabled={reportLoading}
               >
-                {tag}
-              </Chip>
-            ))}
-          </Group>
-        </Stack>
-      </Paper>
-    </Box>
+                Cancel
+              </Button>
+              <Button type="submit" color="red" loading={reportLoading}>
+                Submit
+              </Button>
+            </Group>
+          </Stack>
+        </form>
+      </Modal>
+    </>
   );
-} 
+}

@@ -7,6 +7,7 @@ import uploadReducer from '@slices/uploadSlice';
 import uiReducer from '@slices/uiSlice';
 import initReducer from '@slices/initSlice';
 import logReducer from '@slices/logSlice';
+import reportReducer from '@slices/reportSlice';
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
     ui: uiReducer,
     init: initReducer,
     logs: logReducer,
+    report: reportReducer,
   },
 });
 

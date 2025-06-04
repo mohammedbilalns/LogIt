@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect, memo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, memo, useRef } from 'react';
 import { MultiSelect } from '@mantine/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchTags, createTag, searchTags } from '@slices/tagSlice';
@@ -56,7 +56,7 @@ function TagSelector({ value, onChange }: TagSelectorProps) {
   }, [searchResults, isDropdownOpen]);
 
   const tagOptions = useMemo(() => {
-    // Create a map of all available tags
+    //  map of all available tags
     const allTagsMap = new Map<string, Tag>();
     
     // Add all tags from the main tags list
@@ -95,11 +95,11 @@ function TagSelector({ value, onChange }: TagSelectorProps) {
       onChange([...value, newTag.value]);
       setSearchQuery('');
       return newTag;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to create tag:', error);
       notifications.show({
         title: 'Error',
-        message: error.message || 'Failed to create tag. Please try again.',
+        message: error instanceof Error ? error.message : 'Failed to create tag. Please try again.',
         color: 'red',
       });
       throw error;

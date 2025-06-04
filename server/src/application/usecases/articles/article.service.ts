@@ -3,13 +3,15 @@ import { IArticleRepository } from '../../../domain/repositories/article.reposit
 import { ITagRepository } from '../../../domain/repositories/tag.repository.interface';
 import { MongoArticleTagRepository } from '../../../infrastructure/repositories/article-tag.repository';
 import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
+import { ReportRepository } from '../../../domain/repositories/report.repository.interface';
 
 export class ArticleService {
   constructor(
     private articleRepository: IArticleRepository,
     private tagRepository: ITagRepository,
     private articleTagRepository: MongoArticleTagRepository,
-    private userRepository: IUserRepository
+    private userRepository: IUserRepository,
+    private reportRepository: ReportRepository
   ) {}
 
   async createArticle(article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>, tagIds: string[]): Promise<ArticleWithTags> {
@@ -27,10 +29,25 @@ export class ArticleService {
     return this.getArticleWithTags(newArticle.id!);
   }
 
-  async getArticle(id: string): Promise<ArticleWithTags | null> {
+  async getArticle(id: string, userId?: string): Promise<ArticleWithTags | null> {
     const article = await this.articleRepository.findById(id);
     if (!article) return null;
-    return this.getArticleWithTags(id);
+    
+    const articleWithTags = await this.getArticleWithTags(id);
+    
+    console.log("User id ", userId)
+    console.log("article id", id)
+    // Check if the article is reported by the user
+    if (userId) {
+      const isReported = await this.reportRepository.exists({
+        targetType: 'article',
+        targetId: id,
+        reporterId: userId
+      });
+      return { ...articleWithTags, isReported };
+    }
+    
+    return articleWithTags;
   }
 
   async updateArticle(id: string, article: Partial<Article>, tagIds?: string[]): Promise<ArticleWithTags | null> {

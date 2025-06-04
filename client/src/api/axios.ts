@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { AppDispatch } from '@/store';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -30,7 +31,7 @@ axiosInstance.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
+  (error: AxiosError) => {
     return Promise.reject(error);
   }
 );
@@ -39,10 +40,10 @@ axiosInstance.interceptors.request.use(
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (value?: unknown) => void;
-  reject: (reason?: any) => void;
+  reject: (reason?: unknown) => void;
 }> = [];
 
-const processQueue = (error: any = null, token: string | null = null) => {
+const processQueue = (error: unknown | null = null, token: string | null = null) => {
   failedQueue.forEach(prom => {
     if (error) {
       prom.reject(error);
@@ -54,7 +55,7 @@ const processQueue = (error: any = null, token: string | null = null) => {
 };
 
 // Create a function to set up the response interceptor
-export const setupAxiosInterceptors = (store: any) => {
+export const setupAxiosInterceptors = (store: { dispatch: AppDispatch }) => {
   axiosInstance.interceptors.response.use(
     (response) => response,
     async (error: AxiosError) => {
@@ -67,7 +68,7 @@ export const setupAxiosInterceptors = (store: any) => {
          typeof error.response?.data === 'object' && 
          error.response?.data !== null &&
          'message' in error.response.data &&
-         error.response.data.message === "User is blocked"){
+         (error.response.data as { message?: string }).message === "User is blocked"){
         // Clear Redux state using the store passed as parameter
         store.dispatch({ type: 'auth/logout' });
         // Redirect to login page 
@@ -91,7 +92,7 @@ export const setupAxiosInterceptors = (store: any) => {
             }
             return axiosInstance(originalRequest);
           })
-          .catch((err) => {
+          .catch((err: unknown) => {
             return Promise.reject(err);
           });
       }
@@ -111,7 +112,7 @@ export const setupAxiosInterceptors = (store: any) => {
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         }
         return axiosInstance(originalRequest);
-      } catch (refreshError) {
+      } catch (refreshError: unknown) {
         processQueue(refreshError, null);
         return Promise.reject(refreshError);
       } finally {

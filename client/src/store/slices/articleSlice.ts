@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '@axios';
 import { RootState } from '@/store';
 import {  ArticleState } from '@type/article.types';
+import axios from 'axios';
 
 const initialState: ArticleState = {
   articles: [],
@@ -103,8 +104,14 @@ export const fetchUserArticles = createAsyncThunk(
         }
       });
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch user articles');
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        return rejectWithValue(error.response?.data?.message || 'Failed to fetch user articles');
+      } else if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      } else {
+        return rejectWithValue('Failed to fetch user articles');
+      }
     }
   }
 );

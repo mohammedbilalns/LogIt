@@ -13,4 +13,5 @@ export interface ArticleWithTags extends Article {
   tags: string[];
   tagNames: string[];
   author: string;
+  isReported?: boolean;
 } 

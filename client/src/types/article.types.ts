@@ -9,6 +9,7 @@ export interface Article {
     featured_image?: string;
     createdAt: string;
     updatedAt: string;
+    isReported?: boolean;
   }
   
   

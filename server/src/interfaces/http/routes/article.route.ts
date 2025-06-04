@@ -5,21 +5,28 @@ import { MongoArticleRepository } from '../../../infrastructure/repositories/art
 import { MongoTagRepository } from '../../../infrastructure/repositories/tag.repository';
 import { MongoArticleTagRepository } from '../../../infrastructure/repositories/article-tag.repository';
 import { MongoUserRepository } from '../../../infrastructure/repositories/user.repository';
+import { MongoReportRepository } from '../../../infrastructure/repositories/report.repository';
 import { authMiddleware, authorizeRoles } from '../middlewares/auth.middleware';
 import { csrfMiddleware } from '../middlewares/csrf.middleware';
 import { asyncHandler } from '../../../utils/asyncHandler';
 
 const router = Router();
+
+// Repositories
 const articleRepository = new MongoArticleRepository();
 const tagRepository = new MongoTagRepository();
 const articleTagRepository = new MongoArticleTagRepository();
 const userRepository = new MongoUserRepository();
-const articleService = new ArticleService(articleRepository, tagRepository, articleTagRepository, userRepository);
+const reportRepository = new MongoReportRepository();
+
+// Services
+const articleService = new ArticleService(articleRepository, tagRepository, articleTagRepository, userRepository, reportRepository);
+
+// Controllers
 const articleController = new ArticleController(articleService);
 
 // Public routes
 router.get('/', asyncHandler((req, res) => articleController.getArticles(req, res)));
-router.get('/:id', asyncHandler((req, res) => articleController.getArticle(req, res)));
 
 // Protected routes
 router.use(
@@ -27,6 +34,7 @@ router.use(
   asyncHandler((req, res, next) => csrfMiddleware()(req, res, next))
 );
 
+router.get('/:id', asyncHandler((req, res) => articleController.getArticle(req, res)));
 
 router.post('/', 
   asyncHandler((req, res, next) => authorizeRoles('user')(req, res, next)),

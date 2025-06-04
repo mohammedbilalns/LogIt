@@ -1,3 +1,4 @@
+import React from 'react';
 import { Box, Group, Stack, Text, Title, Select, Chip, Center, Pagination, Paper, TextInput, Modal, Button } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -12,6 +13,7 @@ import CreateButton from '@components/CreateButton';
 import { notifications } from '@mantine/notifications';
 import UserSidebar from '@components/user/UserSidebar';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 interface LogFilters {
   tagIds: string[];
@@ -92,12 +94,26 @@ export default function LogsPage() {
         message: 'Log deleted successfully',
         color: 'green',
       });
-    } catch (error: any) {
-      notifications.show({
-        title: 'Error',
-        message: error.message || 'Failed to delete log',
-        color: 'red',
-      });
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        notifications.show({
+          title: 'Error',
+          message: error.response?.data?.message || error.message,
+          color: 'red',
+        });
+      } else if (error instanceof Error) {
+        notifications.show({
+          title: 'Error',
+          message: error.message,
+          color: 'red',
+        });
+      } else {
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to delete log',
+          color: 'red',
+        });
+      }
     } finally {
       setDeleteModalOpen(false);
       setLogToDelete(null);

@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import {
     Avatar,
     Box,
@@ -7,7 +8,6 @@ import {
     Text,
     Title,
 } from '@mantine/core';
-import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { fetchUserArticles } from '@slices/articleSlice';
@@ -71,10 +71,10 @@ export default function ProfilePage() {
                     color: 'green'
                 });
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             notifications.show({
                 title: 'Error',
-                message: error || 'Failed to change password',
+                message: error instanceof Error ? error.message : 'Failed to change password',
                 color: 'red'
             });
         } finally {
@@ -92,7 +92,7 @@ export default function ProfilePage() {
                 profileImage: typeof values.profileImage === 'string' ? values.profileImage : null
             })).unwrap();
 
-            // Refresh user data after successful update
+            // Refresh user data
             await dispatch(checkAuth());
 
             notifications.show({
@@ -100,10 +100,10 @@ export default function ProfilePage() {
                 message: 'Profile updated successfully',
                 color: 'green'
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             notifications.show({
                 title: 'Error',
-                message: error.message || 'Failed to update profile',
+                message: error instanceof Error ? error.message : 'Failed to update profile',
                 color: 'red'
             });
         }

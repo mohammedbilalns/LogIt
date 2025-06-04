@@ -28,7 +28,7 @@ export class ArticleController {
     console.log('Update article request:', {
       id,
       title,
-      content: content?.substring(0, 100) + '...', // Log first 100 chars of content
+      content: content?.substring(0, 100) + '...', 
       tagIds,
       featured_image
     });
@@ -50,8 +50,10 @@ export class ArticleController {
 
   async getArticle(req: Request, res: Response) {
     const { id } = req.params;
-    const article = await this.articleService.getArticle(id);
+    const userId = req.user?.id;
+    const article = await this.articleService.getArticle(id, userId);
     
+    console.log("Fetched Article", article)
     if (!article) {
       return res.status(404).json({ message: 'Article not found' });
     }
@@ -83,8 +85,6 @@ export class ArticleController {
     
     return res.json(articles);
   }
-
-
 
   async deleteArticle(req: Request, res: Response) {
     const { id } = req.params;
