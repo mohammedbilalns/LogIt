@@ -1,7 +1,6 @@
 import { Title, Text, Button, Group } from '@mantine/core';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/store';
-import CreateButton from '@components/CreateButton';
 import { useMediaQuery } from '@mantine/hooks';
 import React, { useEffect } from 'react';
 import { fetchLogs } from '@/store/slices/logSlice';
@@ -41,7 +40,7 @@ export default function Home() {
           <Group justify="space-between" align="center">
             <Title order={2}>Recent Logs</Title>
           </Group>
-          <Stack mt="md" spacing="md">
+          <Stack mt="md" gap="md">
             {logs.length === 0 ? (
               <Text c="dimmed">No recent logs available.</Text>
             ) : (
@@ -60,7 +59,7 @@ export default function Home() {
           <Group justify="space-between" align="center">
             <Title order={2}>Recent Articles</Title>
           </Group>
-          <Stack mt="md" spacing="md">
+          <Stack mt="md" gap="md">
             {articles.length === 0 ? (
               <Text c="dimmed">No recent articles available.</Text>
             ) : (
@@ -74,10 +73,6 @@ export default function Home() {
           )}
         </Paper>
       </Stack>
-
-      <Box pos="fixed" bottom={24} right={24}>
-        <CreateButton onClick={() => navigate('/create')} />
-      </Box>
     </Box>
   );
 } 

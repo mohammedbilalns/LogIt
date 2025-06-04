@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Group, Stack, Text, Title, Select, Chip, Center, Pagination, Paper, TextInput, Modal, Button } from '@mantine/core';
+import { Box, Group, Stack, Text, Title, Select, Chip, Center, Pagination, Modal, Button } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
@@ -8,7 +8,6 @@ import { fetchTags } from '@slices/tagSlice';
 import LogRow from '@components/log/LogRow';
 import LogRowSkeleton from '@components/log/LogRowSkeleton';
 import { useMediaQuery, useDebouncedValue } from '@mantine/hooks';
-import { IconSearch } from '@tabler/icons-react';
 import CreateButton from '@components/CreateButton';
 import { notifications } from '@mantine/notifications';
 import UserSidebar from '@components/user/UserSidebar';
@@ -24,9 +23,9 @@ export default function LogsPage() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTags] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('new');
-  const [searchInput, setSearchInput] = useState('');
+  const [searchInput] = useState('');
   const [debouncedSearch] = useDebouncedValue(searchInput, 500);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [logToDelete, setLogToDelete] = useState<string | null>(null);
@@ -54,15 +53,6 @@ export default function LogsPage() {
       filters: JSON.stringify(filters)
     }));
   }, [dispatch, page, pageSize, selectedTags, sortBy, debouncedSearch]);
-
-  const handleTagClick = (tagId: string) => {
-    setSelectedTags(prev => 
-      prev.includes(tagId) 
-        ? prev.filter(id => id !== tagId)
-        : [...prev, tagId]
-    );
-    setPage(1);
-  };
 
   const handleSortChange = (value: string | null) => {
     if (value) {
@@ -144,46 +134,42 @@ export default function LogsPage() {
         }}
       >
         <Stack gap="md">
-          <Paper shadow="xs" p="md" withBorder>
-            <Stack gap="md">
-              <Group justify="space-between" wrap="wrap" gap="md">
-                <Title order={2}>Your Logs</Title>
+          <Group justify="space-between" wrap="wrap" gap="md">
+            <Title order={2}>Your Logs</Title>
 
-                <Group>
-                  <Text fw={500}>Sort By:</Text>
-                  <Select
-                    data={[
-                      { value: 'new', label: 'New To Old' },
-                      { value: 'old', label: 'Old To New' },
-                    ]}
-                    value={sortBy}
-                    onChange={handleSortChange}
-                    size="xs"
-                    radius="md"
-                    checkIconPosition="right"
-                  />
-                </Group>
-              </Group>
+            <Group>
+              <Text fw={500}>Sort By:</Text>
+              <Select
+                data={[
+                  { value: 'new', label: 'New To Old' },
+                  { value: 'old', label: 'Old To New' },
+                ]}
+                value={sortBy}
+                onChange={handleSortChange}
+                size="xs"
+                radius="md"
+                checkIconPosition="right"
+              />
+            </Group>
+          </Group>
 
-              <Stack gap="xs">
-                <Text fw={500}>Filter by Tags:</Text>
-                <Group gap="xs" wrap="wrap">
-                  {tags.map((tag) => (
-                    <Chip
-                      key={tag._id}
-                      checked={false}
-                      disabled
-                      size="sm"
-                      variant="light"
-                      color="blue"
-                    >
-                      {tag.name}
-                    </Chip>
-                  ))}
-                </Group>
-              </Stack>
-            </Stack>
-          </Paper>
+          <Stack gap="xs">
+            <Text fw={500}>Filter by Tags:</Text>
+            <Group gap="xs" wrap="wrap">
+              {tags.map((tag) => (
+                <Chip
+                  key={tag._id}
+                  checked={false}
+                  disabled
+                  size="sm"
+                  variant="light"
+                  color="blue"
+                >
+                  {tag.name}
+                </Chip>
+              ))}
+            </Group>
+          </Stack>
 
           <Stack gap="md">
             {loading && page === 1 ? (
@@ -203,11 +189,11 @@ export default function LogsPage() {
               </Center>
             )}
 
-            {!loading && logsToDisplay.length > 0 && ( 
+            {!loading && logsToDisplay.length > 0 && (
               <Stack gap="md" mt="md">
                 <Group justify="space-between" wrap="wrap" gap="md">
                   <Select
-                    label="Logs per page"
+                    label="Page size"
                     value={pageSize.toString()}
                     onChange={(value) => {
                       setPageSize(Number(value));
