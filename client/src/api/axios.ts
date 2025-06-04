@@ -54,7 +54,7 @@ const processQueue = (error: unknown | null = null, token: string | null = null)
   failedQueue = [];
 };
 
-// Create a function to set up the response interceptor
+//  response interceptor
 export const setupAxiosInterceptors = (store: { dispatch: AppDispatch }) => {
   axiosInstance.interceptors.response.use(
     (response) => response,
@@ -69,9 +69,7 @@ export const setupAxiosInterceptors = (store: { dispatch: AppDispatch }) => {
          error.response?.data !== null &&
          'message' in error.response.data &&
          (error.response.data as { message?: string }).message === "User is blocked"){
-        // Clear Redux state using the store passed as parameter
         store.dispatch({ type: 'auth/logout' });
-        // Redirect to login page 
         window.location.href = '/login?error=blocked';
         return Promise.reject(error);
       }

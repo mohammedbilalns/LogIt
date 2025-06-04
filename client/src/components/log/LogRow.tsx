@@ -1,5 +1,5 @@
 import React from 'react';
-import { Paper, Text, Group, ActionIcon, useMantineColorScheme, Image, SimpleGrid, Modal } from '@mantine/core';
+import { Paper, Text, Group, ActionIcon, useMantineColorScheme, Image, SimpleGrid, Modal, Chip } from '@mantine/core';
 import { IconPencil, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
 
@@ -43,32 +43,39 @@ export default function LogRow({ log, onEdit, onDelete }: LogRowProps) {
 
   return (
     <>
-      <Paper 
-        p="md" 
-        shadow="sm" 
-        radius="md" 
-        withBorder
-        style={{ 
-          backgroundColor: isDark ? 'var(--mantine-color-dark-7)' : 'white',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.5rem',
-        }}
-      >
-        <Group justify="space-between" align="center">
-          <Text size="lg" fw={500}>{log.title}</Text>
-          <Text size="sm" c="dimmed">{formatDate(log.createdAt)}</Text>
+    <Paper 
+      p="md" 
+      shadow="sm" 
+      radius="md" 
+      withBorder
+      style={{ 
+        backgroundColor: isDark ? 'var(--mantine-color-dark-7)' : 'white',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.5rem',
+      }}
+    >
+      <Group justify="space-between" align="center">
+        <Text size="lg" fw={500}>{log.title}</Text>
+        <Text size="sm" c="dimmed">{formatDate(log.createdAt)}</Text>
+      </Group>
+      
+      <Text>{log.content}</Text>
+      
+      {log.tags && log.tags.length > 0 && (
+        <Group gap="xs" style={{ flexWrap: 'wrap' }}>
+          {log.tags.slice(0, 5).map(tag => (
+            <Chip key={tag.id} size="xs" checked readOnly variant="light" color="blue">
+              {tag.name}
+            </Chip>
+          ))}
+          {log.tags.length > 5 && (
+            <Chip size="xs" variant="light" color="blue" disabled>
+              +{log.tags.length - 5} more
+            </Chip>
+          )}
         </Group>
-        
-        <Text>{log.content}</Text>
-        
-        {log.tags && log.tags.length > 0 && (
-          <Group gap="xs">
-            {log.tags.map(tag => (
-              <Text key={tag.id} size="xs" c="blue">{tag.name}</Text>
-            ))}
-          </Group>
-        )}
+      )}
 
         {log.mediaUrls && log.mediaUrls.length > 0 && (
           <SimpleGrid cols={2} spacing="sm">
@@ -107,21 +114,21 @@ export default function LogRow({ log, onEdit, onDelete }: LogRowProps) {
           </SimpleGrid>
         )}
 
-        {(onEdit || onDelete) && (
-          <Group gap="xs" justify="flex-end">
-            {onEdit && (
-              <ActionIcon variant="subtle" color="gray" onClick={() => onEdit(log)}>
-                <IconPencil size={16} />
-              </ActionIcon>
-            )}
-            {onDelete && (
-              <ActionIcon variant="subtle" color="red" onClick={() => onDelete(log._id)}>
-                <IconTrash size={16} />
-              </ActionIcon>
-            )}
-          </Group>
-        )}
-      </Paper>
+      {(onEdit || onDelete) && (
+        <Group gap="xs" justify="flex-end">
+          {onEdit && (
+            <ActionIcon variant="subtle" color="gray" onClick={() => onEdit(log)}>
+              <IconPencil size={16} />
+            </ActionIcon>
+          )}
+          {onDelete && (
+            <ActionIcon variant="subtle" color="red" onClick={() => onDelete(log._id)}>
+              <IconTrash size={16} />
+            </ActionIcon>
+          )}
+        </Group>
+      )}
+    </Paper>
 
       <Modal
         opened={!!selectedImage}

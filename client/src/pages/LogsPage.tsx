@@ -166,13 +166,13 @@ export default function LogsPage() {
               </Group>
 
               <Stack gap="xs">
-                <Text fw={500}>Tags:</Text>
+                <Text fw={500}>Filter by Tags:</Text>
                 <Group gap="xs" wrap="wrap">
                   {tags.map((tag) => (
                     <Chip
                       key={tag._id}
-                      checked={selectedTags.includes(tag._id)}
-                      onChange={() => handleTagClick(tag._id)}
+                      checked={false}
+                      disabled
                       size="sm"
                       variant="light"
                       color="blue"
@@ -182,14 +182,6 @@ export default function LogsPage() {
                   ))}
                 </Group>
               </Stack>
-              <TextInput
-                placeholder="Search logs"
-                leftSection={<IconSearch size={16} />}
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.currentTarget.value)}
-                style={{ width: '100%', maxWidth: isMobile ? '100%' : '400px' }}
-                size="md"
-              />
             </Stack>
           </Paper>
 

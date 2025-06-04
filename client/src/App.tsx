@@ -1,4 +1,4 @@
-import { useEffect, Suspense } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { MantineProvider, LoadingOverlay } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { RouterProvider } from 'react-router-dom';
@@ -45,7 +45,7 @@ function AppContent() {
 }
 
 export default function App() {
-  // Set up axios interceptors after store is created
+  //  axios interceptors
   useEffect(() => {
     setupAxiosInterceptors(store);
   }, []);

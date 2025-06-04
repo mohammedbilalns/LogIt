@@ -1,3 +1,4 @@
+import React from 'react';
 import { Container, Grid, Paper, Text, Title, Group, useMantineTheme, useMantineColorScheme } from '@mantine/core';
 import { IconUsers, IconNotes, IconSettings } from '@tabler/icons-react';
 import { useSelector } from 'react-redux';
@@ -11,7 +12,7 @@ export default function AdminDashboard() {
   const isOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
 
-  const StatCard = ({ title, value, icon: Icon }: { title: string; value: string | number; icon: any }) => (
+  const StatCard = ({ title, value, icon: Icon }: { title: string; value: string | number; icon: React.ElementType }) => (
     <Paper 
       shadow="sm" 
       p="md" 
