@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -131,7 +131,7 @@ export default function EmailVerification() {
         </Title>
         
         <Text c="dimmed" size="sm" ta="center" mb="xl">
-          We've sent a verification code to{' '}
+          We&apos;ve sent a verification code to{' '}
           <Text span fw={500} c="blue">
             {verificationEmail}
           </Text>
@@ -181,7 +181,7 @@ export default function EmailVerification() {
 
             <Group justify="center" gap="xs">
               <Text size="sm" c="dimmed">
-                Didn't receive the code?
+                Didn&apos;t receive the code?
               </Text>
               <Button 
                 variant="subtle" 

@@ -74,13 +74,13 @@ export const setupAxiosInterceptors = (store: { dispatch: AppDispatch }) => {
         return Promise.reject(error);
       }
 
-      // If the error is not 401 or the request is already a refresh token request, reject
+      // If the error is not 401 or the request is already a refresh token request reject
       if (error.response?.status !== 401 || originalRequest.url?.includes('/auth/refresh')) {
         return Promise.reject(error);
       }
 
       if (isRefreshing) {
-        // If a refresh is already in progress, add the request to the queue
+        // add request to queue when refreshing 
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })

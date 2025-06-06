@@ -2,6 +2,10 @@ import { Request, Response } from 'express';
 import { UserService } from '../../../application/usecases/usermanagement/user.service';
 import { logger } from '../../../utils/logger';
 
+interface CustomError extends Error {
+  name: 'UserNotFoundError' | 'InvalidPasswordError' | 'PasswordMismatchError' | 'UserBlockedError' | 'InvalidProfileDataError';
+}
+
 export class UserController {
   constructor(private userService: UserService) {}
 
@@ -24,16 +28,17 @@ export class UserController {
       });
 
       return res.json(updatedUser);
-    } catch (error: any) {
-      logger.red('Error updating profile:', error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      logger.red('Error updating profile:', errorMessage);
       
-      if (error.name === 'UserNotFoundError') {
-        logger.red('User not found:', error);
-        return res.status(404).json({ message: error.message });
+      if (error instanceof Error && (error as CustomError).name === 'UserNotFoundError') {
+        logger.red('User not found:', errorMessage);
+        return res.status(404).json({ message: errorMessage });
       }
       
-      if (error.name === 'InvalidProfileDataError') {
-        return res.status(400).json({ message: error.message });
+      if (error instanceof Error && (error as CustomError).name === 'InvalidProfileDataError') {
+        return res.status(400).json({ message: errorMessage });
       }
 
       return res.status(500).json({ message: 'Internal server error' });
@@ -54,22 +59,23 @@ export class UserController {
 
       await this.userService.changePassword(userId, currentPassword, newPassword);
       return res.json({ message: 'Password updated successfully' });
-    } catch (error: any) {
-      logger.red('Error changing password:', error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      logger.red('Error changing password:', errorMessage);
        
-      if (error.name === 'UserNotFoundError') {
+      if (error instanceof Error && (error as CustomError).name === 'UserNotFoundError') {
         return res.status(404).json({ message: 'User account not found' });
       }
       
-      if (error.name === 'InvalidPasswordError') {
+      if (error instanceof Error && (error as CustomError).name === 'InvalidPasswordError') {
         return res.status(400).json({ message: 'Current password is incorrect' });
       }
 
-      if (error.name === 'PasswordMismatchError') {
+      if (error instanceof Error && (error as CustomError).name === 'PasswordMismatchError') {
         return res.status(400).json({ message: 'New password cannot be the same as current password' });
       }
 
-      if (error.name === 'UserBlockedError') {
+      if (error instanceof Error && (error as CustomError).name === 'UserBlockedError') {
         return res.status(403).json({ message: 'Your account has been blocked' });
       }
 

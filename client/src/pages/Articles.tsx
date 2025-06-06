@@ -1,5 +1,5 @@
-import { Box, Group, Stack, Text, Title, Select, Chip, Center, Pagination } from '@mantine/core';
-import { useEffect, useState } from 'react';
+import { Box, Group, Stack, Text, Title, Select, Chip, Center } from '@mantine/core';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { fetchArticles } from '@slices/articleSlice';
@@ -17,19 +17,55 @@ interface ArticleFilters {
 export default function ArticlesPage() {
   const dispatch = useDispatch<AppDispatch>();
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize] = useState(10);
   const [sortBy, setSortBy] = useState('new');
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
-
-  const { articles, loading, total } = useSelector((state: RootState) => state.articles);
+  const { articles, loading, hasMore } = useSelector((state: RootState) => state.articles);
   const { tags } = useSelector((state: RootState) => state.tags);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     dispatch(fetchTags());
   }, [dispatch]);
 
   useEffect(() => {
+    const currentObserver = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        console.log('Intersection observer:', {
+          isIntersecting: entry.isIntersecting,
+          hasMore,
+          loading,
+          currentPage: page
+        });
+
+        if (entry.isIntersecting && hasMore && !loading) {
+          console.log('Loading more articles, current page:', page);
+          setPage(prev => prev + 1);
+        }
+      },
+      {
+        root: null,
+        rootMargin: '100px',
+        threshold: 0.1
+      }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      currentObserver.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        currentObserver.unobserve(currentTarget);
+      }
+    };
+  }, [hasMore, loading, page]);
+
+  useEffect(() => {
+    console.log('Fetching articles:', { page, pageSize, sortBy });
     const filters: ArticleFilters = {
       tagIds: [],
       isActive: true
@@ -47,13 +83,13 @@ export default function ArticlesPage() {
   const handleSortChange = (value: string | null) => {
     if (value) {
       setSortBy(value);
-      setPage(1); // Reset to first page when changing sort
+      setPage(1);
     }
   };
 
   const renderSkeletons = () => {
-    return Array(3).fill(0).map((_, index) => (
-      <ArticleRowSkeleton key={index} />
+    return Array(2).fill(0).map((_, index) => (
+      <ArticleRowSkeleton key={`skeleton-${index}`} />
     ));
   };
 
@@ -108,45 +144,20 @@ export default function ArticlesPage() {
         </Stack>
 
         <Stack gap="md">
-          {loading ? (
+          {articles.length > 0 ? (
+            <>
+              {articles.map((article) => (
+                <ArticleRow key={article._id} article={article} />
+              ))}
+              <div ref={observerTarget} style={{ height: '20px', width: '100%' }} />
+              {loading && page > 1 && renderSkeletons()}
+            </>
+          ) : loading ? (
             renderSkeletons()
-          ) : articles.length > 0 ? (
-            articles.map((article) => (
-              <ArticleRow key={article._id} article={article} />
-            ))
           ) : (
             <Center py="xl">
               <Text c="dimmed" size="sm">No articles found</Text>
             </Center>
-          )}
-
-          {!loading && articles.length > 0 && (
-            <Stack gap="md" mt="md">
-              <Group justify="space-between" wrap="wrap" gap="md">
-                <Select
-                  label="Page size"
-                  value={pageSize.toString()}
-                  onChange={(value) => {
-                    setPageSize(Number(value));
-                    setPage(1);
-                  }}
-                  data={[
-                    { value: '5', label: '5 per page' },
-                    { value: '10', label: '10 per page' },
-                    { value: '20', label: '20 per page' },
-                    { value: '50', label: '50 per page' },
-                  ]}
-                  style={{ width: '150px' }}
-                />
-                <Pagination
-                  total={Math.ceil(total / pageSize)}
-                  value={page}
-                  onChange={setPage}
-                  withEdges
-                  size={isMobile ? 'sm' : 'md'}
-                />
-              </Group>
-            </Stack>
           )}
         </Stack>
       </Stack>

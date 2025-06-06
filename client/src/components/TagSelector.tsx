@@ -46,7 +46,6 @@ function TagSelector({ value, onChange }: TagSelectorProps) {
     setSelectedTagNames(newSelectedTagNames);
   }, [value, tags, searchResults]);
 
-  // Maintain focus after search results update
   useEffect(() => {
     if (inputRef.current && isDropdownOpen) {
       requestAnimationFrame(() => {
@@ -59,12 +58,10 @@ function TagSelector({ value, onChange }: TagSelectorProps) {
     //  map of all available tags
     const allTagsMap = new Map<string, Tag>();
     
-    // Add all tags from the main tags list
     tags.forEach((tag: Tag) => {
       allTagsMap.set(tag._id, tag);
     });
     
-    // Add or update with search results
     searchResults.forEach((tag: Tag) => {
       allTagsMap.set(tag._id, tag);
     });
@@ -81,7 +78,7 @@ function TagSelector({ value, onChange }: TagSelectorProps) {
       }
     });
 
-    // Convert the map to an array of options
+    // Convert the map to an array 
     return Array.from(allTagsMap.values()).map((tag: Tag) => ({
       value: tag._id,
       label: tag.name

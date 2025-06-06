@@ -1,4 +1,5 @@
 import { Box, Group, Paper, Skeleton } from '@mantine/core';
+import React from 'react';
 
 export default function ArticleRowSkeleton() {
   return (

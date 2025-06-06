@@ -181,15 +181,33 @@ const articleSlice = createSlice({
         state.error = action.error.message || 'Failed to update article';
       })
       // Fetch All Articles
-      .addCase(fetchArticles.pending, (state) => {
+      .addCase(fetchArticles.pending, (state, action) => {
+        if (action.meta.arg.page === 1) {
+          state.articles = [];
+        }
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchArticles.fulfilled, (state, action) => {
         state.loading = false;
-        state.articles = action.payload.articles;
+        const newArticles = action.payload.articles;
+        
+        if (action.meta.arg.page === 1) {
+          state.articles = newArticles;
+        } else {
+          const existingIds = new Set(state.articles.map(article => article._id));
+          const uniqueNewArticles = newArticles.filter((article: { _id: string }) => !existingIds.has(article._id));
+          state.articles = [...state.articles, ...uniqueNewArticles];
+        }
+        
         state.total = action.payload.total;
         state.hasMore = state.articles.length < action.payload.total;
+        console.log('Articles state updated:', {
+          currentCount: state.articles.length,
+          total: state.total,
+          hasMore: state.hasMore,
+          page: action.meta.arg.page
+        });
       })
       .addCase(fetchArticles.rejected, (state, action) => {
         state.loading = false;
