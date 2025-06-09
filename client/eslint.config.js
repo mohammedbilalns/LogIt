@@ -9,7 +9,7 @@ export default defineConfig([
   { 
     files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"], 
     plugins: { js }, 
-    extends: ["js/recommended"] 
+    extends: ["js/recommended",    "plugin:react-you-might-not-need-an-effect/legacy-recommended"    ] 
   },
   { 
     files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"], 
