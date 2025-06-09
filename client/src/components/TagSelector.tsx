@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect, memo, useRef } from 'react';
+import  { useState, useCallback, useMemo, useEffect, memo, useRef } from 'react';
 import { MultiSelect } from '@mantine/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchTags, createTag, searchTags } from '@slices/tagSlice';

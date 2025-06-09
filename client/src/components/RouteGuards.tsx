@@ -1,7 +1,7 @@
 import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
-import React, { Suspense } from 'react';
+import  { Suspense } from 'react';
 import { LoadingOverlay, Box } from '@mantine/core';
 import Navbar from '@components/Navbar';
 import UserSidebar from '@components/user/UserSidebar';

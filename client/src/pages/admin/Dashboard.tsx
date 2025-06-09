@@ -1,4 +1,3 @@
-import React from 'react';
 import { Container, Grid, Paper, Text, Title, Group, useMantineTheme, useMantineColorScheme } from '@mantine/core';
 import { IconUsers, IconNotes, IconSettings } from '@tabler/icons-react';
 import { useSelector } from 'react-redux';

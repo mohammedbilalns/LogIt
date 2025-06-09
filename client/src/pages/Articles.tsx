@@ -1,5 +1,5 @@
 import { Box, Group, Stack, Text, Title, Select, Chip, Center } from '@mantine/core';
-import React, { useEffect, useState, useRef } from 'react';
+import  { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { fetchArticles } from '@slices/articleSlice';

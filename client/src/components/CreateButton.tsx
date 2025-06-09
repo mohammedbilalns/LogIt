@@ -1,7 +1,7 @@
 import { Button } from '@mantine/core';
 import { IconPlus } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
-import { MouseEventHandler } from 'react';
+import React, { MouseEventHandler } from 'react';
 
 interface CreateButtonProps {
   position?: 'right' | 'left';

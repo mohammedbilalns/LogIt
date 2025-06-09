@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Group, Stack, Text, Title, Select, Chip, Center, Pagination, Modal, Button } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';

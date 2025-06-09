@@ -1,4 +1,3 @@
-import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ArticleEditorForm from '@components/ArticleEditorForm';
 import { Box, Container } from '@mantine/core';

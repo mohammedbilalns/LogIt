@@ -11,7 +11,6 @@ import { notifications } from '@mantine/notifications';
 
 interface UpdateProfileForm {
     name: string;
-    email: string;
     profession: string;
     bio: string;
     profileImage: File | string | null;
@@ -36,22 +35,12 @@ export default function UpdateProfileModal({ opened, onClose, onSubmit, initialV
     const form = useForm<UpdateProfileForm>({
         initialValues: {
             name: initialValues?.name || '',
-            email: initialValues?.email || '',
             profession: initialValues?.profession || '',
             bio: initialValues?.bio || '',
             profileImage: initialValues?.profileImage || null,
         },
         validate: {
             name: (value) => (!value.trim() ? 'Name is required' : null),
-            email: (value) => {
-                if (!value.trim()) {
-                    return 'Email is required';
-                }
-                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                    return 'Invalid email format';
-                }
-                return null;
-            },
             profession: (value) =>{
                 if(!value.trim()){
                     return 'Profession is required'
@@ -73,7 +62,6 @@ export default function UpdateProfileModal({ opened, onClose, onSubmit, initialV
         if (user) {
             form.setValues({
                 name: user.name || '',
-                email: user.email || '',
                 profession: user.profession || '',
                 bio: user.bio || '',
                 profileImage: user.profileImage || null,
@@ -300,11 +288,6 @@ export default function UpdateProfileModal({ opened, onClose, onSubmit, initialV
                         label="Name"
                         placeholder="Enter your name"
                         {...form.getInputProps('name')}
-                    />
-                    <TextInput
-                        label="Email"
-                        placeholder="Enter your email"
-                        {...form.getInputProps('email')}
                     />
                     <TextInput
                         label="Profession"

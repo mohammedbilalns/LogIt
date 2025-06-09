@@ -1,5 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
-import React , { lazy } from 'react';
+import  { lazy } from 'react';
 import {
   Layout,
   UserProtectedRoute,

@@ -61,10 +61,10 @@ export default function UserManagement() {
           color: 'red',
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       notifications.show({
         title: 'Error',
-        message: 'Failed to update user status',
+        message: error.message || 'Failed to update user status',
         color: 'red',
       });
     }

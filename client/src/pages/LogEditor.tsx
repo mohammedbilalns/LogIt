@@ -4,7 +4,6 @@ import { useMediaQuery } from '@mantine/hooks';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import LogEditorForm from '@components/LogEditorForm';
-import React from 'react';
 
 interface LogEditorProps {
   mode: 'create' | 'edit';

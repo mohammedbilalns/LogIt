@@ -2,7 +2,7 @@ import { Title, Text, Button, Group } from '@mantine/core';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/store';
 import { useMediaQuery } from '@mantine/hooks';
-import React, { useEffect } from 'react';
+import  { useEffect } from 'react';
 import { fetchLogs } from '@/store/slices/logSlice';
 import { fetchArticles } from '@/store/slices/articleSlice';
 import LogRow from '@components/log/LogRow';

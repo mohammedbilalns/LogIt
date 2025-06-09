@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import  { useEffect, useState } from 'react';
 import { fetchArticle } from '@slices/articleSlice';
 import { clearReportState, createReport } from '@slices/reportSlice';
 import { IconAlertTriangle, IconEdit } from '@tabler/icons-react';
