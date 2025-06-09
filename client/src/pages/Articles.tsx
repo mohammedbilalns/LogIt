@@ -95,14 +95,7 @@ export default function ArticlesPage() {
 
   return (
     <Box 
-      style={{
-        marginLeft: isMobile ? '16px' : (isSidebarOpen ? '290px' : '16px'),
-        marginRight: isMobile ? '16px' : '30px',
-        paddingLeft: isMobile ? '0' : '16px',
-        marginTop: '100px',
-        paddingBottom: '100px',
-        transition: 'margin-left 0.3s ease',
-      }}
+      className={`page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`}
     >
       <Stack gap="md">
         <Group justify="space-between" wrap="wrap" gap="md">

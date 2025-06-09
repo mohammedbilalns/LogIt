@@ -1,5 +1,5 @@
-import { Box, Group, Stack, Text, Title, Select, Chip, Center, Pagination, Modal, Button } from '@mantine/core';
-import { useEffect, useState } from 'react';
+import { Box, Group, Stack, Text, Title, Select, Chip, Center, Modal, Button } from '@mantine/core';
+import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { fetchLogs, deleteLog, Log } from '@slices/logSlice';
@@ -21,7 +21,7 @@ export default function LogsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize] = useState(10);
   const [selectedTags] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('new');
   const [searchInput] = useState('');
@@ -30,8 +30,9 @@ export default function LogsPage() {
   const [logToDelete, setLogToDelete] = useState<string | null>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
-  const { logs, loading, total } = useSelector((state: RootState) => state.logs);
+  const { logs, loading, hasMore } = useSelector((state: RootState) => state.logs);
   const { tags } = useSelector((state: RootState) => state.tags);
 
   useEffect(() => {
@@ -52,6 +53,33 @@ export default function LogsPage() {
       filters: JSON.stringify(filters)
     }));
   }, [dispatch, page, pageSize, selectedTags, sortBy, debouncedSearch]);
+
+  useEffect(() => {
+    const currentObserver = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && hasMore && !loading) {
+          setPage(prev => prev + 1);
+        }
+      },
+      {
+        root: null,
+        rootMargin: '100px',
+        threshold: 0.1
+      }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      currentObserver.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        currentObserver.unobserve(currentTarget);
+      }
+    };
+  }, [hasMore, loading]);
 
   const handleSortChange = (value: string | null) => {
     if (value) {
@@ -123,14 +151,7 @@ export default function LogsPage() {
     <>
       <UserSidebar isModalOpen={deleteModalOpen} />
       <Box 
-        style={{
-          marginLeft: isMobile ? '16px' : (isSidebarOpen ? '290px' : '16px'),
-          marginRight: isMobile ? '16px' : '30px',
-          paddingLeft: isMobile ? '0' : '16px',
-          marginTop: '100px',
-          paddingBottom: '100px',
-          transition: 'margin-left 0.3s ease',
-        }}
+        className={`page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`}
       >
         <Stack gap="md">
           <Group justify="space-between" wrap="wrap" gap="md">
@@ -174,47 +195,22 @@ export default function LogsPage() {
             {loading && page === 1 ? (
               renderSkeletons()
             ) : logsToDisplay.length > 0 ? (
-              logsToDisplay.map((log) => (
-                <LogRow 
-                  key={log._id} 
-                  log={log} 
-                  onEdit={() => handleEditLog(log)} 
-                  onDelete={handleDeleteLog}
-                />
-              ))
+              <>
+                {logsToDisplay.map((log) => (
+                  <LogRow 
+                    key={log._id} 
+                    log={log} 
+                    onEdit={() => handleEditLog(log)} 
+                    onDelete={handleDeleteLog}
+                  />
+                ))}
+                <div ref={observerTarget} style={{ height: '20px', width: '100%' }} />
+                {loading && page > 1 && renderSkeletons()}
+              </>
             ) : (
               <Center py="xl">
                 <Text c="dimmed" size="sm">No logs found</Text>
               </Center>
-            )}
-
-            {!loading && logsToDisplay.length > 0 && (
-              <Stack gap="md" mt="md">
-                <Group justify="space-between" wrap="wrap" gap="md">
-                  <Select
-                    label="Page size"
-                    value={pageSize.toString()}
-                    onChange={(value) => {
-                      setPageSize(Number(value));
-                      setPage(1);
-                    }}
-                    data={[
-                      { value: '5', label: '5 per page' },
-                      { value: '10', label: '10 per page' },
-                      { value: '20', label: '20 per page' },
-                      { value: '50', label: '50 per page' },
-                    ]}
-                    style={{ width: '150px' }}
-                  />
-                  <Pagination
-                    total={Math.ceil(total / pageSize)}
-                    value={page}
-                    onChange={setPage}
-                    withEdges
-                    size={isMobile ? 'sm' : 'md'}
-                  />
-                </Group>
-              </Stack>
             )}
           </Stack>
         </Stack>

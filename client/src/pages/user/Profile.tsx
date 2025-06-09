@@ -30,7 +30,6 @@ interface ChangePasswordForm {
 
 interface UpdateProfileForm {
     name: string;
-    email: string;
     profession: string;
     bio: string;
     profileImage: File | string | null;
@@ -86,7 +85,6 @@ export default function ProfilePage() {
         try {
             await dispatch(updateProfile({
                 name: values.name,
-                email: values.email,
                 profession: values.profession,
                 bio: values.bio,
                 profileImage: typeof values.profileImage === 'string' ? values.profileImage : null
@@ -130,14 +128,7 @@ export default function ProfilePage() {
         <>
             <UserSidebar isModalOpen={passwordOpened || profileOpened} />
             <Box 
-                style={{
-                    marginLeft: isMobile ? '16px' : (isSidebarOpen ? '290px' : '16px'),
-                    marginRight: isMobile ? '16px' : '30px',
-                    paddingLeft: isMobile ? '0' : '16px',
-                    marginTop: '100px',
-                    paddingBottom: '100px',
-                    transition: 'margin-left 0.3s ease',
-                }}
+                className={`page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`}
             >
                 {/* Profile Header */}
                 <Box mb={40}>
@@ -223,7 +214,6 @@ export default function ProfilePage() {
                     onSubmit={handleUpdateProfile}
                     initialValues={{
                         name: user?.name,
-                        email: user?.email,
                         profession: user?.profession,
                         bio: user?.bio,
                         profileImage: user?.profileImage || null,

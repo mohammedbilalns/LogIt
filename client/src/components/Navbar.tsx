@@ -39,19 +39,19 @@ export default function Navbar() {
 
   return (
     <Portal >
-      <Box
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
+    <Box
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
           zIndex: 1000,
-          borderBottom: `1px solid ${
-            isDark ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-3)'
-          }`,
+        borderBottom: `1px solid ${
+          isDark ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-3)'
+        }`,
           backgroundColor: isDark ? 'var(--mantine-color-dark-7)' : 'var(--mantine-color-gray-0)',
-        }}
-      >
+      }}
+    >
         <Group justify="space-between" align="center" wrap="nowrap" p="md">
           {/* Logo */}
           <UnstyledButton onClick={() => isAuthenticated ? navigate('/home') : navigate('/')}>
@@ -123,7 +123,7 @@ export default function Navbar() {
             />
           </Group>
         </Group>
-      </Box>
+    </Box>
     </Portal>
   );
 }

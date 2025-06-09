@@ -24,6 +24,7 @@ interface LogState {
     total: number;
     searchQuery: string;
     currentLog: Log | null;
+    hasMore: boolean;
 }
 
 const initialState: LogState = {
@@ -33,6 +34,7 @@ const initialState: LogState = {
     total: 0,
     searchQuery: '',
     currentLog: null,
+    hasMore: true,
 };
 
 // Async thunks
@@ -210,8 +212,13 @@ const logSlice = createSlice({
             })
             .addCase(fetchLogs.fulfilled, (state, action) => {
                 state.loading = false;
-                state.logs = action.payload.logs;
+                if (action.meta.arg.page === 1) {
+                    state.logs = action.payload.logs;
+                } else {
+                    state.logs = [...state.logs, ...action.payload.logs];
+                }
                 state.total = action.payload.total;
+                state.hasMore = action.payload.logs.length === action.meta.arg.limit;
             })
             .addCase(fetchLogs.rejected, (state, action) => {
                 state.loading = false;

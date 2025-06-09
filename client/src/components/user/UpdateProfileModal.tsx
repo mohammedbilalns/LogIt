@@ -2,7 +2,7 @@ import { Modal, TextInput, Button, Group, Stack, Textarea, Avatar, Box, Center, 
 import { useForm } from '@mantine/form';
 import { IconPhoto } from '@tabler/icons-react';
 import { useState, useRef, useEffect } from 'react';
-import Cropper from 'react-cropper';
+import Cropper, { ReactCropperElement } from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
@@ -28,7 +28,7 @@ export default function UpdateProfileModal({ opened, onClose, onSubmit, initialV
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [showCropper, setShowCropper] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const cropperRef = useRef<any>(null);
+    const cropperRef = useRef<ReactCropperElement>(null);
     const { loading: uploadLoading } = useSelector((state: RootState) => state.upload);
     const { user } = useSelector((state: RootState) => state.auth);
 
@@ -144,10 +144,11 @@ export default function UpdateProfileModal({ opened, onClose, onSubmit, initialV
                     message: 'Profile image uploaded successfully',
                     color: 'green'
                 });
-            } catch (error: any) {
+            } catch (error: unknown) {
+                const errorMessage = error instanceof Error ? error.message : 'Failed to upload image';
                 notifications.show({
                     title: 'Error',
-                    message: error.message || 'Failed to upload image',
+                    message: errorMessage,
                     color: 'red'
                 });
             }
@@ -159,10 +160,11 @@ export default function UpdateProfileModal({ opened, onClose, onSubmit, initialV
         try {
             await onSubmit(values);
             onClose();
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to update profile';
             notifications.show({
                 title: 'Error',
-                message: error.message || 'Failed to update profile',
+                message: errorMessage,
                 color: 'red'
             });
         }

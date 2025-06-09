@@ -58,7 +58,6 @@ export const updateProfile = createAsyncThunk(
   'userManagement/updateProfile',
   async (profileData: {
     name: string;
-    email: string;
     profession: string;
     bio: string;
     profileImage: string | null;
