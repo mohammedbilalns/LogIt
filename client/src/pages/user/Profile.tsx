@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
     Avatar,
     Box,
@@ -44,17 +44,44 @@ export default function ProfilePage() {
     const [profileOpened, { open: openProfile, close: closeProfile }] = useDisclosure(false);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
+    const observerTarget = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         dispatch(fetchUserArticles({ page: 1, limit: 5 }));
     }, [dispatch]);
 
-    const handleLoadMore = () => {
-        if (userArticlesHasMore) {
-            setPage(prev => prev + 1);
-            dispatch(fetchUserArticles({ page: page + 1, limit: 5 }));
+    useEffect(() => {
+        const currentObserver = new IntersectionObserver(
+            (entries) => {
+                const [entry] = entries;
+                if (entry.isIntersecting && userArticlesHasMore && !loading) {
+                    setPage(prev => prev + 1);
+                }
+            },
+            {
+                root: null,
+                rootMargin: '100px',
+                threshold: 0.1
+            }
+        );
+
+        const currentTarget = observerTarget.current;
+        if (currentTarget) {
+            currentObserver.observe(currentTarget);
         }
-    };
+
+        return () => {
+            if (currentTarget) {
+                currentObserver.unobserve(currentTarget);
+            }
+        };
+    }, [userArticlesHasMore, loading]);
+
+    useEffect(() => {
+        if (page > 1) {
+            dispatch(fetchUserArticles({ page, limit: 5 }));
+        }
+    }, [page, dispatch]);
 
     const handleChangePassword = async (values: ChangePasswordForm) => {
         try {
@@ -168,34 +195,29 @@ export default function ProfilePage() {
                     <Stack gap="md">
                         {loading && page === 1 ? (
                             renderSkeletons()
+                        ) : userArticles.length > 0 ? (
+                            <>
+                                {userArticles.map((article) => (
+                                    <ArticleRow 
+                                        key={article._id} 
+                                        article={{
+                                            _id: article._id,
+                                            title: article.title,
+                                            content: article.content,
+                                            author: article.author,
+                                            featured_image: article.featured_image,
+                                            tagNames: article.tagNames || [],
+                                            createdAt: article.createdAt
+                                        }} 
+                                    />
+                                ))}
+                                <div ref={observerTarget} style={{ height: '20px', width: '100%' }} />
+                                {loading && page > 1 && renderSkeletons()}
+                            </>
                         ) : (
-                            userArticles.map((article) => (
-                                <ArticleRow 
-                                    key={article._id} 
-                                    article={{
-                                        _id: article._id,
-                                        title: article.title,
-                                        content: article.content,
-                                        author: article.author,
-                                        featured_image: article.featured_image,
-                                        tagNames: article.tagNames || [],
-                                        createdAt: article.createdAt
-                                    }} 
-                                />
-                            ))
+                            <Text c="dimmed" ta="center">No articles found</Text>
                         )}
                     </Stack>
-                    {userArticlesHasMore && (
-                        <Group justify="center" mt="xl">
-                            <Button 
-                                variant="light" 
-                                onClick={handleLoadMore}
-                                loading={loading && page > 1}
-                            >
-                                Load More
-                            </Button>
-                        </Group>
-                    )}
                 </Box>
 
                 <Box pos="fixed" bottom={24} right={24}>
