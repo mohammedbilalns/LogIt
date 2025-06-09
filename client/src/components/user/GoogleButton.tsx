@@ -1,4 +1,5 @@
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import React from 'react';
 import { store } from '@/store';
 import { googleAuth } from '@slices/authSlice';
 

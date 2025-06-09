@@ -1,7 +1,7 @@
 import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
-import { Suspense } from 'react';
+import React, { Suspense } from 'react';
 import { LoadingOverlay, Box } from '@mantine/core';
 import Navbar from '@components/Navbar';
 import UserSidebar from '@components/user/UserSidebar';
@@ -30,7 +30,7 @@ export function PublicRoute() {
     if (user.role === 'admin' || user.role === 'superadmin') {
       return <Navigate to="/admin" replace />;
     }
-    return <Navigate to="/" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   return <Outlet />;

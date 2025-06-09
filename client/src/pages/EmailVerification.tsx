@@ -52,8 +52,7 @@ export default function EmailVerification() {
       navigate('/signup');
     }
     if (isAuthenticated) {
-      
-      navigate('/');
+      navigate('/home');
     }
     return () => {
       dispatch(clearError());

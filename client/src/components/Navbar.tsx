@@ -23,6 +23,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { logout } from '@slices/authSlice';
 import { useMediaQuery } from '@mantine/hooks';
+import React from 'react';
 
 export default function Navbar() {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
@@ -53,7 +54,7 @@ export default function Navbar() {
     >
         <Group justify="space-between" align="center" wrap="nowrap" p="md">
           {/* Logo */}
-          <UnstyledButton onClick={() => navigate('/')}>
+          <UnstyledButton onClick={() => isAuthenticated ? navigate('/home') : navigate('/')}>
             <Group align="center" gap="xs">
               <Image
                 src={isDark ? '/logo-dark.png' : '/logo-light.png'}

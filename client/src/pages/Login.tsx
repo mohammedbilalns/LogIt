@@ -51,10 +51,7 @@ export default function Login() {
         if (!value.trim()) {
           return 'Password is required';
         }
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
-        if (!passwordRegex.test(value)) {
-          return 'Password must be at least 8 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character';
-        }
+
         return null;
       },
     },
@@ -62,8 +59,7 @@ export default function Login() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      const from = location.state?.from?.pathname || '/';
-      navigate(from);
+      navigate('/home');
     }
     return () => {
       dispatch(clearError());

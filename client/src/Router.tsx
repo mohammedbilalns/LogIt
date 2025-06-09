@@ -8,7 +8,8 @@ import {
   SuperAdminProtectedRoute
 } from '@/components/RouteGuards';
 
-// Lazy load  pages
+// Lazy load pages
+const Landing = lazy(() => import('@pages/Landing'));
 const Login = lazy(() => import('@pages/Login'));
 const Signup = lazy(() => import('@pages/Signup'));
 const EmailVerification = lazy(() => import('@pages/EmailVerification'));
@@ -29,12 +30,38 @@ export const router = createBrowserRouter([
   {
     element: <Layout />,
     children: [
+      // Public Routes
+      {
+        element: <PublicRoute />,
+        children: [
+          {
+            path: '/',
+            element: <Landing />,
+          },
+          {
+            path: '/login',
+            element: <Login />,
+          },
+          {
+            path: '/signup',
+            element: <Signup />,
+          },
+          {
+            path: '/verify-email',
+            element: <EmailVerification />,
+          },
+          {
+            path: '/reset-password',
+            element: <ResetPassword />,
+          },
+        ],
+      },
       // User Protected Routes
       {
         element: <UserProtectedRoute />,
         children: [
           {
-            path: '/',
+            path: '/home',
             element: <Home />,
           },
           {
@@ -121,28 +148,6 @@ export const router = createBrowserRouter([
           {
             path: '/admin/manage-admins',
             element: <AdminDashboard />,
-          },
-        ],
-      },
-      // Public Routes
-      {
-        element: <PublicRoute />,
-        children: [
-          {
-            path: '/login',
-            element: <Login />,
-          },
-          {
-            path: '/signup',
-            element: <Signup />,
-          },
-          {
-            path: '/verify-email',
-            element: <EmailVerification />,
-          },
-          {
-            path: '/reset-password',
-            element: <ResetPassword />,
           },
         ],
       },

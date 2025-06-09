@@ -2,7 +2,13 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '@axios';
 import { AuthResponse, LoginRequest, SignupRequest } from '@type/user.types';
 import { AuthState } from '@type/auth.types';
+import { AxiosError } from 'axios';
 
+interface ApiErrorResponse {
+  message: string;
+}
+
+type ApiError = AxiosError<ApiErrorResponse>;
 
 const initialState: AuthState = {
   user: null,
@@ -23,8 +29,9 @@ export const signup = createAsyncThunk(
     try {
       const response = await api.post<AuthResponse>('/auth/signup', credentials);
       return response.data;
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Signup failed. Please try again.';
+    } catch (error) {
+      const apiError = error as ApiError;
+      const message = apiError.response?.data?.message || 'Signup failed. Please try again.';
       return rejectWithValue(message);
     }
   }
@@ -36,8 +43,9 @@ export const verifyEmail = createAsyncThunk(
     try {
       const response = await api.post<AuthResponse>('/auth/verify-otp', { email, otp });
       return response.data;
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Email verification failed. Please try again.';
+    } catch (error) {
+      const apiError = error as ApiError;
+      const message = apiError.response?.data?.message || 'Email verification failed. Please try again.';
       return rejectWithValue(message);
     }
   }
@@ -49,8 +57,9 @@ export const login = createAsyncThunk(
     try {
       const response = await api.post<AuthResponse>('/auth/login', credentials);
       return response.data;
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Login failed. Please try again.';
+    } catch (error) {
+      const apiError = error as ApiError;
+      const message = apiError.response?.data?.message || 'Login failed. Please try again.';
       return rejectWithValue(message);
     }
   }
@@ -60,8 +69,9 @@ export const logout = createAsyncThunk('auth/logout', async (_, { rejectWithValu
   try {
     await api.post('/auth/logout');
     return null;
-  } catch (error: any) {
-    const message = error.response?.data?.message || 'Logout failed. Please try again.';
+  } catch (error) {
+    const apiError = error as ApiError;
+    const message = apiError.response?.data?.message || 'Logout failed. Please try again.';
     return rejectWithValue(message);
   }
 });
@@ -69,10 +79,8 @@ export const logout = createAsyncThunk('auth/logout', async (_, { rejectWithValu
 export const checkAuth = createAsyncThunk('auth/check', async (_, { rejectWithValue }) => {
   try {
     const response = await api.post<AuthResponse>('/auth/refresh');
-
     return response.data;
-  } catch (error: any) {
-    
+  } catch {
     return rejectWithValue(null);
   }
 });
@@ -83,8 +91,9 @@ export const resendOTP = createAsyncThunk(
     try {
       const response = await api.post<{ message: string }>('/auth/resend-otp', { email });
       return response.data;
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to resend OTP. Please try again.';
+    } catch (error) {
+      const apiError = error as ApiError;
+      const message = apiError.response?.data?.message || 'Failed to resend OTP. Please try again.';
       return rejectWithValue(message);
     }
   }
@@ -96,8 +105,9 @@ export const googleAuth = createAsyncThunk(
     try {
       const response = await api.post<AuthResponse>('/auth/google', { credential });
       return response.data;
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Google authentication failed. Please try again.';
+    } catch (error) {
+      const apiError = error as ApiError;
+      const message = apiError.response?.data?.message || 'Google authentication failed. Please try again.';
       return rejectWithValue(message);
     }
   }
@@ -109,8 +119,9 @@ export const initiatePasswordReset = createAsyncThunk(
     try {
       const response = await api.post('/auth/reset-password', { email });
       return { email, message: response.data.message };
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to initiate password reset. Please try again.';
+    } catch (error) {
+      const apiError = error as ApiError;
+      const message = apiError.response?.data?.message || 'Failed to initiate password reset. Please try again.';
       return rejectWithValue(message);
     }
   }
@@ -122,8 +133,9 @@ export const verifyResetOTP = createAsyncThunk(
     try {
       const response = await api.post('/auth/verify-resetotp', { email, otp });
       return { email, message: response.data.message };
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to verify OTP. Please try again.';
+    } catch (error) {
+      const apiError = error as ApiError;
+      const message = apiError.response?.data?.message || 'Failed to verify OTP. Please try again.';
       return rejectWithValue(message);
     }
   }
@@ -135,8 +147,9 @@ export const updatePassword = createAsyncThunk(
     try {
       const response = await api.post('/auth/update-password', { email, otp, newPassword });
       return response.data;
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to update password. Please try again.';
+    } catch (error) {
+      const apiError = error as ApiError;
+      const message = apiError.response?.data?.message || 'Failed to update password. Please try again.';
       return rejectWithValue(message);
     }
   }
@@ -148,8 +161,9 @@ export const changePassword = createAsyncThunk(
     try {
       const response = await api.put('/user/change-password', { currentPassword, newPassword });
       return response.data;
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to change password. Please try again.';
+    } catch (error) {
+      const apiError = error as ApiError;
+      const message = apiError.response?.data?.message || 'Failed to change password. Please try again.';
       return rejectWithValue(message);
     }
   }
