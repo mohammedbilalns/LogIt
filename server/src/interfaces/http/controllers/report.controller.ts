@@ -91,7 +91,12 @@ export class ReportController {
       
       await this.reportService.blockArticle(articleId);
       
-      res.json({ message: 'Article blocked successfully' });
+      const updatedReports = await this.reportService.getReportsByTarget('article', articleId);
+      
+      res.json({ 
+        message: 'Article blocked successfully',
+        reports: updatedReports 
+      });
     } catch (error) {
       logger.red('BLOCK_ARTICLE_CONTROLLER_ERROR', error instanceof Error ? error.message : 'Failed to block article');
       res.status(500).json({ message: error instanceof Error ? error.message : 'Failed to block article' });

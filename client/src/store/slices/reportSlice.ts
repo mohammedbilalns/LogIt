@@ -3,9 +3,9 @@ import axiosInstance from '@axios';
 import axios from 'axios';
 
 export interface Report {
-  _id: string;
+  id: string;
   reportedBy: {
-    _id: string;
+    id: string;
     name: string;
     email: string;
   };
@@ -138,7 +138,7 @@ const reportSlice = createSlice({
       })
       .addCase(updateReportStatus.fulfilled, (state, action: PayloadAction<Report>) => {
         state.loading = false;
-        const index = state.reports.findIndex(report => report._id === action.payload._id);
+        const index = state.reports.findIndex(report => report.id === action.payload.id);
         if (index !== -1) {
           state.reports[index] = action.payload;
         }
@@ -152,8 +152,16 @@ const reportSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(blockArticle.fulfilled, (state) => {
+      .addCase(blockArticle.fulfilled, (state, action) => {
         state.loading = false;
+        // Update all reports for the blocked article
+        const updatedReports = action.payload.reports;
+        updatedReports.forEach((updatedReport: Report) => {
+          const index = state.reports.findIndex(report => report.id === updatedReport.id);
+          if (index !== -1) {
+            state.reports[index] = updatedReport;
+          }
+        });
       })
       .addCase(blockArticle.rejected, (state, action) => {
         state.loading = false;

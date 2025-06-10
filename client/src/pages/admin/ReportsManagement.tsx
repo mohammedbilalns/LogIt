@@ -59,19 +59,13 @@ export default function ReportsManagement() {
 
   const handleUpdateStatus = async (reportId: string, status: 'reviewed' | 'resolved') => {
     try {
-      await dispatch(updateReportStatus({ id: reportId, status })).unwrap();
+      const updatedReport = await dispatch(updateReportStatus({ id: reportId, status })).unwrap();
       notifications.show({
         title: 'Success',
         message: `Report status updated to ${status}`,
         color: 'green',
       });
-      // Refresh reports after updating status
-      dispatch(fetchReports({ 
-        page, 
-        limit: pageSize, 
-        search: debouncedSearch, 
-        status: filterStatus === 'all' ? undefined : filterStatus 
-      }));
+      // The Redux store will automatically update the report status
     } catch (error: any) {
       notifications.show({
         title: 'Error',
@@ -89,13 +83,7 @@ export default function ReportsManagement() {
         message: 'Article blocked successfully',
         color: 'green',
       });
-      // Refresh reports after blocking article
-      dispatch(fetchReports({ 
-        page, 
-        limit: pageSize, 
-        search: debouncedSearch, 
-        status: filterStatus === 'all' ? undefined : filterStatus 
-      }));
+      // The Redux store will automatically update the reports
     } catch (error: any) {
       notifications.show({
         title: 'Error',
@@ -149,13 +137,13 @@ export default function ReportsManagement() {
         >
           <Stack gap="md">
             <Title order={2} fw={600}>Reports Management</Title>
-            <Group grow wrap="wrap">
+            <Group align="flex-end" wrap="wrap" gap="md">
               <TextInput
                 placeholder="Search reports by reason or reported by email"
                 leftSection={<IconSearch size={16} />}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.currentTarget.value)}
-                style={{ flexGrow: 1 }}
+                style={{ flexGrow: 1, minWidth: isTablet ? '100%' : '300px' }}
                 size="md"
               />
               <Select
@@ -201,7 +189,7 @@ export default function ReportsManagement() {
                 </Table.Thead>
                 <Table.Tbody>
                   {reports.map((report: Report) => (
-                    <Table.Tr key={report._id}>
+                    <Table.Tr key={report.id}>
                       <Table.Td>
                         <Text size={isMobile ? "sm" : "md"} fw={500}>{report.reportedBy.name}</Text>
                         <Text size={isMobile ? "xs" : "sm"} c="dimmed">{report.reportedBy.email}</Text>
@@ -259,7 +247,7 @@ export default function ReportsManagement() {
                                 variant="light"
                                 color="green"
                                 size={isMobile ? "xs" : "sm"}
-                                onClick={() => handleUpdateStatus(report._id, 'reviewed')}
+                                onClick={() => handleUpdateStatus(report.id, 'reviewed')}
                               >
                                 Mark Reviewed
                               </Button>
@@ -268,7 +256,7 @@ export default function ReportsManagement() {
                               variant="outline"
                               color="gray"
                               size={isMobile ? "xs" : "sm"}
-                              onClick={() => handleUpdateStatus(report._id, 'resolved')}
+                              onClick={() => handleUpdateStatus(report.id, 'resolved')}
                             >
                               Dismiss
                             </Button>
