@@ -1,7 +1,7 @@
 import  { useEffect, useState } from 'react';
-import { fetchArticle } from '@slices/articleSlice';
+import { fetchArticle, deleteArticle } from '@slices/articleSlice';
 import { clearReportState, createReport } from '@slices/reportSlice';
-import { IconAlertTriangle, IconEdit } from '@tabler/icons-react';
+import { IconAlertTriangle, IconEdit, IconTrash } from '@tabler/icons-react';
 import ReactMarkdown, { Components } from 'react-markdown';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -49,6 +49,7 @@ export default function ArticleDetailPage() {
   const theme = useMantineTheme();
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   // Check if the current user is an admin
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
@@ -242,6 +243,26 @@ export default function ArticleDetailPage() {
     );
   };
 
+  const handleDeleteArticle = async () => {
+    if (!id) return;
+    
+    try {
+      await dispatch(deleteArticle(id)).unwrap();
+      notifications.show({
+        title: 'Success',
+        message: 'Article deleted successfully',
+        color: 'green',
+      });
+      navigate('/articles');
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to delete article',
+        color: 'red',
+      });
+    }
+  };
+
   return (
     <>
       <Box
@@ -274,13 +295,24 @@ export default function ArticleDetailPage() {
 
               <Group gap="sm">
                 {isAuthor && (
-                  <Button
-                    leftSection={<IconEdit size={16} />}
-                    onClick={() => navigate(`/articles/${article._id}/edit`)}
-                    size={isMobile ? 'sm' : 'md'}
-                  >
-                    Edit Article
-                  </Button>
+                  <>
+                    <Button
+                      leftSection={<IconEdit size={16} />}
+                      onClick={() => navigate(`/articles/${article._id}/edit`)}
+                      size={isMobile ? 'sm' : 'md'}
+                    >
+                      Edit Article
+                    </Button>
+                    <Button
+                      leftSection={<IconTrash size={16} />}
+                      onClick={() => setDeleteModalOpen(true)}
+                      size={isMobile ? 'sm' : 'md'}
+                      color="red"
+                      variant="outline"
+                    >
+                      Delete Article
+                    </Button>
+                  </>
                 )}
                 {!isAuthor && !isAdmin && (
                   <Button
@@ -371,6 +403,34 @@ export default function ArticleDetailPage() {
             </Group>
           </Stack>
         </form>
+      </Modal>
+
+      <Modal
+        opened={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="Delete Article"
+        centered
+        zIndex={2000}
+      >
+        <Stack gap="md">
+          <Text>Are you sure you want to delete this article? This action cannot be undone.</Text>
+          <Group justify="flex-end" mt="md">
+            <Button
+              variant="default"
+              onClick={() => setDeleteModalOpen(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="red"
+              onClick={handleDeleteArticle}
+              loading={loading}
+            >
+              Delete
+            </Button>
+          </Group>
+        </Stack>
       </Modal>
     </>
   );
