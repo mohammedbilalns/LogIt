@@ -26,6 +26,7 @@ const Profile = lazy(() => import('@pages/user/Profile'));
 const LogsPage = lazy(()=> import('@pages/LogsPage'));
 const LogEditor = lazy(()=> import('@pages/LogEditor'));
 const ReportManagement = lazy(()=> import('@pages/admin/ReportsManagement'))
+const TagManagement = lazy(()=> import('@pages/admin/TagManagement'))
 
 export const router = createBrowserRouter([
   {
@@ -128,7 +129,7 @@ export const router = createBrowserRouter([
               },
               {
                 path: '/admin/tags',
-                element: <AdminDashboard />,
+                element: <TagManagement />,
               },
               {
                 path: '/admin/subscriptions',

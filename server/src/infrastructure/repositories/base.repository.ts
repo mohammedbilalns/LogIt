@@ -73,13 +73,20 @@ export abstract class BaseRepository<T extends Document, E extends BaseEntity> i
 
       const query: FilterQuery<T> = { ...filters } as FilterQuery<T>;
 
-      if (search) {
+      const trimmedSearch = search ? search.trim() : null;
+
+      console.log('Search parameter received:', search);
+      console.log('Trimmed search parameter:', trimmedSearch);
+
+      if (trimmedSearch) {
         const searchFields = this.getSearchFields();
         const searchQuery = searchFields.map(field => ({
-          [field]: { $regex: search, $options: 'i' }
+          [field]: { $regex: trimmedSearch, $options: 'i' }
         })) as FilterQuery<T>[];
         query.$or = searchQuery;
       }
+      
+      console.log('MongoDB Query object:', JSON.stringify(query, null, 2));
 
       const skip = (page - 1) * limit;
       const sort: Record<string, 1 | -1> = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };

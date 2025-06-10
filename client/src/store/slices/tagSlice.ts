@@ -10,6 +10,12 @@ const initialState: TagState = {
   searchResults: [],
   loading: false,
   error: null,
+  total: 0,
+  promotedTags: [],
+  loadingAllTags: false,
+  errorAllTags: null,
+  loadingPromotedTags: false,
+  errorPromotedTags: null,
 };
 
 export const searchTags = createAsyncThunk(
@@ -30,9 +36,24 @@ export const createTag = createAsyncThunk(
 
 export const fetchTags = createAsyncThunk(
   'tags/fetchAll',
-  async () => {
-    const response = await axiosInstance.get('/tags');
-    return response.data.tags;
+  async ({ page, limit, search, promoted, sortBy, sortOrder }: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    promoted?: boolean;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) => {
+    const params = new URLSearchParams();
+    if (page) params.append('page', page.toString());
+    if (limit) params.append('limit', limit.toString());
+    params.append('search', search || '');
+    if (promoted !== undefined) params.append('promoted', promoted.toString());
+    if (sortBy) params.append('sortBy', sortBy);
+    if (sortOrder) params.append('sortOrder', sortOrder);
+
+    const response = await axiosInstance.get(`/tags?${params.toString()}`);
+    return response.data;
   }
 );
 
@@ -72,7 +93,7 @@ const tagSlice = createSlice({
     builder
       // Search Tags
       .addCase(searchTags.pending, (state) => {
-        state.loading = true;
+        state.loading = true; // Keep global loading for now, or remove if not needed
         state.error = null;
       })
       .addCase(searchTags.fulfilled, (state, action) => {
@@ -98,17 +119,34 @@ const tagSlice = createSlice({
         state.error = action.error.message || 'Failed to create tag';
       })
       // Fetch Tags
-      .addCase(fetchTags.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+      .addCase(fetchTags.pending, (state, action) => {
+        if (action.meta.arg.promoted) {
+          state.loadingPromotedTags = true;
+          state.errorPromotedTags = null;
+        } else {
+          state.loadingAllTags = true;
+          state.errorAllTags = null;
+        }
       })
       .addCase(fetchTags.fulfilled, (state, action) => {
-        state.loading = false;
-        state.tags = action.payload;
+        if (action.meta.arg.promoted) {
+          state.loadingPromotedTags = false;
+          state.promotedTags = action.payload.tags;
+        } else {
+          state.loadingAllTags = false;
+          state.tags = action.payload.tags;
+          state.total = action.payload.total;
+        }
+        console.log('fetchTags fulfilled - action.payload:', action.payload);
       })
       .addCase(fetchTags.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed to fetch tags';
+        if (action.meta.arg.promoted) {
+          state.loadingPromotedTags = false;
+          state.errorPromotedTags = action.error.message || 'Failed to fetch promoted tags';
+        } else {
+          state.loadingAllTags = false;
+          state.errorAllTags = action.error.message || 'Failed to fetch all tags';
+        }
       })
       // Delete Tag
       .addCase(deleteTag.pending, (state) => {
@@ -129,12 +167,22 @@ const tagSlice = createSlice({
         if (index !== -1) {
           state.tags[index] = action.payload;
         }
+        // Also update searchResults if the promoted tag is there
+        const searchIndex = state.searchResults.findIndex(tag => tag._id === action.payload._id);
+        if (searchIndex !== -1) {
+          state.searchResults[searchIndex] = action.payload;
+        }
       })
       // Demote Tag
       .addCase(demoteTag.fulfilled, (state, action) => {
         const index = state.tags.findIndex(tag => tag._id === action.payload._id);
         if (index !== -1) {
           state.tags[index] = action.payload;
+        }
+        // Also update searchResults if the demoted tag is there
+        const searchIndex = state.searchResults.findIndex(tag => tag._id === action.payload._id);
+        if (searchIndex !== -1) {
+          state.searchResults[searchIndex] = action.payload;
         }
       });
   },

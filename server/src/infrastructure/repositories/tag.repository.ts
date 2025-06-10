@@ -46,11 +46,13 @@ export class MongoTagRepository extends BaseRepository<TagDocument, Tag> impleme
       filters.promoted = promoted;
     }
 
-    return super.findAll({
+    const result = super.findAll({
       ...restParams,
       filters,
       sortBy: 'usageCount',
       sortOrder: 'desc'
     });
+    console.log('Executing find all with params:', { ...restParams, filters, sortBy: 'usageCount', sortOrder: 'desc' });
+    return result;
   }
 } 
