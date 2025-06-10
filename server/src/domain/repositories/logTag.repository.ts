@@ -6,4 +6,5 @@ export interface LogTagRepository extends IBaseRepository<LogTag> {
   findByLogId(logId: string): Promise<LogTag[]>;
   findByLogIds(logIds: string[]): Promise<LogTag[]>;
   deleteByLogId(logId: string): Promise<void>;
+  create(data: Omit<LogTag, 'id'>): Promise<LogTag>;
 } 

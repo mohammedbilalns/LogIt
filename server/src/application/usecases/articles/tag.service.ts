@@ -1,6 +1,14 @@
 import { Tag } from '../../../domain/entities/tag.entity';
 import { ITagRepository } from '../../../domain/repositories/tag.repository.interface';
 
+interface GetTagsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  promoted?: boolean;
+  userId?: string;
+}
+
 export class TagService {
   constructor(private tagRepository: ITagRepository) {}
 
@@ -12,16 +20,48 @@ export class TagService {
     return this.tagRepository.findById(id);
   }
 
-  async getTags(params: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    promoted?: boolean;
-  }): Promise<{ tags: Tag[]; total: number }> {
-    const result = await this.tagRepository.findAll(params);
+  async getTags(params: GetTagsParams): Promise<{ tags: Tag[]; total: number }> {
+    const { userId, limit = 5 } = params;
+    
+    //  get promoted tags
+    const promotedTags = await this.tagRepository.findAll({
+      ...params,
+      filters: { promoted: true },
+      limit: limit
+    });
+
+    // If we have enough promoted tags, return them
+    if (promotedTags.data.length >= limit) {
+      return {
+        tags: promotedTags.data.slice(0, limit),
+        total: promotedTags.total
+      };
+    }
+
+    //get user's most used tags
+    if (userId) {
+      const userTags = await this.tagRepository.findUserMostUsedTags(userId, {
+        limit: limit - promotedTags.data.length,
+        excludeIds: promotedTags.data.map(tag => tag.id).filter((id): id is string => id !== undefined)
+      });
+
+      // Combine promoted and user tags
+      return {
+        tags: [...promotedTags.data, ...userTags.data],
+        total: promotedTags.total + userTags.total
+      };
+    }
+
+    // get most used tags overall
+    const mostUsedTags = await this.tagRepository.findMostUsedTags({
+      limit: limit - promotedTags.data.length,
+      excludeIds: promotedTags.data.map(tag => tag.id).filter((id): id is string => id !== undefined)
+    });
+
+    // Combine promoted and most used tags
     return {
-      tags: result.data,
-      total: result.total
+      tags: [...promotedTags.data, ...mostUsedTags.data],
+      total: promotedTags.total + mostUsedTags.total
     };
   }
 

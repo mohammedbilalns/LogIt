@@ -34,14 +34,16 @@ export class TagController {
 
   async getTags(req: Request, res: Response) {
     const { page, limit, search, promoted } = req.query;
+    const userId = req.user?.id;
     
-    //  default to 5 tags
+    // default to 5 tags
     const defaultLimit = 5;
     const tags = await this.tagService.getTags({
       page: Number(page) || 1,
       limit: Number(limit) || defaultLimit,
       search: search as string,
-      promoted: promoted === 'true'
+      promoted: promoted === 'true',
+      userId: userId as string
     });
     
     // Add cache control headers

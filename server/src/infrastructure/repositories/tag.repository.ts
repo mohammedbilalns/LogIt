@@ -55,4 +55,45 @@ export class MongoTagRepository extends BaseRepository<TagDocument, Tag> impleme
     console.log('Executing find all with params:', { ...restParams, filters, sortBy: 'usageCount', sortOrder: 'desc' });
     return result;
   }
+
+  async findUserMostUsedTags(userId: string, params: { limit: number; excludeIds: string[] }): Promise<{ data: Tag[]; total: number }> {
+    const { limit, excludeIds } = params;
+    const query = {
+      _id: { $nin: excludeIds },
+      'usageCount.userId': userId
+    };
+    
+    const [data, total] = await Promise.all([
+      TagModel.find(query)
+        .sort({ 'usageCount.count': -1 })
+        .limit(limit)
+        .lean(),
+      TagModel.countDocuments(query)
+    ]);
+
+    return {
+      data: data.map(tag => this.mapToEntity(tag)),
+      total
+    };
+  }
+
+  async findMostUsedTags(params: { limit: number; excludeIds: string[] }): Promise<{ data: Tag[]; total: number }> {
+    const { limit, excludeIds } = params;
+    const query = {
+      _id: { $nin: excludeIds }
+    };
+    
+    const [data, total] = await Promise.all([
+      TagModel.find(query)
+        .sort({ usageCount: -1 })
+        .limit(limit)
+        .lean(),
+      TagModel.countDocuments(query)
+    ]);
+
+    return {
+      data: data.map(tag => this.mapToEntity(tag)),
+      total
+    };
+  }
 } 

@@ -5,6 +5,7 @@ import { LogMediaRepository } from '../../../domain/repositories/logMedia.reposi
 import { logger } from '../../../utils/logger';
 import { ITagRepository } from '../../../domain/repositories/tag.repository.interface';
 import { Tag } from '../../../domain/entities/tag.entity';
+import { LogTag } from '../../../domain/entities/LogTag';
 
 interface CreateLogData {
   title: string;
@@ -64,14 +65,18 @@ export class LogService {
       const logId = log.id;
 
       if (data.tags && data.tags.length > 0) {
-        await this.logTagRepository.createMany(
-          data.tags.map(tagId => ({
-            logId,
-            tagId,
-            userId,
-            createdAt: new Date(),
-          }))
-        );
+        for (const tagId of data.tags) {
+          const tag = await this.tagRepository.findById(tagId);
+          if (tag) {
+            await this.logTagRepository.create({
+              logId,
+              tagId,
+              userId,
+              createdAt: new Date()
+            } as Omit<LogTag, 'id'>);
+            await this.tagRepository.incrementUsageCount(tagId);
+          }
+        }
       }
 
       if (data.mediaUrls && data.mediaUrls.length > 0) {
@@ -212,16 +217,26 @@ export class LogService {
       });
 
       if (data.tags) {
+        const existingTags = await this.logTagRepository.findByLogId(logId);
+        for (const tag of existingTags) {
+          await this.tagRepository.decrementUsageCount(tag.tagId);
+        }
+
         await this.logTagRepository.deleteByLogId(logId);
+
         if (data.tags.length > 0) {
-          await this.logTagRepository.createMany(
-            data.tags.map(tagId => ({
-              logId,
-              tagId,
-              userId,
-              createdAt: new Date(),
-            }))
-          );
+          for (const tagId of data.tags) {
+            const tag = await this.tagRepository.findById(tagId);
+            if (tag) {
+              await this.logTagRepository.create({
+                logId,
+                tagId,
+                userId,
+                createdAt: new Date()
+              } as Omit<LogTag, 'id'>);
+              await this.tagRepository.incrementUsageCount(tagId);
+            }
+          }
         }
       }
 
@@ -251,6 +266,11 @@ export class LogService {
       const log = await this.logRepository.findById(logId);
       if (!log || log.userId !== userId) {
         return false;
+      }
+
+      const logTags = await this.logTagRepository.findByLogId(logId);
+      for (const tag of logTags) {
+        await this.tagRepository.decrementUsageCount(tag.tagId);
       }
 
       await Promise.all([

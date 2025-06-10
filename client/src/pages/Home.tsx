@@ -132,7 +132,7 @@ export default function Home() {
                 {homeData?.recentActivities.map((activity, index) => (
                   <Box key={index} py="xs">
                     <Text fw={500}>
-                      {activity.type === 'log' ? 'Logged a new symptom' : 'Published an article'}: {activity.title}
+                      {activity.type === 'log' ? 'Created a log' : 'Published an article'}: {activity.title}
                     </Text>
                     <Text size="sm" c="dimmed">{formatDate(activity.createdAt)}</Text>
                   </Box>

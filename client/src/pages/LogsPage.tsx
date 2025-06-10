@@ -22,7 +22,7 @@ export default function LogsPage() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
-  const [selectedTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('new');
   const [searchInput] = useState('');
   const [debouncedSearch] = useDebouncedValue(searchInput, 500);
@@ -36,7 +36,7 @@ export default function LogsPage() {
   const { tags } = useSelector((state: RootState) => state.tags);
 
   useEffect(() => {
-    dispatch(fetchTags());
+    dispatch(fetchTags({ limit: 5 }));
   }, [dispatch]);
 
   useEffect(() => {
@@ -179,8 +179,14 @@ export default function LogsPage() {
               {tags.map((tag) => (
                 <Chip
                   key={tag._id}
-                  checked={false}
-                  disabled
+                  checked={selectedTags.includes(tag._id)}
+                  onChange={(checked) => {
+                    if (checked) {
+                      setSelectedTags([...selectedTags, tag._id]);
+                    } else {
+                      setSelectedTags(selectedTags.filter(id => id !== tag._id));
+                    }
+                  }}
                   size="sm"
                   variant="light"
                   color="blue"

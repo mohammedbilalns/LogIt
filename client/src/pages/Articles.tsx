@@ -24,9 +24,10 @@ export default function ArticlesPage() {
   const { articles, loading, hasMore } = useSelector((state: RootState) => state.articles);
   const { tags } = useSelector((state: RootState) => state.tags);
   const observerTarget = useRef<HTMLDivElement>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   useEffect(() => {
-    dispatch(fetchTags());
+    dispatch(fetchTags({ limit: 5 }));
   }, [dispatch]);
 
   useEffect(() => {
@@ -67,7 +68,7 @@ export default function ArticlesPage() {
   useEffect(() => {
     console.log('Fetching articles:', { page, pageSize, sortBy });
     const filters: ArticleFilters = {
-      tagIds: [],
+      tagIds: selectedTags,
       isActive: true
     };
 
@@ -78,7 +79,7 @@ export default function ArticlesPage() {
       sortOrder: sortBy === 'old' ? 'asc' : 'desc',
       filters: JSON.stringify(filters)
     }));
-  }, [dispatch, page, pageSize, sortBy]);
+  }, [dispatch, page, pageSize, sortBy, selectedTags]);
 
   const handleSortChange = (value: string | null) => {
     if (value) {
@@ -124,8 +125,14 @@ export default function ArticlesPage() {
             {tags.map((tag) => (
               <Chip
                 key={tag._id}
-                checked={false}
-                disabled
+                checked={selectedTags.includes(tag._id)}
+                onChange={(checked) => {
+                  if (checked) {
+                    setSelectedTags([...selectedTags, tag._id]);
+                  } else {
+                    setSelectedTags(selectedTags.filter(id => id !== tag._id));
+                  }
+                }}
                 size="sm"
                 variant="light"
                 color="blue"
