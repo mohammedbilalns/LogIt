@@ -4,6 +4,7 @@ import { ITagRepository } from '../../../domain/repositories/tag.repository.inte
 import { IArticleTagRepository } from '../../../domain/repositories/article-tag.repository.interface';
 import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
 import { ReportRepository } from '../../../domain/repositories/report.repository.interface';
+import { logger } from '../../../utils/logger';
 
 export class ArticleService {
   constructor(
@@ -149,5 +150,14 @@ export class ArticleService {
       tagNames,
       author: authorName
     };
+  }
+
+  async blockArticle(articleId: string): Promise<void> {
+    const article = await this.articleRepository.findById(articleId);
+    if (!article) {
+      throw new Error('Article not found');
+    }
+    await this.articleRepository.update(articleId, { isActive: false });
+    logger.green('ARTICLE_BLOCKED', `Article ${articleId} has been blocked`);
   }
 } 

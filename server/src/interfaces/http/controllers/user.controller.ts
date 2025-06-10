@@ -82,4 +82,21 @@ export class UserController {
       return res.status(500).json({ message: 'Internal server error' });
     }
   }
+
+  async getHome(req:Request, res: Response){
+    try{
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      console.log(userId)
+     const data =  await this.userService.getHomeData(userId)
+     return res.json(data)
+    }catch(error: unknown){
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occured '
+      logger.red("Error fetching Home data",errorMessage)
+      return res.status(500).json({message:'Internal Server Error'})
+
+    }
+  }
 } 

@@ -4,15 +4,13 @@ import env from '../../../config/env';
 import { logger } from '../../../utils/logger';
 import { UserService } from '../../../application/usecases/usermanagement/user.service';
 
-declare global {
-  namespace Express {
+declare module 'express' {
     interface Request {
       user?: {
         id: string;
         email: string;
         role: 'user' | 'admin' | 'superadmin';
       };
-    }
   }
 }
 
@@ -38,7 +36,7 @@ export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
       logger.cyan("decoded data: ", JSON.stringify(decoded));
 
       try {
-        // Check if user is blocked using the service
+        // Check if user is blocked 
         await userService.checkUserBlocked(decoded.id);
         req.user = decoded;
         next();
@@ -66,7 +64,8 @@ export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
         }
         throw error;
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      logger.red('AUTH_ERROR', error instanceof Error ? error.message : 'Invalid or expired token');
       res.status(401).json({ message: 'Invalid or expired token' });
       return;
     }

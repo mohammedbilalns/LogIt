@@ -1,11 +1,19 @@
 import { User } from '../../../domain/entities/user.entity';
 import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
+import { IArticleRepository } from 'src/domain/repositories/article.repository.interface';
+import { LogRepository } from 'src/domain/repositories/log.repository';
 import { UserNotFoundError, InvalidPasswordError, PasswordMismatchError, InvalidProfileDataError, UserBlockedError } from '../../../application/errors/user.errors';
 import { MongoUserRepository } from '../../../infrastructure/repositories/user.repository';
+// import { MongoArticleRepository } from 'src/infrastructure/repositories/article.repository';
+// import { MongoLogRepository } from 'src/infrastructure/repositories/log.repository';
+
 import bcrypt from 'bcryptjs';
 
 export class UserService {
   private userRepository: IUserRepository;
+  private articleRepository: IArticleRepository; 
+  private logsRepository: LogRepository
+
 
   constructor() {
     this.userRepository = new MongoUserRepository();
@@ -102,5 +110,17 @@ export class UserService {
     }
 
     return updatedUser;
+  }
+
+  async getHomeData(userId: string) {
+    const articlesCount = await this.articleRepository.count({ userId });
+    const logsCount = await this.logsRepository.count({ userId });
+    const messagesCount = 434 
+    const followersCount = 534
+    const recentLogs = await this.logsRepository.findMany(userId, {limit:3, sortOrder:'asc'})
+  
+
+    
+    return { articlesCount, logsCount, messagesCount, followersCount, recentLogs,  };
   }
 } 

@@ -50,6 +50,10 @@ export default function ArticleDetailPage() {
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
 
+  // Check if the current user is an admin
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+  const isAuthor = user?._id === article?.authorId;
+
   const reportForm = useForm({
     initialValues: {
       reason: '',
@@ -110,8 +114,6 @@ export default function ArticleDetailPage() {
       </Center>
     );
   }
-
-  const isAuthor = user?._id === article.authorId;
 
   const renderCodeBlock = (language: string | undefined, code: React.ReactNode) => {
     const codeString = String(code);
@@ -280,7 +282,7 @@ export default function ArticleDetailPage() {
                     Edit Article
                   </Button>
                 )}
-                {!isAuthor && (
+                {!isAuthor && !isAdmin && (
                   <Button
                     leftSection={<IconAlertTriangle size={16} />}
                     onClick={() => setReportModalOpen(true)}

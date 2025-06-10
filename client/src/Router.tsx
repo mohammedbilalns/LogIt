@@ -25,6 +25,7 @@ const NotFound = lazy(() => import('@pages/NotFound'));
 const Profile = lazy(() => import('@pages/user/Profile'));
 const LogsPage = lazy(()=> import('@pages/LogsPage'));
 const LogEditor = lazy(()=> import('@pages/LogEditor'));
+const ReportManagement = lazy(()=> import('@pages/admin/ReportsManagement'))
 
 export const router = createBrowserRouter([
   {
@@ -123,11 +124,11 @@ export const router = createBrowserRouter([
               },
               {
                 path: '/admin/reports',
-                element: <AdminDashboard />, 
+                element: <ReportManagement />,
               },
               {
                 path: '/admin/tags',
-                element: <AdminDashboard />, 
+                element: <AdminDashboard />,
               },
               {
                 path: '/admin/subscriptions',
@@ -135,7 +136,11 @@ export const router = createBrowserRouter([
               },
               {
                 path: '/admin/analytics',
-                element: <AdminDashboard />, 
+                element: <AdminDashboard />,
+              },
+              {
+                path: '/admin/articles/:id',
+                element: <ArticleDetail />,
               },
             ],
           },
