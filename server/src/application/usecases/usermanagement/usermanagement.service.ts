@@ -11,7 +11,21 @@ export class UserManagementService {
   }
 
   async fetchUsers(page: number = 1, limit: number = 10, search: string = '') {
-    return await this.userRepository.fetch(page, limit, search);
+    const result = await this.userRepository.findAll({
+      page,
+      limit,
+      search,
+      sortBy: 'createdAt',
+      sortOrder: 'desc'
+    });
+
+    return {
+      ...result,
+      data: result.data.map(user => ({
+        ...user,
+        password: undefined
+      }))
+    };
   }
 
   async getUserById(id: string) {

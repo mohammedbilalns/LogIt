@@ -24,6 +24,7 @@ const initialState: UserManagementState = {
 };
 
 export const fetchUsers = createAsyncThunk(
+  
   'userManagement/fetchUsers',
   async ({ page, limit, search }: { page: number; limit: number; search: string }, { getState }) => {
     const state = getState() as RootState;
@@ -34,6 +35,7 @@ export const fetchUsers = createAsyncThunk(
         search: search || state.userManagement.searchQuery,
       },
     });
+    console.log("Fetched Users", response.data)
     return response.data;
   }
 );
@@ -113,7 +115,7 @@ const userManagementSlice = createSlice({
       })
       .addCase(fetchUsers.fulfilled, (state, action) => {
         state.loading = false;
-        state.users = action.payload.users;
+        state.users = action.payload.data;
         state.total = action.payload.total;
         state.totalPages = Math.ceil(action.payload.total / action.meta.arg.limit);
       })

@@ -1,105 +1,109 @@
 import mongoose from 'mongoose';
 import { Article } from '../../domain/entities/article.entity';
-import { IArticleRepository } from '../../domain/repositories/article.repository.interface';
-import ArticleModel from '../mongodb/article.shema';
+import { IArticleRepository, ArticleFindAllParams } from '../../domain/repositories/article.repository.interface';
+import ArticleModel, { ArticleDocument } from '../mongodb/article.shema';
+import { BaseRepository } from './base.repository';
 
-export class MongoArticleRepository implements IArticleRepository {
-  async create(article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>): Promise<Article> {
-    const newArticle = await ArticleModel.create(article);
-    return this.mapToArticle(newArticle);
+export class MongoArticleRepository extends BaseRepository<ArticleDocument, Article> implements IArticleRepository {
+  constructor() {
+    super(ArticleModel);
   }
 
-  async findById(id: string): Promise<Article | null> {
-    const article = await ArticleModel.findById(id);
-    return article ? this.mapToArticle(article) : null;
+  protected getSearchFields(): string[] {
+    return ['title', 'content'];
   }
 
-  async findByAuthorId(authorId: string): Promise<Article[]> {
-    const articles = await ArticleModel.find({ authorId });
-    return articles.map(article => this.mapToArticle(article));
-  }
-
-  async update(id: string, article: Partial<Article>): Promise<Article | null> {
-    const updatedArticle = await ArticleModel.findByIdAndUpdate(
-      id,
-      { ...article, updatedAt: new Date() },
-      { new: true }
-    );
-    return updatedArticle ? this.mapToArticle(updatedArticle) : null;
-  }
-
-  async delete(id: string): Promise<void> {
-    await ArticleModel.findByIdAndDelete(id);
-  }
-
-  async fetch(params: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-    filters?: Record<string, any>;
-  }): Promise<{ articles: Article[]; total: number }> {
-    const { page = 1, limit = 10, search = '', sortBy = 'createdAt', sortOrder = 'desc', filters = {} } = params;
-    
-    const query: any = {};
-    
-    // Handle filters
-    if (filters.authorId) {
-      query.authorId = filters.authorId;
-    }
-    if (filters.isActive !== undefined) {
-      query.isActive = filters.isActive;
-    }
-    
-    // Handle search
-    if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    // Handle tag filtering
-    if (filters.tags && Array.isArray(filters.tags) && filters.tags.length > 0) {
-      const articleTagModel = mongoose.model('ArticleTag');
-      const articleIds = await articleTagModel.distinct('articleId', {
-        tagId: { $in: filters.tags }
-      });
-      query._id = { $in: articleIds };
-    }
-
-    const skip = (page - 1) * limit;
-    const sort: any = {};
-    sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
-
-    const [articleDocs, total] = await Promise.all([
-      ArticleModel.find(query)
-        .skip(skip)
-        .limit(limit)
-        .sort(sort),
-      ArticleModel.countDocuments(query)
-    ]);
-
-    const articles = articleDocs.map(doc => this.mapToArticle(doc));
-    return { articles, total };
-  }
-
-  // @ts-ignore - These methods are stubs as tag management is handled by ArticleService
-  async addTag(articleId: string, tagId: string): Promise<void> {
-    return Promise.resolve();
-  }
-
-  // @ts-ignore - These methods are stubs as tag management is handled by ArticleService
-  async removeTag(articleId: string, tagId: string): Promise<void> {
-    return Promise.resolve();
-  }
-
-  private mapToArticle(doc: mongoose.Document): Article {
+  protected mapToEntity(doc: ArticleDocument): Article {
     const article = doc.toObject();
     return {
       ...article,
       id: article._id.toString(),
     };
+  }
+
+  async findByAuthorId(authorId: string): Promise<Article[]> {
+    const articles = await ArticleModel.find({ authorId });
+    return articles.map(article => this.mapToEntity(article));
+  }
+
+  async findAll(params?: ArticleFindAllParams): Promise<{ data: Article[]; total: number }> {
+
+    const { filters = {}, ...restParams } = params || {};
+    const query: Record<string, unknown> = { ...filters };
+
+    // Ensure isActive is set to true by default if not specified
+    if (query.isActive === undefined) {
+      query.isActive = true;
+    }
+
+    //  tag filtering 
+    const tagIds = filters.tagIds || filters.tags;
+    let articleIds: string[] | undefined;
+    
+    if (tagIds && Array.isArray(tagIds) && tagIds.length > 0) {
+      const articleTagModel = mongoose.model('ArticleTag');
+      
+      //  apply tag filtering if we have specific tags
+      articleIds = await articleTagModel.distinct('articleId', {
+        tagId: { $in: tagIds }
+      });
+    }
+
+    // Remove both tagIds and tags from query
+    delete query.tagIds;
+    delete query.tags;
+
+    // add articleid to the query
+    if (articleIds) {
+      query._id = { $in: articleIds };
+    }
+
+
+    //  query for both find and count
+    const [data, total] = await Promise.all([
+      this.model.find(query)
+        .sort({ [restParams.sortBy || 'createdAt']: restParams.sortOrder === 'asc' ? 1 : -1 })
+        .skip(((restParams.page || 1) - 1) * (restParams.limit || 10))
+        .limit(restParams.limit || 10)
+        .lean(),
+      this.model.countDocuments(query)
+    ]);
+
+    console.log('MongoArticleRepository.findAll - Query result:', {
+      total,
+      articleCount: data.length,
+      firstArticle: data[0] ? {
+        id: data[0]._id?.toString() || '',
+        title: data[0].title || '',
+        isActive: data[0].isActive ?? true
+      } : null
+    });
+
+    return {
+      data: data.map(doc => ({
+        id: doc._id?.toString() || '',
+        authorId: doc.authorId || '',
+        title: doc.title || '',
+        content: doc.content || '',
+        isActive: doc.isActive ?? true,
+        featured_image: doc.featured_image,
+        createdAt: doc.createdAt || new Date(),
+        updatedAt: doc.updatedAt || new Date()
+      })),
+      total
+    };
+  }
+
+  // stubs as tag management is handled by ArticleService
+  async addTag(articleId: string, tagId: string): Promise<void> {
+    void articleId;
+    void tagId;
+    return Promise.resolve();
+  }
+
+  async removeTag(articleId: string, tagId: string): Promise<void> {
+    void articleId;
+    void tagId;
+    return Promise.resolve();
   }
 } 

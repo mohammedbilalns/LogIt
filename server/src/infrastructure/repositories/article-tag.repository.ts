@@ -1,25 +1,36 @@
-import mongoose from 'mongoose';
 import { ArticleTag } from '../../domain/entities/article-tag.entity';
-import ArticleTagModel from '../mongodb/article-tag.schema';
+import { IArticleTagRepository } from '../../domain/repositories/article-tag.repository.interface';
+import ArticleTagModel, {  ArticleTagDocument } from '../mongodb/article-tag.schema';
+import { BaseRepository } from './base.repository';
 
+export class MongoArticleTagRepository extends BaseRepository<ArticleTagDocument, ArticleTag> implements IArticleTagRepository {
+  constructor() {
+    super(ArticleTagModel);
+  }
 
-export class MongoArticleTagRepository {
-  async create(articleTag: Omit<ArticleTag, 'id'>): Promise<ArticleTag> {
-    const newArticleTag = await ArticleTagModel.create(articleTag);
-    return this.mapToArticleTag(newArticleTag);
+  protected getSearchFields(): string[] {
+    return ['articleId', 'tagId'];
+  }
+
+  protected mapToEntity(doc: ArticleTagDocument): ArticleTag {
+    const articleTag = doc.toObject();
+    return {
+      ...articleTag,
+      id: articleTag._id.toString(),
+    };
   }
 
   async findByArticleId(articleId: string): Promise<ArticleTag[]> {
     const articleTags = await ArticleTagModel.find({ articleId });
-    return articleTags.map(at => this.mapToArticleTag(at));
+    return articleTags.map((at: ArticleTagDocument) => this.mapToEntity(at));
   }
 
   async findByTagId(tagId: string): Promise<ArticleTag[]> {
     const articleTags = await ArticleTagModel.find({ tagId });
-    return articleTags.map(at => this.mapToArticleTag(at));
+    return articleTags.map((at: ArticleTagDocument) => this.mapToEntity(at));
   }
 
-  async delete(articleId: string, tagId: string): Promise<void> {
+  async deleteByArticleAndTag(articleId: string, tagId: string): Promise<void> {
     await ArticleTagModel.deleteOne({ articleId, tagId });
   }
 
@@ -31,11 +42,9 @@ export class MongoArticleTagRepository {
     await ArticleTagModel.deleteMany({ tagId });
   }
 
-  private mapToArticleTag(doc: mongoose.Document): ArticleTag {
-    const articleTag = doc.toObject();
-    return {
-      ...articleTag,
-      id: articleTag._id.toString(),
-    };
+  // Override base repository's delete method 
+  async delete(id: string): Promise<boolean> {
+    const result = await ArticleTagModel.deleteOne({ _id: id });
+    return result.deletedCount > 0;
   }
 } 

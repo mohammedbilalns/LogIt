@@ -1,14 +1,22 @@
-import mongoose, {Schema} from "mongoose";
-import { Article } from "src/domain/entities/article.entity";
+import mongoose, { Document } from 'mongoose';
+import { Article } from '../../domain/entities/article.entity';
 
-const articleSchema = new Schema<Article>({
+// type that omits the id from Article 
+type ArticleWithoutId = Omit<Article, 'id'>;
+
+// Extend Document and add Article properties without id
+export interface ArticleDocument extends Document, ArticleWithoutId {}
+
+const articleSchema = new mongoose.Schema<ArticleDocument>({
     authorId: {type: String, required: true},
     title: {type: String, required: true},
     isActive: {type: Boolean, default: true},
     content: {type: String, required: true},
-    featured_image: {type: String},
-    createdAt: {type: Date, default: Date.now},
-    updatedAt: {type: Date, default: Date.now}
+    featured_image: {type: String}
+}, {
+    timestamps: true
 });
 
-export default mongoose.model<Article>("Article", articleSchema);
+const ArticleModel = mongoose.model<ArticleDocument>("Article", articleSchema);
+
+export default ArticleModel;

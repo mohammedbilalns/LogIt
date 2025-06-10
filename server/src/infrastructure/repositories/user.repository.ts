@@ -1,23 +1,31 @@
-import mongoose from 'mongoose';
 import { User } from '../../domain/entities/user.entity';
 import { IUserRepository } from '../../domain/repositories/user.repository.interface';
-import UserModel from '../mongodb/user.schema';
+import UserModel, { UserDocument } from '../mongodb/user.schema';
 import bcrypt from 'bcryptjs';
+import { BaseRepository } from './base.repository';
+import { UpdateQuery } from 'mongoose';
 
-export class MongoUserRepository implements IUserRepository {
-  async create(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
-    const newUser = await UserModel.create(user);
-    return this.mapToUser(newUser);
+export class MongoUserRepository extends BaseRepository<UserDocument, User> implements IUserRepository {
+  constructor() {
+    super(UserModel);
   }
 
+  protected getSearchFields(): string[] {
+    return ['name', 'email'];
+  }
+
+  protected mapToEntity(doc: UserDocument): User {
+    const user = doc.toObject();
+    return {
+      ...user,
+      id: user._id.toString(),
+    };
+  }
+
+  // Implement IUserRepository methods
   async findByEmail(email: string): Promise<User | null> {
     const user = await UserModel.findOne({ email });
-    return user ? this.mapToUser(user) : null;
-  }
-
-  async findById(id: string): Promise<User | null> {
-    const user = await UserModel.findById(id);
-    return user ? this.mapToUser(user) : null;
+    return user ? this.mapToEntity(user) : null;
   }
 
   async updateVerificationStatus(id: string, isVerified: boolean): Promise<User | null> {
@@ -26,7 +34,7 @@ export class MongoUserRepository implements IUserRepository {
       { isVerified, updatedAt: new Date() },
       { new: true }
     );
-    return user ? this.mapToUser(user) : null;
+    return user ? this.mapToEntity(user) : null;
   }
 
   async updatePassword(id: string, hashedPassword: string): Promise<User | null> {
@@ -38,7 +46,7 @@ export class MongoUserRepository implements IUserRepository {
       },
       { new: true }
     );
-    return user ? this.mapToUser(user) : null;
+    return user ? this.mapToEntity(user) : null;
   }
 
   async verifyPassword(id: string, password: string): Promise<boolean> {
@@ -47,7 +55,7 @@ export class MongoUserRepository implements IUserRepository {
     return bcrypt.compare(password, user.password);
   }
 
-  async delete(email: string): Promise<void> {
+  async deleteByEmail(email: string): Promise<void> {
     await UserModel.deleteOne({ email });
   }
 
@@ -57,45 +65,7 @@ export class MongoUserRepository implements IUserRepository {
       { ...update, updatedAt: new Date() },
       { new: true }
     );
-    return user ? this.mapToUser(user) : null;
-  }
-
-  async fetch(page = 1, limit = 10, search = ''): Promise<{ users: User[]; total: number; }> {
-    const query = search
-      ? {
-          $and: [
-            {
-              $or: [
-                { name: { $regex: search, $options: 'i' } },
-                { email: { $regex: search, $options: 'i' } },
-              ],
-            },
-            { role: 'user' },
-          ],
-        }
-      : { role: 'user' };
-
-    const skip = (page - 1) * limit;
-    const [userDocs, total] = await Promise.all([
-      UserModel.find(query)
-        .skip(skip)
-        .limit(limit)
-        .sort({ createdAt: -1 })
-        .select('-password'),
-      UserModel.countDocuments(query)
-    ]);
-
-    const users = userDocs.map(doc => this.mapToUser(doc));
-    return { users, total };
-  }
-
-  async updateUser(id: string, update: Partial<User>): Promise<User | null> {
-    const user = await UserModel.findByIdAndUpdate(
-      id,
-      { ...update, updatedAt: new Date() },
-      { new: true }
-    );
-    return user ? this.mapToUser(user) : null;
+    return user ? this.mapToEntity(user) : null;
   }
 
   async isUserBlocked(id: string): Promise<boolean> {
@@ -103,11 +73,67 @@ export class MongoUserRepository implements IUserRepository {
     return user?.isBlocked || false;
   }
 
-  private mapToUser(doc: mongoose.Document): User {
-    const user = doc.toObject();
+  // Override base repository methods to handle mapping
+  async create(data: Partial<User>): Promise<User> {
+    const doc = await UserModel.create(data as unknown as Partial<UserDocument>);
+    return this.mapToEntity(doc);
+  }
+
+  async findById(id: string): Promise<User | null> {
+    const doc = await UserModel.findById(id);
+    return doc ? this.mapToEntity(doc) : null;
+  }
+
+  async update(id: string, data: Partial<User>): Promise<User | null> {
+    const doc = await UserModel.findByIdAndUpdate(
+      id,
+      data as UpdateQuery<UserDocument>,
+      { new: true }
+    );
+    return doc ? this.mapToEntity(doc) : null;
+  }
+
+  async findAll(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    filters?: Record<string, unknown>;
+  }): Promise<{ data: User[]; total: number }> {
+    const { filters = {}, ...restParams } = params || {};
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = restParams;
+
+    const query: Record<string, unknown> = {
+      ...filters,
+      role: 'user'
+    };
+
+    if (search) {
+      const searchFields = this.getSearchFields();
+      const searchQuery = searchFields.map(field => ({
+        [field]: { $regex: search, $options: 'i' }
+      }));
+      query.$or = searchQuery;
+    }
+
+    const skip = (page - 1) * limit;
+    const sort: Record<string, 1 | -1> = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+
+    const [data, total] = await Promise.all([
+      UserModel.find(query).sort(sort).skip(skip).limit(limit),
+      UserModel.countDocuments(query)
+    ]);
+
     return {
-      ...user,
-      id: user._id.toString(),
+      data: data.map(doc => this.mapToEntity(doc)),
+      total
     };
   }
 } 

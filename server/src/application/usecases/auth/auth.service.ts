@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
 import { IOTPRepository } from '../../../domain/repositories/otp.repository.interface';
+import { User, UserWithoutPassword } from '../../../domain/entities/user.entity';
 import env from '../../../config/env';
 import { OTP_EXPIRY } from '../../../config/constants';
 import { MailService } from '../../services/mail.service';
@@ -35,6 +36,19 @@ export class AuthService {
     this.validationService = new ValidationService();
   }
 
+  private validateUserFields(user: User): asserts user is User & { id: string; name: string; email: string; role: string; createdAt: Date; updatedAt: Date } {
+    if (!user.id || !user.name || !user.email || !user.role || !user.createdAt || !user.updatedAt) {
+      throw new Error('User object is missing required fields');
+    }
+  }
+
+  private createUserWithoutPassword(user: User): UserWithoutPassword {
+    this.validateUserFields(user);
+    const { ...userWithoutPassword } = user;
+    delete userWithoutPassword.password;
+    return userWithoutPassword;
+  }
+
   async validateAccessToken(token: string) {
     try {
       const decoded = this.tokenService.verifyAccessToken(token);
@@ -44,12 +58,8 @@ export class AuthService {
         throw new UserNotFoundError();
       }
 
-      const userWithoutPassword = {
-        ...user,
-        password: undefined
-      };
-      return userWithoutPassword;
-    } catch (error) {
+      return this.createUserWithoutPassword(user);
+    } catch {
       throw new InvalidTokenError();
     }
   }
@@ -92,7 +102,6 @@ export class AuthService {
     await this.otpRepository.create({
       email: user.email,
       otp,
-      createdAt: now,
       expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
       retryAttempts: 0,
       type: 'verification'
@@ -100,10 +109,7 @@ export class AuthService {
 
     await this.mailService.sendOTP(user.email, otp);
 
-    const userWithoutPassword = {
-      ...user,
-      password: undefined
-    };
+    const userWithoutPassword = this.createUserWithoutPassword(user);
     return userWithoutPassword;
   }
 
@@ -113,7 +119,7 @@ export class AuthService {
     if (!storedOTP || storedOTP.otp !== otp || storedOTP.type !== 'verification') {
       if (storedOTP) {
         if (storedOTP.retryAttempts >= 4) {
-          await this.userRepository.delete(email);
+          await this.userRepository.deleteByEmail(email);
           await this.otpRepository.delete(email);
           throw new MaxRetryAttemptsExceededError();
         }
@@ -133,10 +139,7 @@ export class AuthService {
     await this.userRepository.updateVerificationStatus(user.id, true);
     await this.otpRepository.delete(email);
 
-    const userWithoutPassword = {
-      ...user,
-      password: undefined
-    };
+    const userWithoutPassword = this.createUserWithoutPassword(user);
     return {
       user: userWithoutPassword,
       accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
@@ -163,10 +166,7 @@ export class AuthService {
       throw new InvalidCredentialsError();
     }
 
-    const userWithoutPassword = {
-      ...user,
-      password: undefined
-    };
+    const userWithoutPassword = this.createUserWithoutPassword(user);
     return {
       user: userWithoutPassword,
       accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
@@ -183,16 +183,13 @@ export class AuthService {
         throw new UserNotFoundError();
       }
 
-      const userWithoutPassword = {
-        ...user,
-        password: undefined
-      };
+      const userWithoutPassword = this.createUserWithoutPassword(user);
       return {
         user: userWithoutPassword,
         accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
         refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword)
       };
-    } catch (error) {
+    } catch {
       throw new InvalidTokenError();
     }
   }
@@ -220,7 +217,6 @@ export class AuthService {
     if (storedOTP) {
       await this.otpRepository.update(email, {
         otp,
-        createdAt: now,
         expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
         retryAttempts: (storedOTP.retryAttempts || 0) + 1,
         type: 'verification'
@@ -229,7 +225,6 @@ export class AuthService {
       await this.otpRepository.create({
         email,
         otp,
-        createdAt: now,
         expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
         retryAttempts: 0,
         type: 'verification'
@@ -284,16 +279,13 @@ export class AuthService {
         user = updatedUser;
       }
 
-      const userWithoutPassword = {
-        ...user,
-        password: undefined
-      };
+      const userWithoutPassword = this.createUserWithoutPassword(user);
       return {
         user: userWithoutPassword,
         accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
         refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword)
       };
-    } catch (error) {
+    } catch {
       throw new InvalidCredentialsError();
     }
   }
@@ -319,7 +311,6 @@ export class AuthService {
     await this.otpRepository.create({
       email,
       otp,
-      createdAt: now,
       expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
       retryAttempts: 0,
       type: 'reset'
@@ -368,7 +359,10 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(validatedData.newPassword, 10);
-    await this.userRepository.updateById(user.id, { password: hashedPassword });
+    const updatedUser = await this.userRepository.updateById(user.id, { password: hashedPassword });
+    if (!updatedUser) {
+      throw new UserNotFoundError();
+    }
     await this.otpRepository.delete(validatedData.email);
 
     return { message: 'Password updated successfully' };

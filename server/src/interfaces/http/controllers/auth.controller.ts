@@ -20,7 +20,7 @@ export class AuthController {
     try {
       this.setCsrfToken(res);
       res.json({ message: 'CSRF token generated successfully' });
-    } catch (error) {
+    } catch {
       logger.red('CSRF_TOKEN_ERROR', 'Failed to generate CSRF token');
       res.status(500).json({ message: 'Failed to generate CSRF token' });
     }
@@ -120,7 +120,7 @@ export class AuthController {
             user
           });
           return;
-        } catch (error) {
+        } catch {
           logger.red('REFRESH_ERROR', 'Access token is invalid');
         }
       }

@@ -1,8 +1,7 @@
 import { Log } from '../entities/Log';
+import { IBaseRepository } from './base.repository.interface';
 
-export interface LogRepository {
-  create(data: Omit<Log, '_id'>): Promise<Log>;
-  findById(id: string): Promise<Log | null>;
+export interface LogRepository extends IBaseRepository<Log> {
   findMany(userId: string, options: {
     page?: number;
     limit?: number;
@@ -11,10 +10,9 @@ export interface LogRepository {
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
   }): Promise<Log[]>;
-  count(userId: string, options: {
+
+  countLogs(userId: string, options: {
     search?: string;
     tags?: string[];
   }): Promise<number>;
-  update(id: string, data: Partial<Log>): Promise<Log>;
-  delete(id: string): Promise<void>;
 } 

@@ -1,18 +1,23 @@
-import mongoose from 'mongoose';
 import { OTP } from '../../domain/entities/otp.entity';
 import { IOTPRepository } from '../../domain/repositories/otp.repository.interface';
-import OTPModel from '../mongodb/otp.schema';
+import OTPModel, {  OTPDocument } from '../mongodb/otp.schema';
+import { BaseRepository } from './base.repository';
 
-export class MongoOTPRepository implements IOTPRepository {
-  async create(otp: Omit<OTP, 'id'>): Promise<OTP> {
-    // If an OTP exists for this email, replace it
-    const result = await OTPModel.findOneAndReplace(
-      { email: otp.email },
-      otp,
-      { upsert: true, new: true }
-    );
-    
-    return this.mapToOTP(result);
+export class MongoOTPRepository extends BaseRepository<OTPDocument, OTP> implements IOTPRepository {
+  constructor() {
+    super(OTPModel);
+  }
+
+  protected getSearchFields(): string[] {
+    return ['email'];
+  }
+
+  protected mapToEntity(doc: OTPDocument): OTP {
+    const otp = doc.toObject();
+    return {
+      ...otp,
+      id: otp._id.toString(),
+    };
   }
 
   async findByEmail(email: string): Promise<OTP | null> {
@@ -22,15 +27,12 @@ export class MongoOTPRepository implements IOTPRepository {
     
     // Check if OTP has expired 
     if (new Date() > otp.expiresAt) {
-      await this.delete(email);
+      const mappedOtp = this.mapToEntity(otp);
+      await this.delete(mappedOtp.id!);
       return null;
     }
     
-    return this.mapToOTP(otp);
-  }
-
-  async delete(email: string): Promise<void> {
-    await OTPModel.deleteOne({ email });
+    return this.mapToEntity(otp);
   }
 
   async update(email: string, otp: Partial<OTP>): Promise<OTP> {
@@ -44,7 +46,7 @@ export class MongoOTPRepository implements IOTPRepository {
       throw new Error('OTP not found');
     }
     
-    return this.mapToOTP(result);
+    return this.mapToEntity(result);
   }
 
   async incrementRetryAttempts(email: string): Promise<void> {
@@ -52,13 +54,5 @@ export class MongoOTPRepository implements IOTPRepository {
       { email },
       { $inc: { retryAttempts: 1 } }
     );
-  }
-
-  private mapToOTP(doc: mongoose.Document): OTP {
-    const otp = doc.toObject();
-    return {
-      ...otp,
-      id: otp._id.toString(),
-    };
   }
 } 

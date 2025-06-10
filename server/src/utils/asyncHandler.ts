@@ -1,12 +1,17 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, RequestHandler } from "express";
 
-export const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any> | any) => {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
+type AsyncRequestHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => Promise<unknown> | unknown;
 
-      await fn(req, res, next);
-    } catch (error) {
-      next(error);
-    }
+/**
+ * @param fn -  async (or sync) function that handles a route
+ * @returns Express request handler with error handling built in
+ */
+export const asyncHandler = (fn: AsyncRequestHandler): RequestHandler => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
   };
 };

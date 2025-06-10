@@ -18,7 +18,11 @@ export class TagService {
     search?: string;
     promoted?: boolean;
   }): Promise<{ tags: Tag[]; total: number }> {
-    return this.tagRepository.fetch(params);
+    const result = await this.tagRepository.findAll(params);
+    return {
+      tags: result.data,
+      total: result.total
+    };
   }
 
   async updateTag(id: string, tag: Partial<Tag>): Promise<Tag | null> {

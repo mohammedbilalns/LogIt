@@ -14,9 +14,14 @@ export class ReportService {
 
   async createReport(data: CreateReportData): Promise<Report> {
     try {
-  
+      //  default values for required fields
+      const reportData = {
+        ...data,
+        status: 'pending' as const,
+        actionTaken: null
+      };
 
-      const report = await this.reportRepository.create(data);
+      const report = await this.reportRepository.create(reportData);
       logger.green('REPORT_CREATED', `Report for ${data.targetType} ${data.targetId} created by user ${data.reportedBy}`);
       return report;
     } catch (error) {

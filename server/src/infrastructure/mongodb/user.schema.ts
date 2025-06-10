@@ -1,10 +1,17 @@
-import mongoose, {Schema} from "mongoose";
-import {User } from "../../domain/entities/user.entity";
+import mongoose, { Document } from 'mongoose';
+import { User } from '../../domain/entities/user.entity';
 
-const userSchema = new Schema<User>({
+//  type that omits the id
+type UserWithoutId = Omit<User, 'id'>;
+
+// Extend Document and add User properties without id
+export interface UserDocument extends Document, UserWithoutId {
+}
+
+const userSchema = new mongoose.Schema({
     name: {type: String, required: true},
     email: {type: String, required: true, unique: true},
-    password: {type: String, required: false},
+    password: {type: String, required: true},
     isVerified: {type: Boolean, default: false},
     isBlocked: {type: Boolean, default: false},
     createdAt: {type: Date, default: Date.now},
@@ -14,7 +21,12 @@ const userSchema = new Schema<User>({
     profession: {type: String},
     bio: {type: String},
     provider: {type: String, enum: ["local", "google"], default: "local"},
-    role: {type: String, enum: ["user", "admin", "superadmin"], default: "user"}
+    role: {type: String, enum: ["user", "admin"], default: "user"}
+}, {
+    timestamps: true
 });
 
-export default mongoose.model<User>("User", userSchema)
+
+const UserModel = mongoose.model<UserDocument>("User", userSchema);
+
+export default UserModel;

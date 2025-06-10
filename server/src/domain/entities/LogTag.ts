@@ -1,5 +1,5 @@
 export interface LogTag {
-  _id: string;
+  id?: string;
   logId: string;
   tagId: string;
   userId: string;

@@ -1,7 +1,7 @@
 import { Article, ArticleWithTags } from '../../../domain/entities/article.entity';
 import { IArticleRepository } from '../../../domain/repositories/article.repository.interface';
 import { ITagRepository } from '../../../domain/repositories/tag.repository.interface';
-import { MongoArticleTagRepository } from '../../../infrastructure/repositories/article-tag.repository';
+import { IArticleTagRepository } from '../../../domain/repositories/article-tag.repository.interface';
 import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
 import { ReportRepository } from '../../../domain/repositories/report.repository.interface';
 
@@ -9,7 +9,7 @@ export class ArticleService {
   constructor(
     private articleRepository: IArticleRepository,
     private tagRepository: ITagRepository,
-    private articleTagRepository: MongoArticleTagRepository,
+    private articleTagRepository: IArticleTagRepository,
     private userRepository: IUserRepository,
     private reportRepository: ReportRepository
   ) {}
@@ -39,7 +39,7 @@ export class ArticleService {
     console.log("article id", id)
     // Check if the article is reported by the user
     if (userId) {
-      const isReported = await this.reportRepository.exists({
+      const isReported = await this.reportRepository.existsByTarget({
         targetType: 'article',
         targetId: id,
         reporterId: userId
@@ -58,7 +58,7 @@ export class ArticleService {
       // Remove existing tags
       const existingTags = await this.articleTagRepository.findByArticleId(id);
       for (const tag of existingTags) {
-        await this.articleTagRepository.delete(id, tag.tagId);
+        await this.articleTagRepository.deleteByArticleAndTag(id, tag.tagId);
         await this.tagRepository.decrementUsageCount(tag.tagId);
       }
 
@@ -97,14 +97,28 @@ export class ArticleService {
       authorId?: string;
       isActive?: boolean;
       tags?: string[];
+      tagIds?: string[];
     };
   }): Promise<{ articles: ArticleWithTags[]; total: number }> {
-    const { articles, total } = await this.articleRepository.fetch(params);
+
+   const normalizedParams = {
+      ...params,
+      filters: params.filters ? {
+        ...params.filters,
+        tags: params.filters.tagIds || params.filters.tags,
+        tagIds: undefined
+      } : undefined
+    };
+
+    const result = await this.articleRepository.findAll(normalizedParams);
+  
+
     const articlesWithTags = await Promise.all(
-      articles.map(article => this.getArticleWithTags(article.id!))
+      result.data.map(article => this.getArticleWithTags(article.id!))
     );
 
-    // If sorting by tag usage count
+
+    //  sorting by tag usage count
     if (params.sortBy === 'tagUsageCount') {
       articlesWithTags.sort((a, b) => {
         const aTagCount = a.tags.length;
@@ -113,7 +127,7 @@ export class ArticleService {
       });
     }
 
-    return { articles: articlesWithTags, total };
+    return { articles: articlesWithTags, total: result.total };
   }
 
   private async getArticleWithTags(articleId: string): Promise<ArticleWithTags> {

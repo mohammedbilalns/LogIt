@@ -55,14 +55,18 @@ export class LogService {
         userId,
         title: data.title,
         content: data.content,
-        createdAt: data.createdAt || new Date(),
-        updatedAt: new Date(),
       });
+
+      if (!log.id) {
+        throw new Error('Failed to create log: missing id');
+      }
+
+      const logId = log.id;
 
       if (data.tags && data.tags.length > 0) {
         await this.logTagRepository.createMany(
           data.tags.map(tagId => ({
-            logId: log._id,
+            logId,
             tagId,
             userId,
             createdAt: new Date(),
@@ -73,7 +77,7 @@ export class LogService {
       if (data.mediaUrls && data.mediaUrls.length > 0) {
         await this.logMediaRepository.createMany(
           data.mediaUrls.map(url => ({
-            logId: log._id,
+            logId,
             url,
             userId,
             createdAt: new Date(),
@@ -81,7 +85,7 @@ export class LogService {
         );
       }
 
-      const logWithRelations = await this.getLogWithRelations(log._id);
+      const logWithRelations = await this.getLogWithRelations(logId);
       if (!logWithRelations) {
         throw new Error('Failed to create log with relations');
       }
@@ -95,9 +99,14 @@ export class LogService {
   async getLogs(userId: string, options: GetLogsOptions): Promise<{ logs: LogWithRelations[]; total: number }> {
     try {
       const logs = await this.logRepository.findMany(userId, options);
-      const total = await this.logRepository.count(userId, options);
+      const total = await this.logRepository.countLogs(userId, options);
 
-      const logIds = logs.map(log => log._id);
+      const logIds = logs.map(log => {
+        if (!log.id) {
+          throw new Error('Log missing id');
+        }
+        return log.id;
+      });
 
       const [tags, media] = await Promise.all([
         this.logTagRepository.findByLogIds(logIds),
@@ -115,18 +124,24 @@ export class LogService {
           .map(tag => [tag.id || '', tag.name])
       );
 
-      const logsWithRelations = logs.map(log => ({
-        ...log,
-        tags: tags
-          .filter(tag => tag.logId.toString() === log._id.toString())
-          .map(tag => ({
-            id: tag.tagId,
-            name: tagMap.get(tag.tagId) || 'Unknown Tag'
-          })),
-        mediaUrls: media
-          .filter(m => m.logId.toString() === log._id.toString())
-          .map(m => m.url),
-      }));
+      const logsWithRelations = logs.map(log => {
+        if (!log.id) {
+          throw new Error('Log missing id');
+        }
+        const logId = log.id;
+        return {
+          ...log,
+          tags: tags
+            .filter(tag => tag.logId === logId)
+            .map(tag => ({
+              id: tag.tagId,
+              name: tagMap.get(tag.tagId) || 'Unknown Tag'
+            })),
+          mediaUrls: media
+            .filter(m => m.logId === logId)
+            .map(m => m.url),
+        };
+      });
 
       return {
         logs: logsWithRelations,
@@ -143,6 +158,10 @@ export class LogService {
       const log = await this.logRepository.findById(logId);
       if (!log || log.userId !== userId) {
         return null;
+      }
+
+      if (!log.id) {
+        throw new Error('Log missing id');
       }
 
       const [tags, media] = await Promise.all([
@@ -180,6 +199,10 @@ export class LogService {
       const log = await this.logRepository.findById(logId);
       if (!log || log.userId !== userId) {
         return null;
+      }
+
+      if (!log.id) {
+        throw new Error('Log missing id');
       }
 
       await this.logRepository.update(logId, {
@@ -246,6 +269,10 @@ export class LogService {
   private async getLogWithRelations(logId: string): Promise<LogWithRelations | null> {
     const log = await this.logRepository.findById(logId);
     if (!log) return null;
+
+    if (!log.id) {
+      throw new Error('Log missing id');
+    }
 
     const [tags, media] = await Promise.all([
       this.logTagRepository.findByLogId(logId),

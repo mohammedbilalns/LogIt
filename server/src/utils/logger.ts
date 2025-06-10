@@ -31,7 +31,7 @@ interface Logger {
   cyan: LogFunction;
   white: LogFunction;
 }
-
+// factory function to create logger function using the text and background colors 
 const createColorLogger = (color: keyof typeof colors, bgColor: keyof typeof colors) => {
   return (label: string, message: string) => {
     console.log(

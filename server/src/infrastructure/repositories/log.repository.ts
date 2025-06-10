@@ -1,40 +1,56 @@
 import { Log } from '../../domain/entities/Log';
 import { LogRepository } from '../../domain/repositories/log.repository';
-import { LogModel } from '../mongodb/log.schema';
+import LogModel,{  LogDocument } from '../mongodb/log.schema';
+import { BaseRepository } from './base.repository';
+import { UpdateQuery } from 'mongoose';
 
-export class MongoLogRepository implements LogRepository {
-  async create(data: Omit<Log, '_id'>): Promise<Log> {
-    const createdLog = await LogModel.create(data);
-    return createdLog.toObject();
+export class MongoLogRepository extends BaseRepository<LogDocument, Log> implements LogRepository {
+  constructor() {
+    super(LogModel);
+  }
+
+  protected getSearchFields(): string[] {
+    return ['title', 'content'];
+  }
+
+  protected mapToEntity(doc: LogDocument): Log {
+    const log = doc.toObject();
+    return {
+      ...log,
+      id: log._id.toString(),
+    };
+  }
+
+  async create(data: Omit<Log, 'id'>): Promise<Log> {
+    const doc = await LogModel.create(data);
+    return this.mapToEntity(doc);
   }
 
   async findById(id: string): Promise<Log | null> {
-    const log = await LogModel.findById(id).lean();
-    return log;
-  }
-
-  async findByUserId(userId: string): Promise<Log[]> {
-    const logs = await LogModel.find({ userId }).lean();
-    return logs;
+    const doc = await LogModel.findById(id);
+    return doc ? this.mapToEntity(doc) : null;
   }
 
   async update(id: string, data: Partial<Log>): Promise<Log> {
-    const log = await LogModel.findByIdAndUpdate(
+    const doc = await LogModel.findByIdAndUpdate(
       id,
-      { $set: data },
+      data as UpdateQuery<LogDocument>,
       { new: true }
-    ).lean();
-    if (!log) throw new Error('Log not found');
-    return log;
+    );
+    if (!doc) {
+      throw new Error('Log not found');
+    }
+    return this.mapToEntity(doc);
   }
 
-  async delete(id: string): Promise<void> {
-    await LogModel.findByIdAndDelete(id);
+  async delete(id: string): Promise<boolean> {
+    const result = await LogModel.findByIdAndDelete(id);
+    return result !== null;
   }
 
-  async findAll(): Promise<Log[]> {
-    const logs = await LogModel.find().lean();
-    return logs;
+  async findByUserId(userId: string): Promise<Log[]> {
+    const logs = await LogModel.find({ userId });
+    return logs.map(log => this.mapToEntity(log));
   }
 
   async findMany(userId: string, options: {
@@ -48,7 +64,7 @@ export class MongoLogRepository implements LogRepository {
     const { page = 1, limit = 10, search, tags, sortBy = 'createdAt', sortOrder = 'desc' } = options;
     const skip = (page - 1) * limit;
 
-    const query: any = { userId };
+    const query: Record<string, unknown> = { userId };
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -58,28 +74,27 @@ export class MongoLogRepository implements LogRepository {
 
     // If tags are provided, we need to find logs that have all the specified tags
     if (tags && tags.length > 0) {
-      query._id = {
-        $in: await LogModel.distinct('_id', {
-          userId,
-          'tags.tagId': { $all: tags }
-        })
-      };
+      const logIds = await LogModel.distinct('_id', {
+        userId,
+        'tags.tagId': { $all: tags }
+      });
+      query._id = { $in: logIds };
     }
 
     const logs = await LogModel.find(query)
       .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })
       .skip(skip)
-      .limit(limit)
-      .lean();
-    return logs;
+      .limit(limit);
+    return logs.map(log => this.mapToEntity(log));
   }
 
-  async count(userId: string, options: {
+  // Custom count method for logs
+  async countLogs(userId: string, options: {
     search?: string;
     tags?: string[];
   }): Promise<number> {
     const { search, tags } = options;
-    const query: any = { userId };
+    const query: Record<string, unknown> = { userId };
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -89,14 +104,18 @@ export class MongoLogRepository implements LogRepository {
 
     // If tags are provided, we need to count logs that have all the specified tags
     if (tags && tags.length > 0) {
-      query._id = {
-        $in: await LogModel.distinct('_id', {
-          userId,
-          'tags.tagId': { $all: tags }
-        })
-      };
+      const logIds = await LogModel.distinct('_id', {
+        userId,
+        'tags.tagId': { $all: tags }
+      });
+      query._id = { $in: logIds };
     }
 
     return await LogModel.countDocuments(query);
+  }
+
+  // Implement base repository's count method
+  async count(filters?: Record<string, unknown>): Promise<number> {
+    return this.model.countDocuments(filters || {});
   }
 } 

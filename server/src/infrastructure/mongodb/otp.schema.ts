@@ -1,16 +1,23 @@
-import mongoose, {Schema} from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 import { OTP } from "src/domain/entities/otp.entity";
 
-const otpSchema = new Schema<OTP>({
+// type that omits the id from OTP 
+type OTPWithoutId = Omit<OTP, 'id'>;
+
+// Extend Document and add OTP properties without id
+export interface OTPDocument extends Document, OTPWithoutId {}
+
+const otpSchema = new Schema<OTPDocument>({
     email: {type: String, required: true, unique: true},
     otp: {type: String, required: true},
     createdAt: {type: Date, required: true},
     expiresAt: {type: Date, required: true},
     retryAttempts: {type: Number, default: 0},
     type: {type: String, enum: ["verification", "reset"], default: "verification"}
-});
+}, { timestamps: true });
 
 //  TTL index on expiresAt field
 otpSchema.index({expiresAt: 1}, {expireAfterSeconds: 0});
 
-export default mongoose.model<OTP>("OTP", otpSchema);
+ const OTPModel = mongoose.model<OTPDocument>("OTP", otpSchema);
+ export default OTPModel
