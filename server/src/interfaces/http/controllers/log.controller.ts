@@ -28,15 +28,16 @@ export class LogController {
 
   getLogs = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { page, limit, search, tags, sortBy, sortOrder } = req.query;
+      const { page, limit, search, filters, sortBy, sortOrder } = req.query;
       const userId = req.user?.id;
       if (!userId) throw new Error('User not authenticated');
 
+      const parsedFilters = filters ? JSON.parse(filters as string) : {};
       const result = await this.logService.getLogs(userId, {
         page: page ? Number(page) : undefined,
         limit: limit ? Number(limit) : undefined,
         search: search as string,
-        tags: tags ? (Array.isArray(tags) ? tags : [tags]) as string[] : undefined,
+        tags: parsedFilters.tagIds,
         sortBy: sortBy as string,
         sortOrder: sortOrder as 'asc' | 'desc'
       });

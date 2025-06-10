@@ -57,7 +57,7 @@ export const fetchLogs = createAsyncThunk(
                     search: search || state.logs.searchQuery,
                     sortBy,
                     sortOrder,
-                    tags: filters ? JSON.parse(filters).tagIds : undefined
+                    filters
                 },
             });
             return {

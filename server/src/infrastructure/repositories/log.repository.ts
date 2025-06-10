@@ -3,6 +3,7 @@ import { LogRepository } from '../../domain/repositories/log.repository';
 import LogModel,{  LogDocument } from '../mongodb/log.schema';
 import { BaseRepository } from './base.repository';
 import { UpdateQuery } from 'mongoose';
+import mongoose from 'mongoose';
 
 export class MongoLogRepository extends BaseRepository<LogDocument, Log> implements LogRepository {
   constructor() {
@@ -74,9 +75,9 @@ export class MongoLogRepository extends BaseRepository<LogDocument, Log> impleme
 
     // If tags are provided, we need to find logs that have all the specified tags
     if (tags && tags.length > 0) {
-      const logIds = await LogModel.distinct('_id', {
-        userId,
-        'tags.tagId': { $all: tags }
+      const logTagModel = mongoose.model('LogTag');
+      const logIds = await logTagModel.distinct('logId', {
+        tagId: { $in: tags }
       });
       query._id = { $in: logIds };
     }
@@ -102,11 +103,11 @@ export class MongoLogRepository extends BaseRepository<LogDocument, Log> impleme
       ];
     }
 
-    // If tags are provided, we need to count logs that have all the specified tags
+    // If tags are provided, count logs that have all the specified tags
     if (tags && tags.length > 0) {
-      const logIds = await LogModel.distinct('_id', {
-        userId,
-        'tags.tagId': { $all: tags }
+      const logTagModel = mongoose.model('LogTag');
+      const logIds = await logTagModel.distinct('logId', {
+        tagId: { $in: tags }
       });
       query._id = { $in: logIds };
     }
