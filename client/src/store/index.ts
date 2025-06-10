@@ -8,6 +8,7 @@ import uiReducer from '@slices/uiSlice';
 import initReducer from '@slices/initSlice';
 import logReducer from '@slices/logSlice';
 import reportReducer from '@slices/reportSlice';
+import homeReducer from '@slices/homeSlice';
 
 export const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ export const store = configureStore({
     init: initReducer,
     logs: logReducer,
     report: reportReducer,
+    home: homeReducer,
   },
 });
 

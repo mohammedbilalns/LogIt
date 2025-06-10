@@ -1,15 +1,18 @@
-import { Title, Text, Button, Group, Grid, Paper, Box, Stack, useMantineColorScheme, ActionIcon } from '@mantine/core';
+import { Title, Text, Button, Group, Grid, Paper, Box, Stack, useMantineColorScheme, ActionIcon, Loader } from '@mantine/core';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/store';
 import { useMediaQuery } from '@mantine/hooks';
-import  { useEffect } from 'react';
+import { useEffect } from 'react';
 import { fetchLogs } from '@/store/slices/logSlice';
 import { fetchArticles } from '@/store/slices/articleSlice';
+import { fetchHomeData, selectHomeData, selectHomeLoading, selectHomeError } from '@/store/slices/homeSlice';
 import LogRow from '@components/log/LogRow';
 import ArticleRow from '@components/article/ArticleRow';
 import { useNavigate } from 'react-router-dom';
 import { IconFileText, IconMessages, IconUsers } from '@tabler/icons-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { notifications } from '@mantine/notifications';
+import { HomeSkeleton } from '@components/skeletons/HomeSkeleton';
 
 export default function Home() {
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
@@ -18,6 +21,9 @@ export default function Home() {
   const { logs } = useSelector((state: RootState) => state.logs);
   const { articles } = useSelector((state: RootState) => state.articles);
   const { user } = useSelector((state: RootState) => state.auth);
+  const homeData = useSelector(selectHomeData);
+  const homeLoading = useSelector(selectHomeLoading);
+  const homeError = useSelector(selectHomeError);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
@@ -25,31 +31,64 @@ export default function Home() {
   useEffect(() => {
     dispatch(fetchLogs({ page: 1, limit: 3 }));
     dispatch(fetchArticles({ page: 1, limit: 3 }));
+    dispatch(fetchHomeData());
   }, [dispatch]);
 
+  useEffect(() => {
+    if (homeError) {
+      notifications.show({
+        title: 'Error',
+        message: homeError,
+        color: 'red',
+      });
+    }
+  }, [homeError]);
+
   const statsData = [
-    { label: 'Total Logs', value: '312', icon: <IconFileText size={28} /> },
-    { label: 'Articles Written', value: '58', icon: <IconFileText size={28} /> },
-    { label: 'Messages', value: '1,487', icon: <IconMessages size={28} /> },
-    { label: 'Followers', value: '2,300', icon: <IconUsers size={28} /> },
+    { 
+      label: 'Total Logs', 
+      value: homeData?.logsCount.toString() || '0', 
+      icon: <IconFileText size={28} /> 
+    },
+    { 
+      label: 'Articles Written', 
+      value: homeData?.articlesCount.toString() || '0', 
+      icon: <IconFileText size={28} /> 
+    },
+    { 
+      label: 'Messages', 
+      value: homeData?.messagesCount.toString() || '0', 
+      icon: <IconMessages size={28} /> 
+    },
+    { 
+      label: 'Followers', 
+      value: homeData?.followersCount.toString() || '0', 
+      icon: <IconUsers size={28} /> 
+    },
   ];
 
-  const recentActivityData = [
-    { text: 'Logged a new symptom', time: '2 hours ago' },
-    { text: 'Published an article', time: '1 day ago' },
-    { text: 'Logged a new symptom', time: '2 days ago' },
-  ];
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 24) {
+      return `${diffInHours} hours ago`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays} days ago`;
+    }
+  };
 
-  // Dummy data for weekly log activity
-  const weeklyData = [
-    { day: 'Mon', logs: 4, articles: 2 },
-    { day: 'Tue', logs: 3, articles: 1 },
-    { day: 'Wed', logs: 5, articles: 3 },
-    { day: 'Thu', logs: 2, articles: 2 },
-    { day: 'Fri', logs: 6, articles: 1 },
-    { day: 'Sat', logs: 4, articles: 2 },
-    { day: 'Sun', logs: 3, articles: 1 },
-  ];
+  if (homeLoading) {
+    return (
+      <Box
+        className={`page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`}
+      >
+        <HomeSkeleton />
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -90,10 +129,12 @@ export default function Home() {
             <Paper shadow="sm" radius="md" p="md" withBorder>
               <Title order={2} fw={600} mb="md">Recent Activity</Title>
               <Stack gap="sm">
-                {recentActivityData.map((activity, index) => (
+                {homeData?.recentActivities.map((activity, index) => (
                   <Box key={index} py="xs">
-                    <Text fw={500}>{activity.text}</Text>
-                    <Text size="sm" c="dimmed">{activity.time}</Text>
+                    <Text fw={500}>
+                      {activity.type === 'log' ? 'Logged a new symptom' : 'Published an article'}: {activity.title}
+                    </Text>
+                    <Text size="sm" c="dimmed">{formatDate(activity.createdAt)}</Text>
                   </Box>
                 ))}
               </Stack>
@@ -101,7 +142,7 @@ export default function Home() {
           </Grid.Col>
           <Grid.Col span={{ base: 12, md: 6 }}>
             <Paper shadow="sm" radius="md" p="md" withBorder>
-              <Title order={2} fw={600} mb="md">Weekly Log Activity</Title>
+              <Title order={2} fw={600} mb="md">Weekly Activity</Title>
               <Box
                 style={{
                   height: 200,
@@ -111,7 +152,11 @@ export default function Home() {
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
-                    data={weeklyData}
+                    data={homeData?.chartData.map(item => ({
+                      day: new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }),
+                      logs: item.logs,
+                      articles: item.articles
+                    }))}
                     margin={{
                       top: 10,
                       right: 10,
@@ -186,8 +231,8 @@ export default function Home() {
                 </ResponsiveContainer>
               </Box>
               <Group mt="md" justify="space-between">
-                <Button variant="default" leftSection={<IconFileText size={18} />}>New Log</Button>
-                <Button variant="default" leftSection={<IconFileText size={18} />}>Write Article</Button>
+                <Button variant="default" leftSection={<IconFileText size={18} />} onClick={() => navigate('/logs/new')}>New Log</Button>
+                <Button variant="default" leftSection={<IconFileText size={18} />} onClick={() => navigate('/articles/new')}>Write Article</Button>
               </Group>
             </Paper>
           </Grid.Col>

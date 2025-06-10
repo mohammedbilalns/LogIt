@@ -1,22 +1,23 @@
 import { User } from '../../../domain/entities/user.entity';
 import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
-import { IArticleRepository } from 'src/domain/repositories/article.repository.interface';
-import { LogRepository } from 'src/domain/repositories/log.repository';
+import { IArticleRepository } from '../../../domain/repositories/article.repository.interface';
+import { LogRepository } from '../../../domain/repositories/log.repository';
 import { UserNotFoundError, InvalidPasswordError, PasswordMismatchError, InvalidProfileDataError, UserBlockedError } from '../../../application/errors/user.errors';
 import { MongoUserRepository } from '../../../infrastructure/repositories/user.repository';
-// import { MongoArticleRepository } from 'src/infrastructure/repositories/article.repository';
-// import { MongoLogRepository } from 'src/infrastructure/repositories/log.repository';
+import { MongoArticleRepository } from '../../../infrastructure/repositories/article.repository';
+import { MongoLogRepository } from '../../../infrastructure/repositories/log.repository';
 
 import bcrypt from 'bcryptjs';
 
 export class UserService {
   private userRepository: IUserRepository;
-  private articleRepository: IArticleRepository; 
-  private logsRepository: LogRepository
-
+  private articleRepository: IArticleRepository;
+  private logsRepository: LogRepository;
 
   constructor() {
     this.userRepository = new MongoUserRepository();
+    this.articleRepository = new MongoArticleRepository();
+    this.logsRepository = new MongoLogRepository();
   }
 
   async checkUserBlocked(userId: string): Promise<void> {
@@ -113,14 +114,109 @@ export class UserService {
   }
 
   async getHomeData(userId: string) {
-    const articlesCount = await this.articleRepository.count({ userId });
-    const logsCount = await this.logsRepository.count({ userId });
-    const messagesCount = 434 
-    const followersCount = 534
-    const recentLogs = await this.logsRepository.findMany(userId, {limit:3, sortOrder:'asc'})
-  
+    try {
+      // Verify user exists
+      const user = await this.userRepository.findById(userId);
+      if (!user) {
+        throw new UserNotFoundError();
+      }
 
-    
-    return { articlesCount, logsCount, messagesCount, followersCount, recentLogs,  };
+      // Check if user is blocked
+      await this.checkUserBlocked(userId);
+
+      // Get counts
+      const [articlesCount, logsCount] = await Promise.all([
+        this.articleRepository.count({ authorId: userId }),
+        this.logsRepository.count({ userId })
+      ]);
+
+      // Static values for now
+      const messagesCount = 434;
+      const followersCount = 534;
+
+      // Get recent activities (last 3 logs and articles)
+      const [recentLogs, recentArticles] = await Promise.all([
+        this.logsRepository.findMany(userId, {
+          limit: 3,
+          sortOrder: 'desc',
+          sortBy: 'createdAt'
+        }),
+        this.articleRepository.findAll({
+          limit: 3,
+          sortOrder: 'desc',
+          sortBy: 'createdAt',
+          filters: { authorId: userId }
+        })
+      ]);
+
+      // Combine and sort recent activities
+      const recentActivities = [
+        ...recentLogs.map(log => ({
+          type: 'log' as const,
+          id: log.id,
+          title: log.title,
+          createdAt: log.createdAt
+        })),
+        ...recentArticles.data.map(article => ({
+          type: 'article' as const,
+          id: article.id,
+          title: article.title,
+          createdAt: article.createdAt || new Date()
+        }))
+      ].sort((a, b) => {
+        const dateA = a.createdAt || new Date(0);
+        const dateB = b.createdAt || new Date(0);
+        return dateB.getTime() - dateA.getTime();
+      }).slice(0, 3);
+
+      // Get chart data for past week
+      const today = new Date();
+
+      // Get all logs and articles for the past week
+      const [logsByDay, articlesByDay] = await Promise.all([
+        this.logsRepository.findMany(userId, {
+          sortBy: 'createdAt',
+          sortOrder: 'asc'
+        }),
+        this.articleRepository.findAll({
+          sortBy: 'createdAt',
+          sortOrder: 'asc',
+          filters: { authorId: userId }
+        })
+      ]);
+
+      // Process chart data
+      const chartData = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+
+        const logsForDay = logsByDay.filter(log => 
+          log.createdAt.toISOString().split('T')[0] === dateStr
+        ).length;
+
+        const articlesForDay = articlesByDay.data.filter(article => 
+          (article.createdAt || new Date()).toISOString().split('T')[0] === dateStr
+        ).length;
+
+        return {
+          date: dateStr,
+          logs: logsForDay,
+          articles: articlesForDay
+        };
+      }).reverse();
+
+      return {
+        articlesCount,
+        logsCount,
+        messagesCount,
+        followersCount,
+        recentActivities,
+        chartData
+      };
+    } catch (error) {
+      console.error('Error in getHomeData:', error);
+      throw error;
+    }
   }
 } 
