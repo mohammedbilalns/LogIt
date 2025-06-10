@@ -27,7 +27,6 @@ export class MongoArticleRepository extends BaseRepository<ArticleDocument, Arti
   }
 
   async findAll(params?: ArticleFindAllParams): Promise<{ data: Article[]; total: number }> {
-
     const { filters = {}, ...restParams } = params || {};
     const query: Record<string, unknown> = { ...filters };
 
@@ -43,10 +42,16 @@ export class MongoArticleRepository extends BaseRepository<ArticleDocument, Arti
     if (tagIds && Array.isArray(tagIds) && tagIds.length > 0) {
       const articleTagModel = mongoose.model('ArticleTag');
       
+      // Convert string IDs to ObjectIds for the query
+      const tagObjectIds = tagIds.map(id => new mongoose.Types.ObjectId(id));
+      
       //  apply tag filtering if we have specific tags
-      articleIds = await articleTagModel.distinct('articleId', {
-        tagId: { $in: tagIds }
+      const articleTagIds = await articleTagModel.distinct('articleId', {
+        tagId: { $in: tagObjectIds }
       });
+
+      // Convert ObjectIds to strings
+      articleIds = articleTagIds.map(id => id.toString());
     }
 
     // Remove both tagIds and tags from query
@@ -55,9 +60,8 @@ export class MongoArticleRepository extends BaseRepository<ArticleDocument, Arti
 
     // add articleid to the query
     if (articleIds) {
-      query._id = { $in: articleIds };
+      query._id = { $in: articleIds.map(id => new mongoose.Types.ObjectId(id)) };
     }
-
 
     //  query for both find and count
     const [data, total] = await Promise.all([
@@ -76,7 +80,11 @@ export class MongoArticleRepository extends BaseRepository<ArticleDocument, Arti
         id: data[0]._id?.toString() || '',
         title: data[0].title || '',
         isActive: data[0].isActive ?? true
-      } : null
+      } : null,
+      query: {
+        ...query,
+        _id: articleIds ? { $in: articleIds } : undefined
+      }
     });
 
     return {

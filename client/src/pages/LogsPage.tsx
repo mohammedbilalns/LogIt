@@ -1,9 +1,9 @@
-import { Box, Group, Stack, Text, Title, Select, Chip, Center, Modal, Button } from '@mantine/core';
+import { Box, Group, Stack, Text, Title, Select, Chip, Center, Modal, Button, Paper } from '@mantine/core';
 import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { fetchLogs, deleteLog, Log } from '@slices/logSlice';
-import { fetchTags } from '@slices/tagSlice';
+import { fetchPromotedAndUserTags } from '@slices/tagSlice';
 import LogRow from '@components/log/LogRow';
 import LogRowSkeleton from '@components/log/LogRowSkeleton';
 import { useMediaQuery, useDebouncedValue } from '@mantine/hooks';
@@ -12,6 +12,7 @@ import { notifications } from '@mantine/notifications';
 import UserSidebar from '@components/user/UserSidebar';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import TagSearchSelector from '@components/TagSearchSelector';
 
 interface LogFilters {
   tagIds: string[];
@@ -23,6 +24,7 @@ export default function LogsPage() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [searchTags, setSearchTags] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('new');
   const [searchInput] = useState('');
   const [debouncedSearch] = useDebouncedValue(searchInput, 500);
@@ -34,14 +36,15 @@ export default function LogsPage() {
 
   const { logs, loading, hasMore } = useSelector((state: RootState) => state.logs);
   const { tags } = useSelector((state: RootState) => state.tags);
+  const userId = useSelector((state: RootState) => state.auth.user?._id);
 
   useEffect(() => {
-    dispatch(fetchTags({ limit: 5 }));
+    dispatch(fetchPromotedAndUserTags({ limit: 5 }));
   }, [dispatch]);
 
   useEffect(() => {
     const filters: LogFilters = {
-      tagIds: selectedTags,
+      tagIds: [...selectedTags, ...searchTags],
     };
 
     dispatch(fetchLogs({
@@ -52,7 +55,7 @@ export default function LogsPage() {
       sortOrder: sortBy === 'old' ? 'asc' : 'desc',
       filters: JSON.stringify(filters)
     }));
-  }, [dispatch, page, pageSize, selectedTags, sortBy, debouncedSearch]);
+  }, [dispatch, page, pageSize, selectedTags, sortBy, debouncedSearch, searchTags]);
 
   useEffect(() => {
     const currentObserver = new IntersectionObserver(
@@ -173,29 +176,40 @@ export default function LogsPage() {
             </Group>
           </Group>
 
-          <Stack gap="xs">
-            <Text fw={500}>Filter by Tags:</Text>
-            <Group gap="xs" wrap="wrap">
-              {tags.map((tag) => (
-                <Chip
-                  key={tag._id}
-                  checked={selectedTags.includes(tag._id)}
-                  onChange={(checked) => {
-                    if (checked) {
-                      setSelectedTags([...selectedTags, tag._id]);
-                    } else {
-                      setSelectedTags(selectedTags.filter(id => id !== tag._id));
-                    }
-                  }}
-                  size="sm"
-                  variant="light"
-                  color="blue"
-                >
-                  {tag.name}
-                </Chip>
-              ))}
-            </Group>
-          </Stack>
+          <Paper withBorder p="md" radius="md">
+            <Stack gap="md">
+              <Stack gap="xs">
+                <Text fw={500}>Quick Select Tags:</Text>
+                <Group gap="xs" wrap="wrap">
+                  {tags.map((tag) => (
+                    <Chip
+                      key={tag._id}
+                      checked={selectedTags.includes(tag._id)}
+                      onChange={(checked) => {
+                        if (checked) {
+                          setSelectedTags([...selectedTags, tag._id]);
+                        } else {
+                          setSelectedTags(selectedTags.filter(id => id !== tag._id));
+                        }
+                      }}
+                      size="sm"
+                      variant="light"
+                      color="blue"
+                    >
+                      {tag.name}
+                    </Chip>
+                  ))}
+                </Group>
+              </Stack>
+
+              <TagSearchSelector
+                label="Search Additional Tags"
+                description="Search and select more tags to filter logs"
+                value={searchTags}
+                onChange={setSearchTags}
+              />
+            </Stack>
+          </Paper>
 
           <Stack gap="md">
             {loading && page === 1 ? (

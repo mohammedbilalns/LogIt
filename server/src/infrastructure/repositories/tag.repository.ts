@@ -2,6 +2,7 @@ import { Tag } from '../../domain/entities/tag.entity';
 import { ITagRepository } from '../../domain/repositories/tag.repository.interface';
 import TagModel, { TagDocument } from '../mongodb/tag.schema';
 import { BaseRepository } from './base.repository';
+import mongoose, { Document } from 'mongoose';
 
 export class MongoTagRepository extends BaseRepository<TagDocument, Tag> implements ITagRepository {
   constructor() {
@@ -12,8 +13,8 @@ export class MongoTagRepository extends BaseRepository<TagDocument, Tag> impleme
     return ['name'];
   }
 
-  protected mapToEntity(doc: TagDocument): Tag {
-    const tag = doc.toObject();
+  protected mapToEntity(doc: TagDocument | { _id: mongoose.Types.ObjectId; name: string; usageCount: number; promoted: boolean }): Tag {
+    const tag = doc instanceof Document ? doc.toObject() : doc;
     return {
       ...tag,
       id: tag._id.toString(),
@@ -66,8 +67,7 @@ export class MongoTagRepository extends BaseRepository<TagDocument, Tag> impleme
     const [data, total] = await Promise.all([
       TagModel.find(query)
         .sort({ 'usageCount.count': -1 })
-        .limit(limit)
-        .lean(),
+        .limit(limit),
       TagModel.countDocuments(query)
     ]);
 
@@ -86,8 +86,7 @@ export class MongoTagRepository extends BaseRepository<TagDocument, Tag> impleme
     const [data, total] = await Promise.all([
       TagModel.find(query)
         .sort({ usageCount: -1 })
-        .limit(limit)
-        .lean(),
+        .limit(limit),
       TagModel.countDocuments(query)
     ]);
 

@@ -19,6 +19,9 @@ router.get('/search', asyncHandler((req, res) => tagController.searchTags(req, r
 router.use(asyncHandler((req, res, next) => csrfMiddleware()(req, res, next)));
 router.use(asyncHandler((req, res, next) => authMiddleware()(req, res, next)));
 
+// Get promoted and user's most used tags
+router.get('/promoted-and-user', asyncHandler((req, res) => tagController.getPromotedAndUserTags(req, res)));
+
 router.post('/',
   asyncHandler((req, res, next) => authorizeRoles('user')(req, res, next)),
   asyncHandler((req, res) => tagController.createTag(req, res))

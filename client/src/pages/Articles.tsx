@@ -1,13 +1,14 @@
-import { Box, Group, Stack, Text, Title, Select, Chip, Center } from '@mantine/core';
+import { Box, Group, Stack, Text, Title, Select, Chip, Center, Paper } from '@mantine/core';
 import  { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { fetchArticles } from '@slices/articleSlice';
-import { fetchTags } from '@slices/tagSlice';
+import { fetchPromotedAndUserTags } from '@slices/tagSlice';
 import CreateButton from '@components/CreateButton';
 import ArticleRow from '@components/article/ArticleRow';
 import ArticleRowSkeleton from '@components/article/ArticleRowSkeleton';
 import { useMediaQuery } from '@mantine/hooks';
+import TagSearchSelector from '@components/TagSearchSelector';
 
 interface ArticleFilters {
   tagIds: string[];
@@ -25,9 +26,11 @@ export default function ArticlesPage() {
   const { tags } = useSelector((state: RootState) => state.tags);
   const observerTarget = useRef<HTMLDivElement>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [searchTags, setSearchTags] = useState<string[]>([]);
+  const userId = useSelector((state: RootState) => state.auth.user?._id);
 
   useEffect(() => {
-    dispatch(fetchTags({ limit: 5 }));
+    dispatch(fetchPromotedAndUserTags({ limit: 5 }));
   }, [dispatch]);
 
   useEffect(() => {
@@ -68,7 +71,7 @@ export default function ArticlesPage() {
   useEffect(() => {
     console.log('Fetching articles:', { page, pageSize, sortBy });
     const filters: ArticleFilters = {
-      tagIds: selectedTags,
+      tagIds: [...selectedTags, ...searchTags],
       isActive: true
     };
 
@@ -79,7 +82,7 @@ export default function ArticlesPage() {
       sortOrder: sortBy === 'old' ? 'asc' : 'desc',
       filters: JSON.stringify(filters)
     }));
-  }, [dispatch, page, pageSize, sortBy, selectedTags]);
+  }, [dispatch, page, pageSize, sortBy, selectedTags, searchTags]);
 
   const handleSortChange = (value: string | null) => {
     if (value) {
@@ -118,30 +121,43 @@ export default function ArticlesPage() {
           </Group>
         </Group>
 
-        {/* Tags Filter */}
-        <Stack gap="xs">
-          <Text fw={500}>Filter by Tags:</Text>
-          <Group gap="xs" wrap="wrap">
-            {tags.map((tag) => (
-              <Chip
-                key={tag._id}
-                checked={selectedTags.includes(tag._id)}
-                onChange={(checked) => {
-                  if (checked) {
-                    setSelectedTags([...selectedTags, tag._id]);
-                  } else {
-                    setSelectedTags(selectedTags.filter(id => id !== tag._id));
-                  }
-                }}
-                size="sm"
-                variant="light"
-                color="blue"
-              >
-                {tag.name}
-              </Chip>
-            ))}
-          </Group>
-        </Stack>
+        {/* Tags Filter Section */}
+        <Paper withBorder p="md" radius="md">
+          <Stack gap="md">
+            {/* Quick Select Tags */}
+            <Stack gap="xs">
+              <Text fw={500}>Quick Select Tags:</Text>
+              <Group gap="xs" wrap="wrap">
+                {tags.map((tag) => (
+                  <Chip
+                    key={tag._id}
+                    checked={selectedTags.includes(tag._id)}
+                    onChange={(checked) => {
+                      if (checked) {
+                        setSelectedTags([...selectedTags, tag._id]);
+                      } else {
+                        setSelectedTags(selectedTags.filter(id => id !== tag._id));
+                      }
+                    }}
+                    size="sm"
+                    variant="light"
+                    color="blue"
+                  >
+                    {tag.name}
+                  </Chip>
+                ))}
+              </Group>
+            </Stack>
+
+            {/* Tag Search */}
+            <TagSearchSelector
+              label="Search Additional Tags"
+              description="Search and select more tags to filter articles"
+              value={searchTags}
+              onChange={setSearchTags}
+            />
+          </Stack>
+        </Paper>
 
         <Stack gap="md">
           {articles.length > 0 ? (

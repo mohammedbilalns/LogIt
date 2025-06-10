@@ -36,13 +36,14 @@ export const createTag = createAsyncThunk(
 
 export const fetchTags = createAsyncThunk(
   'tags/fetchAll',
-  async ({ page, limit, search, promoted, sortBy, sortOrder }: {
+  async ({ page, limit, search, promoted, sortBy, sortOrder, userId }: {
     page?: number;
     limit?: number;
     search?: string;
     promoted?: boolean;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
+    userId?: string;
   }) => {
     const params = new URLSearchParams();
     if (page) params.append('page', page.toString());
@@ -51,6 +52,7 @@ export const fetchTags = createAsyncThunk(
     if (promoted !== undefined) params.append('promoted', promoted.toString());
     if (sortBy) params.append('sortBy', sortBy);
     if (sortOrder) params.append('sortOrder', sortOrder);
+    if (userId) params.append('userId', userId);
 
     const response = await axiosInstance.get(`/tags?${params.toString()}`);
     return response.data;
@@ -77,6 +79,16 @@ export const demoteTag = createAsyncThunk(
   'tags/demote',
   async (id: string) => {
     const response = await axiosInstance.post(`/tags/${id}/demote`);
+    return response.data;
+  }
+);
+
+export const fetchPromotedAndUserTags = createAsyncThunk(
+  'tags/fetchPromotedAndUser',
+  async ({ limit = 5 }: { limit?: number }) => {
+    const params = new URLSearchParams();
+    if (limit) params.append('limit', limit.toString());
+    const response = await axiosInstance.get(`/tags/promoted-and-user?${params.toString()}`);
     return response.data;
   }
 );
@@ -184,6 +196,20 @@ const tagSlice = createSlice({
         if (searchIndex !== -1) {
           state.searchResults[searchIndex] = action.payload;
         }
+      })
+      // Fetch Promoted and User Tags
+      .addCase(fetchPromotedAndUserTags.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchPromotedAndUserTags.fulfilled, (state, action) => {
+        state.loading = false;
+        state.tags = action.payload.tags;
+        state.total = action.payload.total;
+      })
+      .addCase(fetchPromotedAndUserTags.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch tags';
       });
   },
 });

@@ -105,4 +105,27 @@ export class TagController {
     
     return res.json(tags.tags);
   }
+
+  async getPromotedAndUserTags(req: Request, res: Response) {
+    const userId = req.user?.id;
+    const { limit } = req.query;
+    
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    const tags = await this.tagService.getPromotedAndUserTags(
+      userId,
+      Number(limit) || 5
+    );
+    
+    // Add cache control headers
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
+    return res.json(tags);
+  }
 } 

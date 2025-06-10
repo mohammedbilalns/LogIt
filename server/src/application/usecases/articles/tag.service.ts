@@ -21,9 +21,33 @@ export class TagService {
   }
 
   async getTags(params: GetTagsParams): Promise<{ tags: Tag[]; total: number }> {
-    const { userId, limit = 5 } = params;
+    const { userId, limit = 5, promoted } = params;
     
-    //  get promoted tags
+    if (promoted === true) {
+      const promotedTags = await this.tagRepository.findAll({
+        ...params,
+        filters: { promoted: true },
+        limit: limit
+      });
+      return {
+        tags: promotedTags.data,
+        total: promotedTags.total
+      };
+    }
+
+    if (promoted === false) {
+      const nonPromotedTags = await this.tagRepository.findAll({
+        ...params,
+        filters: { promoted: false },
+        limit: limit
+      });
+      return {
+        tags: nonPromotedTags.data,
+        total: nonPromotedTags.total
+      };
+    }
+
+    // Default behavior: get promoted tags first
     const promotedTags = await this.tagRepository.findAll({
       ...params,
       filters: { promoted: true },
@@ -79,5 +103,33 @@ export class TagService {
 
   async demoteTag(id: string): Promise<Tag | null> {
     return this.tagRepository.update(id, { promoted: false });
+  }
+
+  async getPromotedAndUserTags(userId: string, limit: number = 5): Promise<{ tags: Tag[]; total: number }> {
+    // First get promoted tags
+    const promotedTags = await this.tagRepository.findAll({
+      filters: { promoted: true },
+      limit: limit
+    });
+
+    // If we have enough promoted tags, return them
+    if (promotedTags.data.length >= limit) {
+      return {
+        tags: promotedTags.data.slice(0, limit),
+        total: promotedTags.total
+      };
+    }
+
+    // Get user's most used tags for the remaining slots
+    const userTags = await this.tagRepository.findUserMostUsedTags(userId, {
+      limit: limit - promotedTags.data.length,
+      excludeIds: promotedTags.data.map(tag => tag.id).filter((id): id is string => id !== undefined)
+    });
+
+    // Combine promoted and user tags
+    return {
+      tags: [...promotedTags.data, ...userTags.data],
+      total: promotedTags.total + userTags.total
+    };
   }
 } 
