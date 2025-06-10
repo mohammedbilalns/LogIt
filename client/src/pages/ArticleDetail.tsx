@@ -1,5 +1,5 @@
 import  { useEffect, useState } from 'react';
-import { fetchArticle, deleteArticle } from '@slices/articleSlice';
+import { fetchArticle, deleteArticle, setArticleReported } from '@slices/articleSlice';
 import { clearReportState, createReport } from '@slices/reportSlice';
 import { IconAlertTriangle, IconEdit, IconTrash } from '@tabler/icons-react';
 import ReactMarkdown, { Components } from 'react-markdown';
@@ -84,6 +84,9 @@ export default function ArticleDetailPage() {
         message: 'Article reported successfully.',
         color: 'green',
       });
+      if (id) {
+        dispatch(setArticleReported(id));
+      }
       setReportModalOpen(false);
       reportForm.reset();
       dispatch(clearReportState());
@@ -96,7 +99,7 @@ export default function ArticleDetailPage() {
       });
       dispatch(clearReportState());
     }
-  }, [reportSuccess, reportError, dispatch, reportForm]);
+  }, [reportSuccess, reportError, dispatch, reportForm, id]);
 
   if (loading) {
     return (

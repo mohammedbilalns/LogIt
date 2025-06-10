@@ -3,6 +3,7 @@ import axiosInstance from '@axios';
 import { RootState } from '@/store';
 import {  ArticleState } from '@type/article.types';
 import axios from 'axios';
+import { PayloadAction } from '@reduxjs/toolkit';
 
 const initialState: ArticleState = {
   articles: [],
@@ -145,6 +146,15 @@ const articleSlice = createSlice({
       state.hasMore = true;
       state.searchQuery = '';
     },
+    setArticleReported: (state, action: PayloadAction<string>) => {
+      if (state.currentArticle?._id === action.payload) {
+        state.currentArticle.isReported = true;
+      }
+      const index = state.articles.findIndex(article => article._id === action.payload);
+      if (index !== -1) {
+        state.articles[index].isReported = true;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -265,5 +275,5 @@ const articleSlice = createSlice({
   },
 });
 
-export const { clearCurrentArticle, setSearchQuery, resetState } = articleSlice.actions;
+export const { clearCurrentArticle, setSearchQuery, resetState, setArticleReported } = articleSlice.actions;
 export default articleSlice.reducer; 
