@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { MultiSelect, Loader, Text } from '@mantine/core';
+import { useState, useEffect, useMemo } from 'react';
+import { MultiSelect, Loader } from '@mantine/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { searchTags } from '@/store/slices/tagSlice';
@@ -35,10 +35,13 @@ export default function TagSearchSelector({
     }
   }, [debouncedSearch, dispatch]);
 
-  const tagOptions = searchResults.map(tag => ({
-    value: tag._id,
-    label: tag.name
-  }));
+  const tagOptions = useMemo(() => 
+    searchResults.map(tag => ({
+      value: tag._id,
+      label: tag.name
+    })),
+    [searchResults]
+  );
 
   return (
     <MultiSelect

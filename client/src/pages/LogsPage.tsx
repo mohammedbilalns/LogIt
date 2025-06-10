@@ -1,5 +1,5 @@
 import { Box, Group, Stack, Text, Title, Select, Chip, Center, Modal, Button, Paper } from '@mantine/core';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { fetchLogs, deleteLog, Log } from '@slices/logSlice';
@@ -38,15 +38,35 @@ export default function LogsPage() {
   const { tags } = useSelector((state: RootState) => state.tags);
   const userId = useSelector((state: RootState) => state.auth.user?._id);
 
+  const filters = useMemo(() => ({
+    tagIds: [...selectedTags, ...searchTags],
+  }), [selectedTags, searchTags]);
+
+  const logsToDisplay = useMemo(() => 
+    logs.map(log => ({
+      ...log,
+      tags: log.tags || [],
+      mediaUrls: log.mediaUrls || []
+    })),
+    [logs]
+  );
+
+  const sortOptions = useMemo(() => [
+    { value: 'new', label: 'New To Old' },
+    { value: 'old', label: 'Old To New' },
+  ], []);
+
+  const skeletons = useMemo(() => 
+    Array(3).fill(0).map((_, index) => (
+      <LogRowSkeleton key={index} />
+    )),
+  []);
+
   useEffect(() => {
     dispatch(fetchPromotedAndUserTags({ limit: 5 }));
   }, [dispatch]);
 
   useEffect(() => {
-    const filters: LogFilters = {
-      tagIds: [...selectedTags, ...searchTags],
-    };
-
     dispatch(fetchLogs({
       page,
       limit: pageSize,
@@ -55,7 +75,7 @@ export default function LogsPage() {
       sortOrder: sortBy === 'old' ? 'asc' : 'desc',
       filters: JSON.stringify(filters)
     }));
-  }, [dispatch, page, pageSize, selectedTags, sortBy, debouncedSearch, searchTags]);
+  }, [dispatch, page, pageSize, filters, sortBy, debouncedSearch]);
 
   useEffect(() => {
     const currentObserver = new IntersectionObserver(
@@ -84,28 +104,20 @@ export default function LogsPage() {
     };
   }, [hasMore, loading]);
 
-  const handleSortChange = (value: string | null) => {
+  const handleSortChange = useCallback((value: string | null) => {
     if (value) {
       setSortBy(value);
       setPage(1);
     }
-  };
+  }, []);
 
-  const renderSkeletons = () => {
-    return Array(3).fill(0).map((_, index) => (
-      <LogRowSkeleton key={index} />
-    ));
-  };
-
-  const handleDeleteLog = (id: string) => {
+  const handleDeleteLog = useCallback((id: string) => {
     setLogToDelete(id);
     setDeleteModalOpen(true);
-  };
+  }, []);
 
-  const handleDeleteConfirm = async () => {
-    if (!logToDelete) {
-      return;
-    }
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!logToDelete) return;
     
     try {
       await dispatch(deleteLog(logToDelete)).unwrap();
@@ -138,17 +150,19 @@ export default function LogsPage() {
       setDeleteModalOpen(false);
       setLogToDelete(null);
     }
-  };
+  }, [dispatch, logToDelete]);
 
-  const handleEditLog = (log: Log) => {
+  const handleEditLog = useCallback((log: Log) => {
     navigate(`/logs/edit/${log._id}`);
-  };
+  }, [navigate]);
 
-  const logsToDisplay: Log[] = logs.map(log => ({
-    ...log,
-    tags: log.tags || [],
-    mediaUrls: log.mediaUrls || []
-  }));
+  const handleTagChange = useCallback((tagId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedTags(prev => [...prev, tagId]);
+    } else {
+      setSelectedTags(prev => prev.filter(id => id !== tagId));
+    }
+  }, []);
 
   return (
     <>
@@ -163,10 +177,7 @@ export default function LogsPage() {
             <Group>
               <Text fw={500}>Sort By:</Text>
               <Select
-                data={[
-                  { value: 'new', label: 'New To Old' },
-                  { value: 'old', label: 'Old To New' },
-                ]}
+                data={sortOptions}
                 value={sortBy}
                 onChange={handleSortChange}
                 size="xs"
@@ -185,13 +196,7 @@ export default function LogsPage() {
                     <Chip
                       key={tag._id}
                       checked={selectedTags.includes(tag._id)}
-                      onChange={(checked) => {
-                        if (checked) {
-                          setSelectedTags([...selectedTags, tag._id]);
-                        } else {
-                          setSelectedTags(selectedTags.filter(id => id !== tag._id));
-                        }
-                      }}
+                      onChange={(checked) => handleTagChange(tag._id, checked)}
                       size="sm"
                       variant="light"
                       color="blue"
@@ -212,21 +217,21 @@ export default function LogsPage() {
           </Paper>
 
           <Stack gap="md">
-            {loading && page === 1 ? (
-              renderSkeletons()
-            ) : logsToDisplay.length > 0 ? (
+            {logsToDisplay.length > 0 ? (
               <>
                 {logsToDisplay.map((log) => (
                   <LogRow 
                     key={log._id} 
-                    log={log} 
-                    onEdit={() => handleEditLog(log)} 
-                    onDelete={handleDeleteLog}
+                    log={log}
+                    onEdit={() => handleEditLog(log)}
+                    onDelete={() => handleDeleteLog(log._id)}
                   />
                 ))}
                 <div ref={observerTarget} style={{ height: '20px', width: '100%' }} />
-                {loading && page > 1 && renderSkeletons()}
+                {loading && page > 1 && skeletons}
               </>
+            ) : loading ? (
+              skeletons
             ) : (
               <Center py="xl">
                 <Text c="dimmed" size="sm">No logs found</Text>
@@ -242,10 +247,7 @@ export default function LogsPage() {
 
       <Modal
         opened={deleteModalOpen}
-        onClose={() => {
-          setDeleteModalOpen(false);
-          setLogToDelete(null);
-        }}
+        onClose={() => setDeleteModalOpen(false)}
         title="Delete Log"
         centered
         zIndex={2000}
@@ -261,10 +263,7 @@ export default function LogsPage() {
         <Stack>
           <Text>Are you sure you want to delete this log? This action cannot be undone.</Text>
           <Group justify="flex-end">
-            <Button variant="default" onClick={() => {
-              setDeleteModalOpen(false);
-              setLogToDelete(null);
-            }}>
+            <Button variant="default" onClick={() => setDeleteModalOpen(false)}>
               Cancel
             </Button>
             <Button color="red" onClick={handleDeleteConfirm}>

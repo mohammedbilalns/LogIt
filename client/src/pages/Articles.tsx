@@ -1,5 +1,5 @@
 import { Box, Group, Stack, Text, Title, Select, Chip, Center, Paper } from '@mantine/core';
-import  { useEffect, useState, useRef } from 'react';
+import  { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { fetchArticles } from '@slices/articleSlice';
@@ -28,6 +28,22 @@ export default function ArticlesPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchTags, setSearchTags] = useState<string[]>([]);
   const userId = useSelector((state: RootState) => state.auth.user?._id);
+
+  const filters = useMemo(() => ({
+    tagIds: [...selectedTags, ...searchTags],
+    isActive: true
+  }), [selectedTags, searchTags]);
+
+  const sortOptions = useMemo(() => [
+    { value: 'new', label: 'New To Old' },
+    { value: 'old', label: 'Old To New' },
+  ], []);
+
+  const skeletons = useMemo(() => 
+    Array(2).fill(0).map((_, index) => (
+      <ArticleRowSkeleton key={`skeleton-${index}`} />
+    )), 
+  []);
 
   useEffect(() => {
     dispatch(fetchPromotedAndUserTags({ limit: 5 }));
@@ -70,11 +86,6 @@ export default function ArticlesPage() {
 
   useEffect(() => {
     console.log('Fetching articles:', { page, pageSize, sortBy });
-    const filters: ArticleFilters = {
-      tagIds: [...selectedTags, ...searchTags],
-      isActive: true
-    };
-
     dispatch(fetchArticles({
       page,
       limit: pageSize,
@@ -82,20 +93,22 @@ export default function ArticlesPage() {
       sortOrder: sortBy === 'old' ? 'asc' : 'desc',
       filters: JSON.stringify(filters)
     }));
-  }, [dispatch, page, pageSize, sortBy, selectedTags, searchTags]);
+  }, [dispatch, page, pageSize, sortBy, filters]);
 
-  const handleSortChange = (value: string | null) => {
+  const handleSortChange = useCallback((value: string | null) => {
     if (value) {
       setSortBy(value);
       setPage(1);
     }
-  };
+  }, []);
 
-  const renderSkeletons = () => {
-    return Array(2).fill(0).map((_, index) => (
-      <ArticleRowSkeleton key={`skeleton-${index}`} />
-    ));
-  };
+  const handleTagChange = useCallback((tagId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedTags(prev => [...prev, tagId]);
+    } else {
+      setSelectedTags(prev => prev.filter(id => id !== tagId));
+    }
+  }, []);
 
   return (
     <Box 
@@ -108,10 +121,7 @@ export default function ArticlesPage() {
           <Group>
             <Text fw={500}>Sort By:</Text>
             <Select
-              data={[
-                { value: 'new', label: 'New To Old' },
-                { value: 'old', label: 'Old To New' },
-              ]}
+              data={sortOptions}
               value={sortBy}
               onChange={handleSortChange}
               size="xs"
@@ -132,13 +142,7 @@ export default function ArticlesPage() {
                   <Chip
                     key={tag._id}
                     checked={selectedTags.includes(tag._id)}
-                    onChange={(checked) => {
-                      if (checked) {
-                        setSelectedTags([...selectedTags, tag._id]);
-                      } else {
-                        setSelectedTags(selectedTags.filter(id => id !== tag._id));
-                      }
-                    }}
+                    onChange={(checked) => handleTagChange(tag._id, checked)}
                     size="sm"
                     variant="light"
                     color="blue"
@@ -166,10 +170,10 @@ export default function ArticlesPage() {
                 <ArticleRow key={article._id} article={article} />
               ))}
               <div ref={observerTarget} style={{ height: '20px', width: '100%' }} />
-              {loading && page > 1 && renderSkeletons()}
+              {loading && page > 1 && skeletons}
             </>
           ) : loading ? (
-            renderSkeletons()
+            skeletons
           ) : (
             <Center py="xl">
               <Text c="dimmed" size="sm">No articles found</Text>
