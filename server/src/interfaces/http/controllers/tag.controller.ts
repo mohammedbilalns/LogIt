@@ -11,14 +11,11 @@ export class TagController {
   }
 
   async updateTag(req: Request, res: Response) {
-    try {
+
       const { id } = req.params;
       const { name, promoted } = req.body;
       const tag = await this.tagService.updateTag(id, { name, promoted });
       res.json(tag);
-    } catch (error) {
-      res.status(400).json({ error: (error as Error).message });
-    }
   }
 
   async getTag(req: Request, res: Response) {

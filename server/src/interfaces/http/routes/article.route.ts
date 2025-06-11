@@ -19,10 +19,8 @@ const articleTagRepository = new MongoArticleTagRepository();
 const userRepository = new MongoUserRepository();
 const reportRepository = new MongoReportRepository();
 
-// Services
 const articleService = new ArticleService(articleRepository, tagRepository, articleTagRepository, userRepository, reportRepository);
 
-// Controllers
 const articleController = new ArticleController(articleService);
 
 // Public routes

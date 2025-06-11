@@ -20,6 +20,7 @@ router.get('/users',
   asyncHandler((req, res) => adminController.fetchUsers(req, res))
 );
 
+// update users
 router.patch('/users/:id', 
   asyncHandler((req, res) => adminController.updateUser(req, res))
 );

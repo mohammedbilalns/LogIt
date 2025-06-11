@@ -67,11 +67,8 @@ export class ArticleController {
     
     let parsedFilters = {};
     if (filters) {
-      try {
         parsedFilters = JSON.parse(filters as string);
-      } catch (err) {
-        logger.red("Error parsing filters:", err);
-      }
+     
     }
     
     const articles = await this.articleService.getArticles({
