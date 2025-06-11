@@ -17,7 +17,7 @@ export const initializeApp = createAsyncThunk(
   async (_, { dispatch, rejectWithValue }) => {
     try {
       await api.get('/auth/csrf');
-      // Then check authentication
+      //  check authentication
       await dispatch(checkAuth());
       return true;
     } catch (error: any) {
@@ -46,7 +46,7 @@ const initSlice = createSlice({
         state.error = null;
       })
       .addCase(initializeApp.rejected, (state, action) => {
-        state.isInitialized = true; // Still set to true to allow app to render
+        state.isInitialized = true; 
         state.error = action.payload as string;
       });
   },

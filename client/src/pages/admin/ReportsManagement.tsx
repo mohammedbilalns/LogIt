@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import  { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Container,
@@ -21,6 +21,7 @@ import {
   Select,
   Button,
   Center,
+  ComboboxItem,
 } from '@mantine/core';
 import { IconSearch, IconArticle } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '@/store';
@@ -48,24 +49,27 @@ export default function ReportsManagement() {
     (state: RootState) => state.report
   );
 
-  useEffect(() => {
-    dispatch(fetchReports({ 
-      page, 
-      limit: pageSize, 
-      search: debouncedSearch, 
-      status: filterStatus === 'all' ? undefined : filterStatus 
-    }));
-  }, [debouncedSearch, page, pageSize, filterStatus, dispatch]);
+  const containerStyle = useMemo(() => ({
+    marginLeft: isOpen && !isMobile ? '200px' : '0px',
+    transition: 'margin-left 0.3s ease',
+    width: isOpen && !isMobile ? 'calc(100% - 200px)' : '100%',
+    maxWidth: '100%',
+    ...(isMobile && {
+      marginLeft: '0',
+      width: '100%',
+      padding: '1rem',
+      maxWidth: '100%',
+    }),
+  }), [isOpen, isMobile]);
 
-  const handleUpdateStatus = async (reportId: string, status: 'reviewed' | 'resolved') => {
+  const handleUpdateStatus = useCallback(async (reportId: string, status: 'reviewed' | 'resolved') => {
     try {
-      const updatedReport = await dispatch(updateReportStatus({ id: reportId, status })).unwrap();
+      await dispatch(updateReportStatus({ id: reportId, status })).unwrap();
       notifications.show({
         title: 'Success',
         message: `Report status updated to ${status}`,
         color: 'green',
       });
-      // The Redux store will automatically update the report status
     } catch (error: any) {
       notifications.show({
         title: 'Error',
@@ -73,9 +77,9 @@ export default function ReportsManagement() {
         color: 'red',
       });
     }
-  };
+  }, [dispatch]);
 
-  const handleBlockArticle = async (articleId: string) => {
+  const handleBlockArticle = useCallback(async (articleId: string) => {
     try {
       await dispatch(blockArticle(articleId)).unwrap();
       notifications.show({
@@ -83,7 +87,6 @@ export default function ReportsManagement() {
         message: 'Article blocked successfully',
         color: 'green',
       });
-      // The Redux store will automatically update the reports
     } catch (error: any) {
       notifications.show({
         title: 'Error',
@@ -91,20 +94,51 @@ export default function ReportsManagement() {
         color: 'red',
       });
     }
-  };
+  }, [dispatch]);
 
-  const handleViewArticle = (articleId: string) => {
-    // Navigate to the article page with admin context
+  const handleViewArticle = useCallback((articleId: string) => {
     navigate(`/admin/articles/${articleId}`);
-  };
+  }, [navigate]);
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     });
-  };
+  }, []);
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(e.currentTarget.value);
+  }, []);
+
+  const handleStatusFilterChange = useCallback((value: string | null) => {
+    if (value) {
+      setFilterStatus(value as 'all' | 'pending' | 'reviewed' | 'resolved');
+    }
+  }, []);
+
+  const handlePageSizeChange = useCallback((value: string | null) => {
+    if (value) {
+      setPageSize(Number(value));
+      setPage(1);
+    }
+  }, []);
+
+  const handlePageChange = useCallback((value: number) => {
+    setPage(value);
+  }, []);
+
+  const fetchParams = useMemo(() => ({
+    page,
+    limit: pageSize,
+    search: debouncedSearch,
+    status: filterStatus === 'all' ? undefined : filterStatus
+  }), [page, pageSize, debouncedSearch, filterStatus]);
+
+  useEffect(() => {
+    dispatch(fetchReports(fetchParams));
+  }, [dispatch, fetchParams]);
 
   const containerPadding = isMobile ? "md" : "xl";
 
@@ -113,18 +147,7 @@ export default function ReportsManagement() {
       size="xl"
       py="xl"
       px={containerPadding}
-      style={{
-        marginLeft: isOpen && !isMobile ? '200px' : '0px',
-        transition: 'margin-left 0.3s ease',
-        width: isOpen && !isMobile ? 'calc(100% - 200px)' : '100%',
-        maxWidth: '100%',
-        ...(isMobile && {
-          marginLeft: '0',
-          width: '100%',
-          padding: '1rem',
-          maxWidth: '100%',
-        }),
-      }}
+      style={containerStyle}
     >
       <Stack gap="lg">
         <Paper
@@ -142,14 +165,14 @@ export default function ReportsManagement() {
                 placeholder="Search reports by reason or reported by email"
                 leftSection={<IconSearch size={16} />}
                 value={searchInput}
-                onChange={(e) => setSearchInput(e.currentTarget.value)}
+                onChange={handleSearchChange}
                 style={{ flexGrow: 1, minWidth: isTablet ? '100%' : '300px' }}
                 size="md"
               />
               <Select
                 label="Status Filter"
                 value={filterStatus}
-                onChange={(value) => setFilterStatus(value as 'all' | 'pending' | 'reviewed' | 'resolved')}
+                onChange={handleStatusFilterChange}
                 data={[
                   { value: 'all', label: 'All' },
                   { value: 'pending', label: 'Pending' },
@@ -332,10 +355,7 @@ export default function ReportsManagement() {
                 <Select
                   label="Reports per page"
                   value={pageSize.toString()}
-                  onChange={(value) => {
-                    setPageSize(Number(value));
-                    setPage(1);
-                  }}
+                  onChange={handlePageSizeChange}
                   data={[
                     { value: '5', label: '5 per page' },
                     { value: '10', label: '10 per page' },
@@ -347,7 +367,7 @@ export default function ReportsManagement() {
                 <Pagination
                   total={totalPages}
                   value={page}
-                  onChange={setPage}
+                  onChange={handlePageChange}
                   withEdges
                   size={isMobile ? 'sm' : 'md'}
                 />

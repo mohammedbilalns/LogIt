@@ -105,7 +105,7 @@ const tagSlice = createSlice({
     builder
       // Search Tags
       .addCase(searchTags.pending, (state) => {
-        state.loading = true; // Keep global loading for now, or remove if not needed
+        state.loading = true; 
         state.error = null;
       })
       .addCase(searchTags.fulfilled, (state, action) => {
@@ -179,7 +179,7 @@ const tagSlice = createSlice({
         if (index !== -1) {
           state.tags[index] = action.payload;
         }
-        // Also update searchResults if the promoted tag is there
+        //  update searchResults if the promoted tag is there
         const searchIndex = state.searchResults.findIndex(tag => tag._id === action.payload._id);
         if (searchIndex !== -1) {
           state.searchResults[searchIndex] = action.payload;
@@ -191,7 +191,7 @@ const tagSlice = createSlice({
         if (index !== -1) {
           state.tags[index] = action.payload;
         }
-        // Also update searchResults if the demoted tag is there
+        //  update searchResults if the demoted tag is there
         const searchIndex = state.searchResults.findIndex(tag => tag._id === action.payload._id);
         if (searchIndex !== -1) {
           state.searchResults[searchIndex] = action.payload;

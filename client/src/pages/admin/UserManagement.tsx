@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Container,
@@ -44,7 +44,20 @@ export default function UserManagement() {
     (state: RootState) => state.userManagement as UserManagementState
   );
 
-  const handleBlockUser = async (userId: string, isBlocked: boolean) => {
+  const containerStyle = useMemo(() => ({
+    marginLeft: isOpen && !isMobile ? '200px' : '0px',
+    transition: 'margin-left 0.3s ease',
+    width: isOpen && !isMobile ? 'calc(100% - 200px)' : '100%',
+    maxWidth: '100%',
+    ...(isMobile && {
+      marginLeft: '0',
+      width: '100%',
+      padding: '1rem',
+      maxWidth: '100%',
+    }),
+  }), [isOpen, isMobile]);
+
+  const handleBlockUser = useCallback(async (userId: string, isBlocked: boolean) => {
     try {
       if (isBlocked) {
         await dispatch(unblockUser(userId)).unwrap();
@@ -69,20 +82,41 @@ export default function UserManagement() {
         color: 'red',
       });
     }
-  };
+  }, [dispatch]);
 
-  useEffect(() => {
-    dispatch(setSearchQuery(debouncedSearch));
-    dispatch(fetchUsers({ page, limit: pageSize, search: debouncedSearch }));
-  }, [debouncedSearch, page, pageSize, dispatch]);
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(e.currentTarget.value);
+  }, []);
 
-  const formatDate = (dateString: string) => {
+  const handlePageSizeChange = useCallback((value: string | null) => {
+    if (value) {
+      setPageSize(Number(value));
+      setPage(1);
+    }
+  }, []);
+
+  const handlePageChange = useCallback((value: number) => {
+    setPage(value);
+  }, []);
+
+  const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     });
-  };
+  }, []);
+
+  const fetchParams = useMemo(() => ({
+    page,
+    limit: pageSize,
+    search: debouncedSearch
+  }), [page, pageSize, debouncedSearch]);
+
+  useEffect(() => {
+    dispatch(setSearchQuery(debouncedSearch));
+    dispatch(fetchUsers(fetchParams));
+  }, [dispatch, debouncedSearch, fetchParams]);
 
   const containerPadding = isMobile ? "md" : "xl";
 
@@ -91,18 +125,7 @@ export default function UserManagement() {
       size="xl" 
       py="xl" 
       px={containerPadding}
-      style={{
-        marginLeft: isOpen && !isMobile ? '200px' : '0px',
-        transition: 'margin-left 0.3s ease',
-        width: isOpen && !isMobile ? 'calc(100% - 200px)' : '100%',
-        maxWidth: '100%',
-        ...(isMobile && {
-          marginLeft: '0',
-          width: '100%',
-          padding: '1rem',
-          maxWidth: '100%',
-        }),
-      }}
+      style={containerStyle}
     >
       <Stack gap="lg">
         <Paper 
@@ -119,7 +142,7 @@ export default function UserManagement() {
               placeholder="Search users by name or email"
               leftSection={<IconSearch size={16} />}
               value={searchInput}
-              onChange={(e) => setSearchInput(e.currentTarget.value)}
+              onChange={handleSearchChange}
               style={{ width: '100%', maxWidth: isTablet ? '100%' : '400px' }}
               size="md"
             />
@@ -204,12 +227,11 @@ export default function UserManagement() {
                       <Table.Td>
                         <Tooltip label={user.isBlocked ? 'Unblock User' : 'Block User'}>
                           <ActionIcon
-                            variant="subtle"
-                            color={user.isBlocked ? 'green' : 'red'}
                             onClick={() => handleBlockUser(user._id, user.isBlocked)}
-                            size={isMobile ? "sm" : "md"}
+                            color={user.isBlocked ? 'green' : 'red'}
+                            variant="light"
                           >
-                            {user.isBlocked ? <IconLockOpen size={18} /> : <IconLock size={18} />}
+                            {user.isBlocked ? <IconLockOpen size={16} /> : <IconLock size={16} />}
                           </ActionIcon>
                         </Tooltip>
                       </Table.Td>
@@ -271,10 +293,7 @@ export default function UserManagement() {
                 <Select
                   label="Page size"
                   value={pageSize.toString()}
-                  onChange={(value) => {
-                    setPageSize(Number(value));
-                    setPage(1); 
-                  }}
+                  onChange={handlePageSizeChange}
                   data={[
                     { value: '5', label: '5 per page' },
                     { value: '10', label: '10 per page' },
@@ -286,7 +305,7 @@ export default function UserManagement() {
                 <Pagination
                   total={totalPages}
                   value={page}
-                  onChange={setPage}
+                  onChange={handlePageChange}
                   withEdges
                   size={isMobile ? 'sm' : 'md'}
                 />

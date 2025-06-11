@@ -16,7 +16,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { IconLock, IconMailCheck } from '@tabler/icons-react';
-import { AppDispatch, RootState } from '../store';
+import { AppDispatch, RootState } from '@/store';
 import {
   initiatePasswordReset,
   verifyResetOTP,
