@@ -30,7 +30,7 @@ export class MongoArticleRepository extends BaseRepository<ArticleDocument, Arti
     const { filters = {}, ...restParams } = params || {};
     const query: Record<string, unknown> = { ...filters };
 
-    // Ensure isActive is set to true by default if not specified
+    //  isActive is set to true by default
     if (query.isActive === undefined) {
       query.isActive = true;
     }
@@ -42,10 +42,10 @@ export class MongoArticleRepository extends BaseRepository<ArticleDocument, Arti
     if (tagIds && Array.isArray(tagIds) && tagIds.length > 0) {
       const articleTagModel = mongoose.model('ArticleTag');
       
-      // Convert string IDs to ObjectIds for the query
+      // Convert string IDs to ObjectIds
       const tagObjectIds = tagIds.map(id => new mongoose.Types.ObjectId(id));
       
-      //  apply tag filtering if we have specific tags
+      //  apply tag filtering if we have  tags
       const articleTagIds = await articleTagModel.distinct('articleId', {
         tagId: { $in: tagObjectIds }
       });
@@ -54,11 +54,9 @@ export class MongoArticleRepository extends BaseRepository<ArticleDocument, Arti
       articleIds = articleTagIds.map(id => id.toString());
     }
 
-    // Remove both tagIds and tags from query
     delete query.tagIds;
     delete query.tags;
 
-    // add articleid to the query
     if (articleIds) {
       query._id = { $in: articleIds.map(id => new mongoose.Types.ObjectId(id)) };
     }

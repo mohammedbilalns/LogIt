@@ -27,7 +27,7 @@ import {
 import { fetchTags } from '@/store/slices/tagSlice';
 import { uploadImage } from '@/store/slices/uploadSlice';
 import { AppDispatch, RootState } from '@/store';
-import TagSelector from './TagSelector';
+import TagSelector from '@components/tags/TagSelector';
 import { notifications } from '@mantine/notifications';
 import Cropper, { ReactCropperElement } from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
@@ -89,7 +89,12 @@ export default function LogEditorForm({
 
   // Fetch tags and log data
   useEffect(() => {
-    dispatch(fetchTags());
+    dispatch(fetchTags({ 
+      page: 1,
+      limit: 10,
+      search: '',
+      promoted: undefined
+    }));
     if (mode === 'edit' && logId) {
       dispatch(fetchLog(logId));
     }

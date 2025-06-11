@@ -10,7 +10,7 @@ import { createLowlight } from 'lowlight';
 import { IconUpload } from '@tabler/icons-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { createArticle, updateArticle, fetchArticle, clearCurrentArticle } from '../store/slices/articleSlice';
+import { createArticle, updateArticle, fetchArticle, clearCurrentArticle } from '@/store/slices/articleSlice';
 import { fetchTags } from '@slices/tagSlice';
 import { uploadImage, clearUploadState } from '@slices/uploadSlice';
 import { AppDispatch, RootState } from '@/store';
@@ -157,7 +157,12 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
   }, [mode, currentArticle, editor]);
 
   useEffect(() => {
-    dispatch(fetchTags());
+    dispatch(fetchTags({ 
+      page: 1,
+      limit: 10,
+      search: '',
+      promoted: undefined
+    }));
   }, [dispatch]);
 
   const handleImageUpload = useCallback(async (file: File) => {

@@ -42,7 +42,6 @@ export class MongoArticleTagRepository extends BaseRepository<ArticleTagDocument
     await ArticleTagModel.deleteMany({ tagId });
   }
 
-  // Override base repository's delete method 
   async delete(id: string): Promise<boolean> {
     const result = await ArticleTagModel.deleteOne({ _id: id });
     return result.deletedCount > 0;
