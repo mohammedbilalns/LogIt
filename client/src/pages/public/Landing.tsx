@@ -1,4 +1,4 @@
-import { Box, Button, Container, Group, Stack, Text, Title, useMantineColorScheme, Image, Grid, Card, Badge } from '@mantine/core';
+import { Box, Button, Container, Group, Stack, Text, Title, useMantineColorScheme, Image, Grid, Card, Badge, useComputedColorScheme } from '@mantine/core';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -53,6 +53,27 @@ const stats = [
     { value: '100%', label: 'Privacy Guaranteed', icon: <IconLock size={24} /> }
 ];
 
+const GradientTitle = () => {
+    const computedColorScheme = useComputedColorScheme();
+    const isDark = computedColorScheme === 'dark';
+
+    const style = {
+        background: isDark
+            ? 'linear-gradient(45deg, #fff 30%, #a5b4fc 90%)'
+            : 'linear-gradient(45deg, #1a1b1e 30%, #4c6ef5 90%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        marginBottom: '1rem',
+        lineHeight: 1.2,
+    };
+
+    return (
+        <Title key={computedColorScheme} order={1} size={60} style={style}>
+            Log, Share, Connect, Grow
+        </Title>
+    );
+};
+
 export default function LandingPage() {
     const navigate = useNavigate();
     const { colorScheme } = useMantineColorScheme();
@@ -64,7 +85,7 @@ export default function LandingPage() {
     const y = useTransform(scrollYProgress, [0, 0.2], [0, -100]);
 
     return (
-        <Box>
+        <Box pt={0}>
             {/* Hero Section */}
             <MotionDiv
                 initial={{ opacity: 0 }}
@@ -84,7 +105,7 @@ export default function LandingPage() {
                 <Container size="lg" style={{ position: 'relative', zIndex: 1 }}>
                     <Grid gutter={40} align="center">
                         <Grid.Col span={{ base: 12, md: 6 }}>
-                            <Stack  gap="xl">
+                            <Stack gap="xl">
                                 <MotionDiv
                                     style={{ opacity, scale, y }}
                                     initial={{ opacity: 0, scale: 0.8 }}
@@ -94,21 +115,7 @@ export default function LandingPage() {
                                     <Badge size="lg" variant="gradient" gradient={{ from: 'blue', to: 'violet' }} mb="md">
                                         Your Personal Digital Journal
                                     </Badge>
-                                    <Title
-                                        order={1}
-                                        size={60}
-                                        style={{
-                                            background: isDark
-                                                ? 'linear-gradient(45deg, #fff 30%, #a5b4fc 90%)'
-                                                : 'linear-gradient(45deg, #1a1b1e 30%, #4c6ef5 90%)',
-                                            WebkitBackgroundClip: 'text',
-                                            WebkitTextFillColor: 'transparent',
-                                            marginBottom: '1rem',
-                                            lineHeight: 1.2
-                                        }}
-                                    >
-                                        Log, Share, Connect, Grow
-                                    </Title>
+                                    <GradientTitle />
                                 </MotionDiv>
 
                                 <MotionDiv
