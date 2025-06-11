@@ -4,11 +4,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { fetchArticles } from '@slices/articleSlice';
 import { fetchPromotedAndUserTags } from '@slices/tagSlice';
-import CreateButton from '@components/CreateButton';
+import CreateButton from '@/components/user/CreateButton';
 import ArticleRow from '@components/article/ArticleRow';
-import ArticleRowSkeleton from '@components/article/ArticleRowSkeleton';
+import ArticleRowSkeleton from '@/components/skeletons/ArticleRowSkeleton';
 import { useMediaQuery } from '@mantine/hooks';
-import TagSearchSelector from '@components/TagSearchSelector';
+import TagSearchSelector from '@/components/tags/TagSearchSelector';
 
 interface ArticleFilters {
   tagIds: string[];

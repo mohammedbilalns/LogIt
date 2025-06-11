@@ -9,22 +9,22 @@ import {
 } from '@/components/RouteGuards';
 
 // Lazy load pages
-const Landing = lazy(() => import('@pages/Landing'));
-const Login = lazy(() => import('@pages/Login'));
-const Signup = lazy(() => import('@pages/Signup'));
-const EmailVerification = lazy(() => import('@pages/EmailVerification'));
-const Home = lazy(() => import('@pages/Home'));
-const Articles = lazy(() => import('@pages/Articles'));
+const Landing = lazy(() => import('@/pages/public/Landing'));
+const Login = lazy(() => import('@/pages/public/Login'));
+const Signup = lazy(() => import('@/pages/public/Signup'));
+const EmailVerification = lazy(() => import('@/pages/public/EmailVerification'));
+const Home = lazy(() => import('@/pages/user/Home'));
+const Articles = lazy(() => import('@/pages/user/Articles'));
 const ArticleDetail = lazy(() => import('@pages/ArticleDetail'));
-const ArticleEditor = lazy(() => import('@pages/ArticleEditor'));
-const ResetPassword = lazy(() => import('@pages/ResetPassword'));
+const ArticleEditor = lazy(() => import('@/pages/user/ArticleEditor'));
+const ResetPassword = lazy(() => import('@pages/public/ResetPassword'));
 const AdminDashboard = lazy(() => import('@pages/admin/Dashboard'));
 const AdminLayout = lazy(() => import('@components/admin/AdminLayout'));
 const UserManagement = lazy(() => import('@pages/admin/UserManagement'));
 const NotFound = lazy(() => import('@pages/NotFound'));
 const Profile = lazy(() => import('@pages/user/Profile'));
-const LogsPage = lazy(()=> import('@pages/LogsPage'));
-const LogEditor = lazy(()=> import('@pages/LogEditor'));
+const LogsPage = lazy(()=> import('@/pages/user/LogsPage'));
+const LogEditor = lazy(()=> import('@/pages/user/LogEditor'));
 const ReportManagement = lazy(()=> import('@pages/admin/ReportsManagement'))
 const TagManagement = lazy(()=> import('@pages/admin/TagManagement'))
 

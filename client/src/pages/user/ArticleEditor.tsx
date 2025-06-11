@@ -1,22 +1,22 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import ArticleEditorForm from '@components/article/ArticleEditorForm';
 import { Box, Container } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
-import LogEditorForm from '@components/LogEditorForm';
 
-interface LogEditorProps {
+interface ArticleEditorProps {
   mode: 'create' | 'edit';
 }
 
-export default function LogEditor({ mode }: LogEditorProps) {
+export default function ArticleEditor({ mode }: ArticleEditorProps) {
   const { id } = useParams();
   const navigate = useNavigate();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
 
   const handleClose = () => {
-    navigate('/logs');
+    navigate('/articles');
   };
 
   return (
@@ -25,13 +25,12 @@ export default function LogEditor({ mode }: LogEditorProps) {
         marginLeft: isMobile ? '16px' : (isSidebarOpen ? '290px' : '16px'),
         marginRight: isMobile ? '16px' : '30px',
         paddingLeft: isMobile ? '0' : '16px',
-        marginTop: '100px',
+        paddingTop: isMobile ? '60px' : '80px',
         paddingBottom: '100px',
         transition: 'margin-left 0.3s ease',
-        height: 'calc(100vh - 100px)',
-        overflow: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
+        minHeight: '100vh',
+        position: 'relative',
+        zIndex: 0
       }}
     >
       <Container 
@@ -40,14 +39,13 @@ export default function LogEditor({ mode }: LogEditorProps) {
           width: '100%',
           maxWidth: '1400px',
           padding: isMobile ? '0' : '0 24px',
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
+          position: 'relative',
+          zIndex: 0
         }}
       >
-        <LogEditorForm
+        <ArticleEditorForm
           mode={mode}
-          logId={id}
+          articleId={id}
           onClose={handleClose}
         />
       </Container>

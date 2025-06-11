@@ -5,14 +5,14 @@ import { AppDispatch, RootState } from '@/store';
 import { fetchLogs, deleteLog, Log } from '@slices/logSlice';
 import { fetchPromotedAndUserTags } from '@slices/tagSlice';
 import LogRow from '@components/log/LogRow';
-import LogRowSkeleton from '@components/log/LogRowSkeleton';
+import LogRowSkeleton from '@/components/skeletons/LogRowSkeleton';
 import { useMediaQuery, useDebouncedValue } from '@mantine/hooks';
-import CreateButton from '@components/CreateButton';
+import CreateButton from '@/components/user/CreateButton';
 import { notifications } from '@mantine/notifications';
 import UserSidebar from '@components/user/UserSidebar';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import TagSearchSelector from '@components/TagSearchSelector';
+import TagSearchSelector from '@/components/tags/TagSearchSelector';
 
 interface LogFilters {
   tagIds: string[];

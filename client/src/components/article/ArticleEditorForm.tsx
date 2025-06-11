@@ -14,7 +14,7 @@ import { createArticle, updateArticle, fetchArticle, clearCurrentArticle } from 
 import { fetchTags } from '@slices/tagSlice';
 import { uploadImage, clearUploadState } from '@slices/uploadSlice';
 import { AppDispatch, RootState } from '@/store';
-import TagSelector from '@components/TagSelector';
+import TagSelector from '@/components/tags/TagSelector';
 import { notifications } from '@mantine/notifications';
 import { useMediaQuery } from '@mantine/hooks';
 import ts from 'highlight.js/lib/languages/typescript';
