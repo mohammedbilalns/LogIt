@@ -47,14 +47,14 @@ export class TagService {
       };
     }
 
-    // Default behavior: get promoted tags first
+    // get promoted tags 
     const promotedTags = await this.tagRepository.findAll({
       ...params,
       filters: { promoted: true },
       limit: limit
     });
 
-    // If we have enough promoted tags, return them
+    // If there is  enough promoted tags, return 
     if (promotedTags.data.length >= limit) {
       return {
         tags: promotedTags.data.slice(0, limit),
@@ -106,13 +106,13 @@ export class TagService {
   }
 
   async getPromotedAndUserTags(userId: string, limit: number = 5): Promise<{ tags: Tag[]; total: number }> {
-    // First get promoted tags
+    //  get promoted tags
     const promotedTags = await this.tagRepository.findAll({
       filters: { promoted: true },
       limit: limit
     });
 
-    // If we have enough promoted tags, return them
+
     if (promotedTags.data.length >= limit) {
       return {
         tags: promotedTags.data.slice(0, limit),
@@ -120,13 +120,11 @@ export class TagService {
       };
     }
 
-    // Get user's most used tags for the remaining slots
     const userTags = await this.tagRepository.findUserMostUsedTags(userId, {
       limit: limit - promotedTags.data.length,
       excludeIds: promotedTags.data.map(tag => tag.id).filter((id): id is string => id !== undefined)
     });
 
-    // Combine promoted and user tags
     return {
       tags: [...promotedTags.data, ...userTags.data],
       total: promotedTags.total + userTags.total

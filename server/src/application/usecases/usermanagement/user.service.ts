@@ -130,7 +130,7 @@ export class UserService {
         this.logsRepository.count({ userId })
       ]);
 
-      // Static values for now
+      // Static values f
       const messagesCount = 434;
       const followersCount = 534;
 

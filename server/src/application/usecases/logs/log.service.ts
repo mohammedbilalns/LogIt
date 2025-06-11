@@ -118,7 +118,7 @@ export class LogService {
         this.logMediaRepository.findByLogIds(logIds),
       ]);
 
-      // Get all unique tag IDs
+      // Get all  tag IDs
       const tagIds = [...new Set(tags.map(tag => tag.tagId))];
       const tagDetails = await Promise.all(
         tagIds.map(id => this.tagRepository.findById(id))

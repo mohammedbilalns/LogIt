@@ -41,7 +41,7 @@ export class ReportService {
         throw new Error('You have already reported this content');
       }
 
-      // Verify that the reporter exists and get their details
+      // Verify that the reporter exists and get details
       const reporter = await this.userManagementService.getUserById(data.reportedBy);
       if (!reporter) {
         throw new Error('Reporter not found');
@@ -135,7 +135,7 @@ export class ReportService {
         })
       );
 
-      // Block the article by setting isActive to false
+      // Block  article  by setting isActive to false
       await this.articleService.updateArticle(articleId, { isActive: false });
       logger.green('ARTICLE_BLOCKED', `Article ${articleId} blocked and related reports marked as blocked`);
     } catch (error) {

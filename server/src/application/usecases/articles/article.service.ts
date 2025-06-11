@@ -119,7 +119,7 @@ export class ArticleService {
     );
 
 
-    //  sorting by tag usage count
+    //  sorting by  usage count
     if (params.sortBy === 'tagUsageCount') {
       articlesWithTags.sort((a, b) => {
         const aTagCount = a.tags.length;
