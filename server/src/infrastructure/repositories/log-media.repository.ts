@@ -1,4 +1,4 @@
-import { LogMedia } from '../../domain/entities/LogMedia';
+import { LogMedia } from '../../domain/entities/log-media.entity';
 import { LogMediaRepository } from '../../domain/repositories/logMedia.repository';
 import LogMediaModel, {  LogMediaDocument } from '../mongodb/log-media.schema';
 import { BaseRepository } from './base.repository';

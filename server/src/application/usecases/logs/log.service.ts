@@ -1,11 +1,11 @@
-import { Log } from '../../../domain/entities/Log';
+import { Log } from '../../../domain/entities/log.entitty';
 import { LogRepository } from '../../../domain/repositories/log.repository';
 import { LogTagRepository } from '../../../domain/repositories/logTag.repository';
 import { LogMediaRepository } from '../../../domain/repositories/logMedia.repository';
 import { logger } from '../../../utils/logger';
 import { ITagRepository } from '../../../domain/repositories/tag.repository.interface';
 import { Tag } from '../../../domain/entities/tag.entity';
-import { LogTag } from '../../../domain/entities/LogTag';
+import { LogTag } from '../../../domain/entities/log-tag.entity';
 
 interface CreateLogData {
   title: string;

@@ -1,4 +1,4 @@
-import { LogMedia } from '../entities/LogMedia';
+import { LogMedia } from '../entities/log-media.entity';
 import { IBaseRepository } from './base.repository.interface';
 
 export interface LogMediaRepository extends IBaseRepository<LogMedia> {

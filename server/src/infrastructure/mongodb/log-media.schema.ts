@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { LogMedia } from '../../domain/entities/LogMedia';
+import { LogMedia } from '../../domain/entities/log-media.entity';
 
 //that omits the id from LogMedia
 type LogMediaWithoutId = Omit<LogMedia, 'id'>;

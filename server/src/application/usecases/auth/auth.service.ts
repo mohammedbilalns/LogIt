@@ -85,8 +85,8 @@ export class AuthService {
    
 
     if (existingUser) {
-      await this.userRepository.delete(validatedData.email);
-      await this.otpRepository.delete(validatedData.email);
+      await this.userRepository.deleteByEmail(validatedData.email);
+      await this.otpRepository.deleteByEmail(validatedData.email);
     }
 
     const hashedPassword = await bcrypt.hash(validatedData.password, 10);
@@ -120,7 +120,7 @@ export class AuthService {
       if (storedOTP) {
         if (storedOTP.retryAttempts >= 4) {
           await this.userRepository.deleteByEmail(email);
-          await this.otpRepository.delete(email);
+          await this.otpRepository.deleteByEmail(email);
           throw new MaxRetryAttemptsExceededError();
         }
         await this.otpRepository.incrementRetryAttempts(email);
@@ -137,7 +137,7 @@ export class AuthService {
     }
 
     await this.userRepository.updateVerificationStatus(user.id, true);
-    await this.otpRepository.delete(email);
+    await this.otpRepository.deleteByEmail(email);
 
     const userWithoutPassword = this.createUserWithoutPassword(user);
     return {
@@ -206,8 +206,8 @@ export class AuthService {
 
     const storedOTP = await this.otpRepository.findByEmail(email);
     if (storedOTP && storedOTP.retryAttempts >= 4) {
-      await this.userRepository.delete(email);
-      await this.otpRepository.delete(email);
+      await this.userRepository.deleteByEmail(email);
+      await this.otpRepository.deleteByEmail(email);
       throw new MaxRetryAttemptsExceededError();
     }
 
@@ -307,7 +307,7 @@ export class AuthService {
     const otp = this.generateOTP();
     const now = new Date();
     
-    await this.otpRepository.delete(email); // Clear any existing OTP
+    await this.otpRepository.deleteByEmail(email); // Clear any existing OTP
     await this.otpRepository.create({
       email,
       otp,
@@ -326,7 +326,7 @@ export class AuthService {
     if (!storedOTP || storedOTP.otp !== otp || storedOTP.type !== 'reset') {
       if (storedOTP) {
         if (storedOTP.retryAttempts >= 4) {
-          await this.otpRepository.delete(email);
+          await this.otpRepository.deleteByEmail(email);
           throw new MaxRetryAttemptsExceededError();
         }
         await this.otpRepository.incrementRetryAttempts(email);
@@ -335,7 +335,7 @@ export class AuthService {
     }
 
     if (new Date() > storedOTP.expiresAt) {
-      await this.otpRepository.delete(email);
+      await this.otpRepository.deleteByEmail(email);
       throw new InvalidResetOTPError();
     }
 
@@ -363,7 +363,7 @@ export class AuthService {
     if (!updatedUser) {
       throw new UserNotFoundError();
     }
-    await this.otpRepository.delete(validatedData.email);
+    await this.otpRepository.deleteByEmail(validatedData.email);
 
     return { message: 'Password updated successfully' };
   }

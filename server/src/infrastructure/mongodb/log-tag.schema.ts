@@ -1,5 +1,5 @@
 import mongoose, { Document } from 'mongoose';
-import { LogTag } from '../../domain/entities/LogTag';
+import { LogTag } from '../../domain/entities/log-tag.entity';
 
 // type that omits the id from LogTag 
 type LogTagWithoutId = Omit<LogTag, 'id'>;

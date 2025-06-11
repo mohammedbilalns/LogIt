@@ -1,4 +1,4 @@
-import { LogTag } from '../../domain/entities/LogTag';
+import { LogTag } from '../../domain/entities/log-tag.entity';
 import { LogTagRepository } from '../../domain/repositories/logTag.repository';
 import LogTagModel, {  LogTagDocument } from '../mongodb/log-tag.schema';
 import { BaseRepository } from './base.repository';

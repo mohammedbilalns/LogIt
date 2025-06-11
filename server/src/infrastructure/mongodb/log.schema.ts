@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { Log } from '../../domain/entities/Log';
+import { Log } from '../../domain/entities/log.entitty';
 
 //  that omits the id from Log 
 type LogWithoutId = Omit<Log, 'id'>;

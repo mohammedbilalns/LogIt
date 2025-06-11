@@ -11,8 +11,8 @@ export interface User {
   profileImage?: string;
   profession?: string;
   bio?: string;
-  provider?: 'local' | 'google';
-  role: 'user' | 'admin' | 'superadmin';
+  provider?: "local" | "google";
+  role: "user" | "admin" | "superadmin";
 }
 
-export type UserWithoutPassword = Omit<User, 'password'> 
+export type UserWithoutPassword = Omit<User, "password">;

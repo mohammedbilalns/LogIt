@@ -27,12 +27,15 @@ export class MongoOTPRepository extends BaseRepository<OTPDocument, OTP> impleme
     
     // Check if OTP has expired 
     if (new Date() > otp.expiresAt) {
-      const mappedOtp = this.mapToEntity(otp);
-      await this.delete(mappedOtp.id!);
+      await this.deleteByEmail(email);
       return null;
     }
     
     return this.mapToEntity(otp);
+  }
+
+  async deleteByEmail(email: string): Promise<void> {
+    await OTPModel.deleteOne({ email });
   }
 
   async update(email: string, otp: Partial<OTP>): Promise<OTP> {
