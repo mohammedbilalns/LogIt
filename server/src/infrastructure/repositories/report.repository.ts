@@ -93,15 +93,6 @@ export class MongoReportRepository extends BaseRepository<ReportDocument, Report
     }
   }
 
-  async exists(id: string): Promise<boolean> {
-    try {
-      const count = await ReportModel.countDocuments({ _id: id });
-      return count > 0;
-    } catch (error) {
-      logger.red('EXISTS_ERROR', error instanceof Error ? error.message : 'Failed to check report existence');
-      throw error;
-    }
-  }
 
   async existsByTarget(params: { targetType: 'article' | 'user'; targetId: string; reporterId: string }): Promise<boolean> {
     try {

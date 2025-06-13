@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { Article } from '../../domain/entities/article.entity';
-import { IArticleRepository, ArticleFindAllParams } from '../../domain/repositories/article.repository.interface';
+import { IArticleRepository , ArticleFindAllParams} from '../../domain/repositories/article.repository.interface';
 import ArticleModel, { ArticleDocument } from '../mongodb/article.shema';
 import { BaseRepository } from './base.repository';
 
@@ -30,12 +30,10 @@ export class MongoArticleRepository extends BaseRepository<ArticleDocument, Arti
     const { filters = {}, ...restParams } = params || {};
     const query: Record<string, unknown> = { ...filters };
 
-    //  isActive is set to true by default
     if (query.isActive === undefined) {
       query.isActive = true;
     }
 
-    //  tag filtering 
     const tagIds = filters.tagIds || filters.tags;
     let articleIds: string[] | undefined;
     

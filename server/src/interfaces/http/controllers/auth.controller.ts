@@ -22,6 +22,10 @@ export class AuthController {
    
   };
 
+  getUserDetail = async(req:Request, res:Response):Promise<void> =>  {
+    res.json({message:"User Refreshed successfully ",user:req.user })
+  }
+
   signup = async (req: Request, res: Response): Promise<void> => {
       const user = await this.authService.signup(req.body);
       res.status(201).json({
@@ -81,7 +85,7 @@ export class AuthController {
       if (accessToken) {
        
           const user = await this.authService.validateAccessToken(accessToken);
-          logger.cyan("user", JSON.stringify(user));
+          console.log("User from refressh response", user)
           res.json({
             message: 'Access token is still valid',
             user

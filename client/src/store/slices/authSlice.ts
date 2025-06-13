@@ -59,6 +59,7 @@ export const login = createAsyncThunk(
       return response.data;
     } catch (error) {
       const apiError = error as ApiError;
+      console.log("Error loging in:  ", apiError)
       const message = apiError.response?.data?.message || 'Login failed. Please try again.';
       return rejectWithValue(message);
     }
@@ -79,6 +80,7 @@ export const logout = createAsyncThunk('auth/logout', async (_, { rejectWithValu
 export const checkAuth = createAsyncThunk('auth/check', async (_, { rejectWithValue }) => {
   try {
     const response = await api.post<AuthResponse>('/auth/refresh');
+    console.log("Refresh response in the frontend ", response)
     return response.data;
   } catch {
     return rejectWithValue(null);
@@ -107,6 +109,7 @@ export const googleAuth = createAsyncThunk(
       return response.data;
     } catch (error) {
       const apiError = error as ApiError;
+      
       const message = apiError.response?.data?.message || 'Google authentication failed. Please try again.';
       return rejectWithValue(message);
     }

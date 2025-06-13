@@ -44,7 +44,7 @@ export default function ChangePasswordModal({ opened, onClose, onSubmit }: Chang
                 return null;
             },
             confirmPassword: (value, values) => 
-                value !== values.newPassword ? 'Passwords do not match' : null,
+                value.trim() !== values.newPassword.trim() ? 'Passwords do not match' : null,
         },
     });
 

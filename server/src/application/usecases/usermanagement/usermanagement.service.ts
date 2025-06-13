@@ -40,7 +40,7 @@ export class UserManagementService {
   }
 
   async updateUser(id: string, updateData: Partial<User>) {
-    const user = await this.userRepository.updateById(id, updateData);
+    const user = await this.userRepository.update(id, updateData);
     if (!user) {
       throw new UserNotFoundError();
     }

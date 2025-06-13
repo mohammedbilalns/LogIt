@@ -15,6 +15,7 @@ declare module 'express' {
 }
 
 export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
+  logger.cyan("Middleware call", "Auth middleware called")
   const userService = new UserService();
   
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -73,6 +74,8 @@ export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
 };
 
 export const authorizeRoles = (...allowedRoles: ('user' | 'admin' | 'superadmin')[]) => {
+    logger.cyan("Middleware call", "Role middleware called")
+
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Unauthorized: No user found' });

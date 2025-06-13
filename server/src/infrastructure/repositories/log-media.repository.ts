@@ -38,10 +38,4 @@ export class MongoLogMediaRepository extends BaseRepository<LogMediaDocument, Lo
   async deleteByLogId(logId: string): Promise<void> {
     await LogMediaModel.deleteMany({ logId });
   }
-
-  // Override create
-  async create(data: Omit<LogMedia, 'id'>): Promise<LogMedia> {
-    const doc = await LogMediaModel.create(data);
-    return this.mapToEntity(doc);
-  }
 } 

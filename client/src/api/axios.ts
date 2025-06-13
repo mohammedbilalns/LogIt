@@ -11,6 +11,15 @@ const axiosInstance = axios.create({
   },
 });
 
+const SKIP_AUTH_ROUTES = [
+  '/auth/login',
+  '/auth/reset-password',
+  '/auth/verify-otp',
+  '/auth/resend-otp',
+  '/auth/verify-resetotp',
+];
+ 
+
 // Request interceptor to add CSRF token
 axiosInstance.interceptors.request.use(
   (config) => {
@@ -63,6 +72,10 @@ export const setupAxiosInterceptors = (store: { dispatch: AppDispatch }) => {
       if (!originalRequest) {
         return Promise.reject(error);
       }
+      
+    if (SKIP_AUTH_ROUTES.some(path => originalRequest.url?.includes(path))) {
+      return Promise.reject(error);
+    }
 
       if(error.response?.status === 403 && 
          typeof error.response?.data === 'object' && 

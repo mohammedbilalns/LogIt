@@ -2,7 +2,6 @@ import { Log } from '../../domain/entities/log.entitty';
 import { LogRepository } from '../../domain/repositories/log.repository';
 import LogModel,{  LogDocument } from '../mongodb/log.schema';
 import { BaseRepository } from './base.repository';
-import { UpdateQuery } from 'mongoose';
 import mongoose from 'mongoose';
 
 export class MongoLogRepository extends BaseRepository<LogDocument, Log> implements LogRepository {
@@ -22,32 +21,6 @@ export class MongoLogRepository extends BaseRepository<LogDocument, Log> impleme
     };
   }
 
-  async create(data: Omit<Log, 'id'>): Promise<Log> {
-    const doc = await LogModel.create(data);
-    return this.mapToEntity(doc);
-  }
-
-  async findById(id: string): Promise<Log | null> {
-    const doc = await LogModel.findById(id);
-    return doc ? this.mapToEntity(doc) : null;
-  }
-
-  async update(id: string, data: Partial<Log>): Promise<Log> {
-    const doc = await LogModel.findByIdAndUpdate(
-      id,
-      data as UpdateQuery<LogDocument>,
-      { new: true }
-    );
-    if (!doc) {
-      throw new Error('Log not found');
-    }
-    return this.mapToEntity(doc);
-  }
-
-  async delete(id: string): Promise<boolean> {
-    const result = await LogModel.findByIdAndDelete(id);
-    return result !== null;
-  }
 
   async findByUserId(userId: string): Promise<Log[]> {
     const logs = await LogModel.find({ userId });
@@ -113,10 +86,5 @@ export class MongoLogRepository extends BaseRepository<LogDocument, Log> impleme
     }
 
     return await LogModel.countDocuments(query);
-  }
-
-  // Implement base repository's count method
-  async count(filters?: Record<string, unknown>): Promise<number> {
-    return this.model.countDocuments(filters || {});
   }
 } 

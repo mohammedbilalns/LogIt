@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { IconSearch } from '@tabler/icons-react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  ActionIcon,
   Badge,
   Box,
   Button,

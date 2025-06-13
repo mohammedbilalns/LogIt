@@ -34,29 +34,6 @@ export class MongoTagRepository extends BaseRepository<TagDocument, Tag> impleme
     await TagModel.findByIdAndUpdate(id, { $inc: { usageCount: -1 } });
   }
 
-  async findAll(params?: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    promoted?: boolean;
-  }): Promise<{ data: Tag[]; total: number }> {
-    const { promoted, ...restParams } = params || {};
-    const filters: Record<string, unknown> = {};
-    
-    if (promoted !== undefined) {
-      filters.promoted = promoted;
-    }
-
-    const result = super.findAll({
-      ...restParams,
-      filters,
-      sortBy: 'usageCount',
-      sortOrder: 'desc'
-    });
-    console.log('Executing find all with params:', { ...restParams, filters, sortBy: 'usageCount', sortOrder: 'desc' });
-    return result;
-  }
-
   async findUserMostUsedTags(userId: string, params: { limit: number; excludeIds: string[] }): Promise<{ data: Tag[]; total: number }> {
     const { limit, excludeIds } = params;
     const query = {

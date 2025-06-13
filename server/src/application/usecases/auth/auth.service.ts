@@ -54,6 +54,7 @@ export class AuthService {
       const decoded = this.tokenService.verifyAccessToken(token);
       const user = await this.userRepository.findById(decoded.id);
       
+      console.log("User From Token", user)
       if (!user) {
         throw new UserNotFoundError();
       }
@@ -96,7 +97,6 @@ export class AuthService {
       isVerified: false,
       role: 'user'
     });
-
     const otp = this.generateOTP();
     const now = new Date();
     await this.otpRepository.create({
@@ -151,6 +151,9 @@ export class AuthService {
     const validatedData = this.validationService.validateLoginData(credentials);
 
     const user = await this.userRepository.findByEmail(validatedData.email);
+    if(!user){
+      throw new UserNotFoundError()
+    }
     if(!user?.password && user?.googleId) {
       throw new EmailAlreadyWithGoogleIdError();
     }
@@ -266,7 +269,7 @@ export class AuthService {
           role: 'user'
         });
       } else if (!user.googleId) {
-        const updatedUser = await this.userRepository.updateById(user.id, {
+        const updatedUser = await this.userRepository.update(user.id, {
           googleId: decoded.sub,
           profileImage: decoded.picture,
           provider: 'google',
@@ -359,7 +362,7 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(validatedData.newPassword, 10);
-    const updatedUser = await this.userRepository.updateById(user.id, { password: hashedPassword });
+    const updatedUser = await this.userRepository.update(user.id, { password: hashedPassword });
     if (!updatedUser) {
       throw new UserNotFoundError();
     }

@@ -1,11 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
+import { logger } from '../../../utils/logger';
+
 
 const generateToken = () => crypto.randomBytes(32).toString('hex');
 
 
 export const csrfMiddleware = () => {
-  console.log('CSRF middleware called');
+
+  logger.cyan("Middleware call", "CSRF middleware called")
   return (req: Request, res: Response, next: NextFunction) => {
     // Skip CSRF check for GET, HEAD, OPTIONS requests
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {

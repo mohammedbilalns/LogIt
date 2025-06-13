@@ -1,71 +1,102 @@
-export class AuthError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = this.constructor.name;
+import { HttpError } from "./base.errors";
+import { HttpStatus } from "../../config/statusCodes";
+
+
+
+export class UserNotFoundError extends HttpError {
+  constructor(message: string = 'User not found') {
+    super(HttpStatus.NOT_FOUND, message);
+    this.name = 'UserNotFoundError';
   }
 }
 
-export class EmailAlreadyRegisteredError extends AuthError {
-  constructor() {
-    super('Email already registered');
+export class EmailAlreadyRegisteredError extends HttpError {
+  constructor(message: string = 'Email is already registered') {
+    super(HttpStatus.CONFLICT, message); 
+    this.name = 'EmailAlreadyRegisteredError';
   }
 }
 
-export class EmailAlreadyWithGoogleIdError extends AuthError {
-  constructor() {
-    super('Email already registered with Google, Sign in with Google instead');
+export class InvalidCredentialsError extends HttpError {
+  constructor(message: string = 'Invalid email or password') {
+    super(HttpStatus.UNAUTHORIZED, message); 
+    this.name = 'InvalidCredentialsError';
   }
 }
 
-export class InvalidCredentialsError extends AuthError {
-  constructor() {
-    super('Invalid credentials');
+export class InvalidOTPError extends HttpError {
+  constructor(message: string = 'Invalid or expired OTP') {
+    super(HttpStatus.UNAUTHORIZED, message); 
+    this.name = 'InvalidOTPError';
   }
 }
 
-export class InvalidOTPError extends AuthError {
-  constructor() {
-    super('Invalid or expired OTP');
+export class EmailAlreadyWithGoogleIdError extends HttpError {
+  constructor(message: string = 'Email is already registered via Google sign-in') {
+    super(HttpStatus.CONFLICT, message); 
+    this.name = 'EmailAlreadyRegisteredWithGoogleError';
   }
 }
 
-export class UserNotFoundError extends AuthError {
-  constructor() {
-    super('User not found');
-  }
-}
-export class UserBlockedError extends AuthError {
-  constructor() {
-    super('User is blocked');
+export class InvalidPasswordError extends HttpError {
+  constructor(message: string = 'Invalid password') {
+    super(HttpStatus.UNAUTHORIZED, message);
+    this.name = 'InvalidPasswordError';
   }
 }
 
-export class InvalidTokenError extends AuthError {
-  constructor() {
-    super('Invalid or expired refresh token');
+export class PasswordMismatchError extends HttpError {
+  constructor(message: string = 'New password cannot be the same as the old password') {
+    super(HttpStatus.BAD_REQUEST, message);
+    this.name = 'PasswordMismatchError';
   }
 }
 
-export class InvalidTokenTypeError extends AuthError {
-  constructor() {
-    super('Invalid token type');
+export class InvalidProfileDataError extends HttpError {
+  constructor(message: string = 'Invalid profile data') {
+    super(HttpStatus.BAD_REQUEST, message);
+    this.name = 'InvalidProfileDataError';
   }
 }
 
-export class MaxRetryAttemptsExceededError extends AuthError {
-  constructor() {
-    super('Maximum OTP retry attempts exceeded');
+export class UserBlockedError extends HttpError {
+  constructor(message: string = 'Your account has been blocked. Please contact support.') {
+    super(HttpStatus.FORBIDDEN, message);
+    this.name = 'UserBlockedError';
+  }
+}
+export class InvalidTokenError extends HttpError {
+  constructor(message: string = 'Invalid or expired refresh token') {
+    super(HttpStatus.UNAUTHORIZED, message);
+    this.name = 'InvalidTokenError';
   }
 }
 
-export class PasswordResetNotAllowedError extends AuthError {
-  constructor() {
-    super('Google account is not allowed to reset password');
+export class InvalidTokenTypeError extends HttpError {
+  constructor(message: string = 'Invalid token type') {
+    super(HttpStatus.UNAUTHORIZED, message);
+    this.name = 'InvalidTokenTypeError';
   }
 }
 
-export class InvalidResetOTPError extends AuthError {
-  constructor() {
-    super('Invalid or expired reset OTP');
+// OTP & Auth Flow Errors
+export class MaxRetryAttemptsExceededError extends HttpError {
+  constructor(message: string = 'Maximum OTP retry attempts exceeded') {
+    super(HttpStatus.TOO_MANY_REQUESTS, message);
+    this.name = 'MaxRetryAttemptsExceededError';
   }
-} 
+}
+
+export class PasswordResetNotAllowedError extends HttpError {
+  constructor(message: string = 'Google account is not allowed to reset password') {
+    super(HttpStatus.FORBIDDEN, message);
+    this.name = 'PasswordResetNotAllowedError';
+  }
+}
+
+export class InvalidResetOTPError extends HttpError {
+  constructor(message: string = 'Invalid or expired reset OTP') {
+    super(HttpStatus.UNAUTHORIZED, message);
+    this.name = 'InvalidResetOTPError';
+  }
+}

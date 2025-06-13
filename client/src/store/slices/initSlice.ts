@@ -17,7 +17,6 @@ export const initializeApp = createAsyncThunk(
   async (_, { dispatch, rejectWithValue }) => {
     try {
       await api.get('/auth/csrf');
-      //  check authentication
       await dispatch(checkAuth());
       return true;
     } catch (error: any) {

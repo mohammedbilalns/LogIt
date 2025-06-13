@@ -50,7 +50,7 @@ export class UserService {
       throw new InvalidProfileDataError('Bio must not exceed 500 characters');
     }
 
-    const updatedUser = await this.userRepository.updateById(userId, profileData);
+    const updatedUser = await this.userRepository.update(userId, profileData);
     if (!updatedUser) {
       throw new UserNotFoundError();
     }

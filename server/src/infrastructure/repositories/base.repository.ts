@@ -15,7 +15,9 @@ export abstract class BaseRepository<T extends Document, E extends BaseEntity> i
 
   async create(data: Omit<E, 'id' | 'createdAt' | 'updatedAt'>): Promise<E> {
     try {
+      
       const doc = await this.model.create(data as unknown as Partial<T>);
+
       return this.mapToEntity(doc);
     } catch (error) {
       logger.red('CREATE_ERROR', error instanceof Error ? error.message : 'Failed to create entity');
@@ -23,9 +25,9 @@ export abstract class BaseRepository<T extends Document, E extends BaseEntity> i
     }
   }
 
-  async findById(id: string): Promise<E | null> {
+  async findById(id: string, filters?: Record<string, unknown>): Promise<E | null> {
     try {
-      const doc = await this.model.findById(id);
+      const doc = await this.model.findById(id, filters);
       return doc ? this.mapToEntity(doc) : null;
     } catch (error) {
       logger.red('FIND_BY_ID_ERROR', error instanceof Error ? error.message : 'Failed to find entity by id');

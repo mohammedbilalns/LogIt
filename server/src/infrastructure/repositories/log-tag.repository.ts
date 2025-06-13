@@ -39,9 +39,4 @@ export class MongoLogTagRepository extends BaseRepository<LogTagDocument, LogTag
     await LogTagModel.deleteMany({ logId });
   }
 
-  // Override create
-  async create(data: Omit<LogTag, 'id'>): Promise<LogTag> {
-    const doc = await LogTagModel.create(data);
-    return this.mapToEntity(doc);
-  }
 } 

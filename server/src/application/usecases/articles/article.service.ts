@@ -15,7 +15,9 @@ export class ArticleService {
     private reportRepository: ReportRepository
   ) {}
 
-  async createArticle(article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>, tagIds: string[]): Promise<ArticleWithTags> {
+  async createArticle(article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>, tagIds: string[]): Promise<ArticleWithTags | string> {
+    
+ 
     const newArticle = await this.articleRepository.create(article);
     
     // Create article-tag relationships
@@ -27,6 +29,7 @@ export class ArticleService {
       }
     }
 
+
     return this.getArticleWithTags(newArticle.id!);
   }
 
@@ -35,9 +38,7 @@ export class ArticleService {
     if (!article) return null;
     
     const articleWithTags = await this.getArticleWithTags(id);
-    
-    console.log("User id ", userId)
-    console.log("article id", id)
+
     // Check if the article is reported by the user
     if (userId) {
       const isReported = await this.reportRepository.existsByTarget({
