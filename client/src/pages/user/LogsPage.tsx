@@ -38,6 +38,7 @@ export default function LogsPage() {
   const { logs, loading, hasMore } = useSelector((state: RootState) => state.logs);
   const { tags } = useSelector((state: RootState) => state.tags);
   const userId = useSelector((state: RootState) => state.auth.user?._id);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const filters = useMemo(() => ({
     tagIds: [...selectedTags, ...searchTags],
@@ -68,6 +69,7 @@ export default function LogsPage() {
   }, [dispatch]);
 
   useEffect(() => {
+    setIsInitialLoad(true);
     dispatch(fetchLogs({
       page,
       limit: pageSize,
@@ -75,7 +77,9 @@ export default function LogsPage() {
       sortBy: sortBy === 'new' ? 'createdAt' : 'createdAt',
       sortOrder: sortBy === 'old' ? 'asc' : 'desc',
       filters: JSON.stringify(filters)
-    }));
+    })).finally(() => {
+      setIsInitialLoad(false);
+    });
   }, [dispatch, page, pageSize, filters, sortBy, debouncedSearch]);
 
   useEffect(() => {
@@ -197,7 +201,9 @@ export default function LogsPage() {
           />
 
           <Stack gap="md">
-            {logsToDisplay.length > 0 ? (
+            {(loading || isInitialLoad) ? (
+              skeletons
+            ) : logsToDisplay.length > 0 ? (
               <>
                 {logsToDisplay.map((log) => (
                   <LogRow 
@@ -210,8 +216,6 @@ export default function LogsPage() {
                 <div ref={observerTarget} style={{ height: '20px', width: '100%' }} />
                 {loading && page > 1 && skeletons}
               </>
-            ) : loading ? (
-              skeletons
             ) : (
               <Center py="xl">
                 <Text c="dimmed" size="sm">No logs found</Text>

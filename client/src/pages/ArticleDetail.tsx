@@ -416,7 +416,7 @@ export default function ArticleDetailPage() {
         title="Delete Article"
         message="Are you sure you want to delete this article? This action cannot be undone."
         confirmLabel="Delete"
-        loading={loading}
+              loading={loading}
       />
     </>
   );

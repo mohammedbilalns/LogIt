@@ -13,5 +13,5 @@ export class ResourceConflictError extends HttpError {
         super(HttpStatus.CONFLICT, message)
         this.name = 'ResourceConflictError'
     }
-}
+}   
 
