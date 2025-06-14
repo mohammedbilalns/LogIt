@@ -30,6 +30,7 @@ export function ConfirmModal({
       title={title}
       centered
       zIndex={2000}
+      lockScroll
     >
       <Stack gap="md">
         <Text>{message}</Text>

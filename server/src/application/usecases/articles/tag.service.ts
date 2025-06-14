@@ -1,7 +1,6 @@
 import { UnauthorizedError } from "../../errors/auth.errors";
 import { Tag } from "../../../domain/entities/tag.entity";
 import { ITagRepository } from "../../../domain/repositories/tag.repository.interface";
-import { InvalidFieldsError } from "../../errors/form.errors";
 
 interface GetTagsParams {
   page?: number;
@@ -26,9 +25,7 @@ export class TagService {
     params: GetTagsParams
   ): Promise<{ tags: Tag[]; total: number }> {
     const { userId, limit = 5, promoted } = params;
-    if (!params.search || typeof params.search !== "string") {
-      throw new InvalidFieldsError("Search query is required");
-    }
+
     if (promoted === true) {
       const promotedTags = await this.tagRepository.findAll({
         ...params,

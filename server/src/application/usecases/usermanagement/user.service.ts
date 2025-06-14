@@ -9,6 +9,8 @@ import { MongoLogRepository } from '../../../infrastructure/repositories/log.rep
 
 import bcrypt from 'bcryptjs';
 import { InvalidFieldsError, MissingFieldsError } from '../../errors/form.errors';
+import { HttpResponse } from '../../../config/responseMessages';
+import { InternalServerError } from '../../errors/internal.errors';
 
 export class UserService {
   private userRepository: IUserRepository;
@@ -225,8 +227,11 @@ export class UserService {
         chartData
       };
     } catch (error) {
-      console.error('Error in getHomeData:', error);
-      throw error;
+           const message =
+              error instanceof Error
+                ? error.message
+                : HttpResponse.FAILED_TO_FETCH_HOME;
+            throw new InternalServerError(message);
     }
   }
 } 

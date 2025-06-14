@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { TagService } from "../../../application/usecases/articles/tag.service";
+import { HttpStatus } from "../../../config/statusCodes";
 
 export class TagController {
   constructor(private tagService: TagService) {}
@@ -11,21 +12,21 @@ export class TagController {
       usageCount: 0,
       promoted: false,
     });
-    return res.json(tag);
+    return res.status(HttpStatus.CREATED).json(tag);
   }
 
   async updateTag(req: Request, res: Response) {
     const { id } = req.params;
     const { name, promoted } = req.body;
     const tag = await this.tagService.updateTag(id, { name, promoted });
-    res.json(tag);
+    res.status(HttpStatus.OK).json(tag);
   }
 
   async getTag(req: Request, res: Response) {
     const { id } = req.params;
     const tag = await this.tagService.getTag(id);
 
-    return res.json(tag);
+    return res.status(HttpStatus.OK).json(tag);
   }
 
   async getTags(req: Request, res: Response) {
@@ -48,7 +49,7 @@ export class TagController {
       Expires: "0",
     });
 
-    return res.json(tags);
+    return res.status(HttpStatus.OK).json(tags);
   }
 
   async deleteTag(req: Request, res: Response) {
@@ -60,13 +61,13 @@ export class TagController {
   async promoteTag(req: Request, res: Response) {
     const { id } = req.params;
     const tag = await this.tagService.promoteTag(id);
-    return res.json(tag);
+    return res.status(HttpStatus.OK).json(tag);
   }
 
   async demoteTag(req: Request, res: Response) {
     const { id } = req.params;
     const tag = await this.tagService.demoteTag(id);
-    return res.json(tag);
+    return res.status(HttpStatus.OK).json(tag);
   }
 
   async searchTags(req: Request, res: Response) {
@@ -84,7 +85,7 @@ export class TagController {
       Expires: "0",
     });
 
-    return res.json(tags.tags);
+    return res.status(HttpStatus.OK).json(tags.tags);
   }
 
   async getPromotedAndUserTags(req: Request, res: Response) {
@@ -103,6 +104,6 @@ export class TagController {
       Expires: "0",
     });
 
-    return res.json(tags);
+    return res.status(HttpStatus.OK).json(tags);
   }
 }

@@ -1,19 +1,20 @@
 import { Request, Response } from "express";
 import { ArticleService } from "../../../application/usecases/articles/article.service";
+import { HttpStatus } from "../../../config/statusCodes";
 
 export class ArticleController {
   constructor(private articleService: ArticleService) {}
 
   async createArticle(req: Request, res: Response) {
     const { title, content, tagIds, featured_image } = req.body;
-    const authorId = req.user?.id || '' ;
+    const authorId = req.user?.id || "";
 
     const article = await this.articleService.createArticle(
       { authorId, title, content, isActive: true, featured_image },
       tagIds || []
     );
 
-    return res.json(article);
+    return res.status(HttpStatus.CREATED).json(article);
   }
 
   async updateArticle(req: Request, res: Response) {
@@ -26,8 +27,7 @@ export class ArticleController {
       tagIds
     );
 
-
-    return res.json(article);
+    return res.status(HttpStatus.OK).json(article);
   }
 
   async getArticle(req: Request, res: Response) {
@@ -35,7 +35,7 @@ export class ArticleController {
     const userId = req.user?.id;
     const article = await this.articleService.getArticle(id, userId);
 
-    return res.json(article);
+    return res.status(HttpStatus.OK).json(article);
   }
 
   async getArticles(req: Request, res: Response) {
@@ -55,12 +55,12 @@ export class ArticleController {
       filters: parsedFilters,
     });
 
-    return res.json(articles);
+    return res.status(HttpStatus.OK).json(articles);
   }
 
   async deleteArticle(req: Request, res: Response) {
     const { id } = req.params;
     await this.articleService.deleteArticle(id);
-    return res.status(204).send();
+    return res.status(HttpStatus.NO_CONTENT).send();
   }
 }

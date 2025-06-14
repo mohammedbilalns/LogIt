@@ -20,6 +20,7 @@ import {
   InvalidResetOTPError,
   UserBlockedError
 } from '../../errors/auth.errors';
+import { HttpResponse } from '../../../config/responseMessages';
 
 export class AuthService {
   private mailService: MailService;
@@ -38,7 +39,7 @@ export class AuthService {
 
   private validateUserFields(user: User): asserts user is User & { id: string; name: string; email: string; role: string; createdAt: Date; updatedAt: Date } {
     if (!user.id || !user.name || !user.email || !user.role || !user.createdAt || !user.updatedAt) {
-      throw new Error('User object is missing required fields');
+      throw new Error(HttpResponse.MISSING_USER_DATA);
     }
   }
 
@@ -54,7 +55,6 @@ export class AuthService {
       const decoded = this.tokenService.verifyAccessToken(token);
       const user = await this.userRepository.findById(decoded.id);
       
-      console.log("User From Token", user)
       if (!user) {
         throw new UserNotFoundError();
       }
@@ -235,7 +235,7 @@ export class AuthService {
     }
 
     await this.mailService.sendOTP(email, otp);
-    return { message: 'OTP resent successfully' };
+    return { message: HttpResponse.OTP_RESEND };
   }
 
   async googleAuth(token: string) {
@@ -320,7 +320,7 @@ export class AuthService {
     });
 
     await this.mailService.sendPasswordResetOTP(email, otp);
-    return { message: 'Password reset OTP sent successfully' };
+    return { message: HttpResponse.SEND_PASSWORD_RESET_OTP  };
   }
 
   async verifyResetOTP(email: string, otp: string) {
@@ -342,7 +342,7 @@ export class AuthService {
       throw new InvalidResetOTPError();
     }
 
-    return { message: 'OTP verified successfully' };
+    return { message:  HttpResponse.OTP_RESEND};
   }
 
   async updatePassword(email: string, newPassword: string) {
@@ -368,6 +368,6 @@ export class AuthService {
     }
     await this.otpRepository.deleteByEmail(validatedData.email);
 
-    return { message: 'Password updated successfully' };
+    return { message: HttpResponse.PASSWORD_UPDATED };
   }
 } 

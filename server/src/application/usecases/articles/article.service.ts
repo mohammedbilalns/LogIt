@@ -7,10 +7,10 @@ import { ITagRepository } from "../../../domain/repositories/tag.repository.inte
 import { IArticleTagRepository } from "../../../domain/repositories/article-tag.repository.interface";
 import { IUserRepository } from "../../../domain/repositories/user.repository.interface";
 import { ReportRepository } from "../../../domain/repositories/report.repository.interface";
-import { logger } from "../../../utils/logger";
 
 import { MissingFieldsError } from "../../errors/form.errors";
 import { ResourceNotFoundError } from "../../errors/resource.errors";
+import { HttpResponse } from "../../../config/responseMessages";
 export class ArticleService {
   constructor(
     private articleRepository: IArticleRepository,
@@ -158,7 +158,7 @@ export class ArticleService {
     articleId: string
   ): Promise<ArticleWithTags> {
     const article = await this.articleRepository.findById(articleId);
-    if (!article) throw new ResourceNotFoundError("Article Not Found");
+    if (!article) throw new ResourceNotFoundError(HttpResponse.ARTICLE_NOT_FOUND);
 
     const articleTags = await this.articleTagRepository.findByArticleId(
       articleId
@@ -186,9 +186,8 @@ export class ArticleService {
   async blockArticle(articleId: string): Promise<void> {
     const article = await this.articleRepository.findById(articleId);
     if (!article) {
-      throw new ResourceNotFoundError("Article Not Found");
+      throw new ResourceNotFoundError(HttpResponse.ARTICLE_NOT_FOUND);
     }
     await this.articleRepository.update(articleId, { isActive: false });
-    logger.green("ARTICLE_BLOCKED", `Article ${articleId} has been blocked`);
   }
 }

@@ -1,13 +1,13 @@
-import { Log } from '../../../domain/entities/log.entitty';
-import { LogRepository } from '../../../domain/repositories/log.repository';
-import { LogTagRepository } from '../../../domain/repositories/logTag.repository';
-import { LogMediaRepository } from '../../../domain/repositories/logMedia.repository';
-import { logger } from '../../../utils/logger';
-import { ITagRepository } from '../../../domain/repositories/tag.repository.interface';
-import { Tag } from '../../../domain/entities/tag.entity';
-import { LogTag } from '../../../domain/entities/log-tag.entity';
-import { UnauthorizedError } from '../../errors/auth.errors';
-import { InternalServerError } from '../../errors/internal.errors';
+import { Log } from "../../../domain/entities/log.entitty";
+import { LogRepository } from "../../../domain/repositories/log.repository";
+import { LogTagRepository } from "../../../domain/repositories/logTag.repository";
+import { LogMediaRepository } from "../../../domain/repositories/logMedia.repository";
+import { ITagRepository } from "../../../domain/repositories/tag.repository.interface";
+import { Tag } from "../../../domain/entities/tag.entity";
+import { LogTag } from "../../../domain/entities/log-tag.entity";
+import { UnauthorizedError } from "../../errors/auth.errors";
+import { InternalServerError } from "../../errors/internal.errors";
+import { HttpResponse } from "../../../config/responseMessages";
 
 interface CreateLogData {
   title: string;
@@ -31,7 +31,7 @@ interface GetLogsOptions {
   search?: string;
   tags?: string[];
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 interface TagWithName {
@@ -52,10 +52,13 @@ export class LogService {
     private tagRepository: ITagRepository
   ) {}
 
-  async createLog(userId: string | undefined, data: CreateLogData): Promise<LogWithRelations> {
+  async createLog(
+    userId: string | undefined,
+    data: CreateLogData
+  ): Promise<LogWithRelations> {
     try {
-      if(!userId){
-        throw new UnauthorizedError()
+      if (!userId) {
+        throw new UnauthorizedError();
       }
       const log = await this.logRepository.create({
         userId,
@@ -64,7 +67,7 @@ export class LogService {
       });
 
       if (!log.id) {
-        throw new InternalServerError('Missing Log Id')
+        throw new InternalServerError(HttpResponse.LOG_ID_NOT_FOUND);
       }
 
       const logId = log.id;
@@ -77,8 +80,8 @@ export class LogService {
               logId,
               tagId,
               userId,
-              createdAt: new Date()
-            } as Omit<LogTag, 'id'>);
+              createdAt: new Date(),
+            } as Omit<LogTag, "id">);
             await this.tagRepository.incrementUsageCount(tagId);
           }
         }
@@ -86,7 +89,7 @@ export class LogService {
 
       if (data.mediaUrls && data.mediaUrls.length > 0) {
         await this.logMediaRepository.createMany(
-          data.mediaUrls.map(url => ({
+          data.mediaUrls.map((url) => ({
             logId,
             url,
             userId,
@@ -97,23 +100,29 @@ export class LogService {
 
       const logWithRelations = await this.getLogWithRelations(logId);
       if (!logWithRelations) {
-        throw new InternalServerError('Failed to create log with relations');
+        throw new InternalServerError();
       }
       return logWithRelations;
     } catch (error) {
-      logger.red('CREATE_LOG_ERROR', error instanceof Error ? error.message : 'Failed to create log');
-      throw error;
+      const message =
+        error instanceof Error
+          ? error.message
+          : HttpResponse.FAILED_TO_CREATE_LOG;
+      throw new InternalServerError(message);
     }
   }
 
-  async getLogs(userId: string, options: GetLogsOptions): Promise<{ logs: LogWithRelations[]; total: number }> {
+  async getLogs(
+    userId: string,
+    options: GetLogsOptions
+  ): Promise<{ logs: LogWithRelations[]; total: number }> {
     try {
       const logs = await this.logRepository.findMany(userId, options);
       const total = await this.logRepository.countLogs(userId, options);
 
-      const logIds = logs.map(log => {
+      const logIds = logs.map((log) => {
         if (!log.id) {
-          throw new InternalServerError('Log missing id');
+          throw new InternalServerError(HttpResponse.LOG_ID_NOT_FOUND);
         }
         return log.id;
       });
@@ -124,32 +133,30 @@ export class LogService {
       ]);
 
       // Get all  tag IDs
-      const tagIds = [...new Set(tags.map(tag => tag.tagId))];
+      const tagIds = [...new Set(tags.map((tag) => tag.tagId))];
       const tagDetails = await Promise.all(
-        tagIds.map(id => this.tagRepository.findById(id))
+        tagIds.map((id) => this.tagRepository.findById(id))
       );
       const tagMap = new Map(
         tagDetails
           .filter((tag): tag is Tag => tag !== null)
-          .map(tag => [tag.id || '', tag.name])
+          .map((tag) => [tag.id || "", tag.name])
       );
 
-      const logsWithRelations = logs.map(log => {
+      const logsWithRelations = logs.map((log) => {
         if (!log.id) {
-          throw new InternalServerError('Log missing id');
+          throw new InternalServerError(HttpResponse.LOG_ID_NOT_FOUND);
         }
         const logId = log.id;
         return {
           ...log,
           tags: tags
-            .filter(tag => tag.logId === logId)
-            .map(tag => ({
+            .filter((tag) => tag.logId === logId)
+            .map((tag) => ({
               id: tag.tagId,
-              name: tagMap.get(tag.tagId) || 'Unknown Tag'
+              name: tagMap.get(tag.tagId) || "Unknown Tag",
             })),
-          mediaUrls: media
-            .filter(m => m.logId === logId)
-            .map(m => m.url),
+          mediaUrls: media.filter((m) => m.logId === logId).map((m) => m.url),
         };
       });
 
@@ -158,12 +165,18 @@ export class LogService {
         total,
       };
     } catch (error) {
-      logger.red('GET_LOGS_ERROR', error instanceof Error ? error.message : 'Failed to get logs');
-      throw error;
+      const message =
+        error instanceof Error
+          ? error.message
+          : HttpResponse.FAILED_TO_FETCH_LOG;
+      throw new InternalServerError(message);
     }
   }
 
-  async getLog(userId: string, logId: string): Promise<LogWithRelations | null> {
+  async getLog(
+    userId: string,
+    logId: string
+  ): Promise<LogWithRelations | null> {
     try {
       const log = await this.logRepository.findById(logId);
       if (!log || log.userId !== userId) {
@@ -171,7 +184,7 @@ export class LogService {
       }
 
       if (!log.id) {
-        throw new InternalServerError('Log missing id');
+        throw new InternalServerError(HttpResponse.LOG_ID_NOT_FOUND);
       }
 
       const [tags, media] = await Promise.all([
@@ -180,31 +193,38 @@ export class LogService {
       ]);
 
       // Get tag details
-      const tagIds = tags.map(tag => tag.tagId);
+      const tagIds = tags.map((tag) => tag.tagId);
       const tagDetails = await Promise.all(
-        tagIds.map(id => this.tagRepository.findById(id))
+        tagIds.map((id) => this.tagRepository.findById(id))
       );
       const tagMap = new Map(
         tagDetails
           .filter((tag): tag is Tag => tag !== null)
-          .map(tag => [tag.id || '', tag.name])
+          .map((tag) => [tag.id || "", tag.name])
       );
 
       return {
         ...log,
-        tags: tags.map(tag => ({
+        tags: tags.map((tag) => ({
           id: tag.tagId,
-          name: tagMap.get(tag.tagId) || 'Unknown Tag'
+          name: tagMap.get(tag.tagId) || "Unknown Tag",
         })),
-        mediaUrls: media.map(m => m.url),
+        mediaUrls: media.map((m) => m.url),
       };
     } catch (error) {
-      logger.red('GET_LOG_ERROR', error instanceof Error ? error.message : 'Failed to get log');
-      throw error;
+      const message =
+        error instanceof Error
+          ? error.message
+          : HttpResponse.FAILED_TO_FETCH_LOG;
+      throw new InternalServerError(message);
     }
   }
 
-  async updateLog(userId: string, logId: string, data: UpdateLogData): Promise<LogWithRelations | null> {
+  async updateLog(
+    userId: string,
+    logId: string,
+    data: UpdateLogData
+  ): Promise<LogWithRelations | null> {
     try {
       const log = await this.logRepository.findById(logId);
       if (!log || log.userId !== userId) {
@@ -233,8 +253,8 @@ export class LogService {
                 logId,
                 tagId,
                 userId,
-                createdAt: new Date()
-              } as Omit<LogTag, 'id'>);
+                createdAt: new Date(),
+              } as Omit<LogTag, "id">);
               await this.tagRepository.incrementUsageCount(tagId);
             }
           }
@@ -245,7 +265,7 @@ export class LogService {
         await this.logMediaRepository.deleteByLogId(logId);
         if (data.mediaUrls.length > 0) {
           await this.logMediaRepository.createMany(
-            data.mediaUrls.map(url => ({
+            data.mediaUrls.map((url) => ({
               logId,
               url,
               userId,
@@ -257,8 +277,8 @@ export class LogService {
 
       return this.getLogWithRelations(logId);
     } catch (error) {
-      logger.red('UPDATE_LOG_ERROR', error instanceof Error ? error.message : 'Failed to update log');
-      throw error;
+      const message = error instanceof Error ? error.message :HttpResponse.FAILED_TO_FETCH_LOG
+      throw new InternalServerError(message);
     }
   }
 
@@ -282,12 +302,14 @@ export class LogService {
 
       return true;
     } catch (error) {
-      logger.red('DELETE_LOG_ERROR', error instanceof Error ? error.message : 'Failed to delete log');
-      throw error;
+      const message = error instanceof Error ? error.message :HttpResponse.FAILED_TO_DELETE_LOG
+      throw new InternalServerError(message);
     }
   }
 
-  private async getLogWithRelations(logId: string): Promise<LogWithRelations | null> {
+  private async getLogWithRelations(
+    logId: string
+  ): Promise<LogWithRelations | null> {
     const log = await this.logRepository.findById(logId);
     if (!log) return null;
 
@@ -297,23 +319,23 @@ export class LogService {
     ]);
 
     // Get tag details
-    const tagIds = tags.map(tag => tag.tagId);
+    const tagIds = tags.map((tag) => tag.tagId);
     const tagDetails = await Promise.all(
-      tagIds.map(id => this.tagRepository.findById(id))
+      tagIds.map((id) => this.tagRepository.findById(id))
     );
     const tagMap = new Map(
       tagDetails
         .filter((tag): tag is Tag => tag !== null)
-        .map(tag => [tag.id || '', tag.name])
+        .map((tag) => [tag.id || "", tag.name])
     );
 
     return {
       ...log,
-      tags: tags.map(tag => ({
+      tags: tags.map((tag) => ({
         id: tag.tagId,
-        name: tagMap.get(tag.tagId) || 'Unknown Tag'
+        name: tagMap.get(tag.tagId) || "Unknown Tag",
       })),
-      mediaUrls: media.map(m => m.url),
+      mediaUrls: media.map((m) => m.url),
     };
   }
-} 
+}

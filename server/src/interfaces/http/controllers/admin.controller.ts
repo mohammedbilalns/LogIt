@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { UserManagementService } from "../../../application/usecases/usermanagement/usermanagement.service";
+import { HttpStatus } from "../../../config/statusCodes";
 
 export class AdminController {
   constructor(private userManagementService: UserManagementService) {}
@@ -14,7 +15,7 @@ export class AdminController {
       limit,
       search
     );
-    res.json(result);
+    res.status(HttpStatus.OK).json(result);
   };
 
   updateUser = async (req: Request, res: Response): Promise<void> => {
@@ -22,6 +23,6 @@ export class AdminController {
     const updatedUser = await this.userManagementService.updateUser(id, {
       ...req.body,
     });
-    res.json(updatedUser);
+    res.status(HttpStatus.OK).json(updatedUser);
   };
 }

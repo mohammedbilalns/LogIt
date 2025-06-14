@@ -1,0 +1,37 @@
+export enum HttpResponse {
+    TOKEN_REFRESH_SUCCESS= "Tokens refreshed successfully", 
+    GOOGLE_LOGIN_SUCCESS= "Logged in with Google successfully",
+    LOGIN_SUCCESSFUL = "Login successful",
+    LOGOUT_SUCCESS= "Logged out successfully",
+    SIGNUP_SUCCESS="Signup successful. Please check your email for OTP verification.", 
+    VERIFIED_EMAIL= "Email verified successfully",
+    REQUIRED_TOKEN= "Refresh token required",
+    VALID_TOKEN= "Access token is valid",
+    CSRF_GENERATED = "CSRF token generated successfully",
+    FETCH_USER = "User Refreshed successfully",
+    LOG_NOT_FOUND="Log not found",
+    BLOCKED_ARTICLE= "Article blocked successfully",
+    ARTICLE_NOT_FOUND = "Article not found",
+    PASSWORD_UPDATED= "Password updated successfully",
+    MISSING_USER_DATA = 'User object is missing required fields',
+    OTP_RESEND="OTP reset successfully", 
+    SEND_PASSWORD_RESET_OTP= 'Password reset OTP sent successfully',
+    OTP_VERIFIED="OTP verified successfully",
+    LOG_ID_NOT_FOUND = 'Missing Log Id',
+    FAILED_TO_CREATE_LOG= "Failed to create Log",
+    FAILED_TO_CREATE_LOG_RELATIONS ='Failed to create log with relations',
+    INVALID_BLOCK_TARGET = 'Invalid Target Type',
+    REPORT_EXISTS= "Report Already exists",
+    REPORT_NOT_FOUND= "Reporter no found",
+    FAILED_TO_DELETE_LOG= "Failed to delete log",
+    FAILED_TO_FETCH_LOG = "Failed to fetch log",
+    REPORTER_NOT_FOUND= "Reporter not found ", 
+    FAILED_TO_CREATE_REPORT ="Failed to create report", 
+    FAILED_TO_FETCH_REPORTS = "Failed to fetch reports",
+    FAILED_TO_UPDATE_REPORT = "Failed to update report",
+    FAILED_TO_UPDATE_REPORT_STATUS = "Failed to udpate report status",
+    FAILED_TO_FETCH_HOME = "Failed to fetch home "
+
+
+
+}

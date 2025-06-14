@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { LogService } from '../../../application/usecases/logs/log.service';
+import { HttpStatus } from '../../../config/statusCodes';
+import { HttpResponse } from '../../../config/responseMessages';
 
 export class LogController {
   constructor(private logService: LogService) {}
@@ -16,7 +18,7 @@ export class LogController {
         createdAt: createdAt ? new Date(createdAt) : new Date()
       });
 
-      res.status(201).json(log);
+      res.status(HttpStatus.CREATED).json(log);
   
   };
 
@@ -35,7 +37,7 @@ export class LogController {
         sortOrder: sortOrder as 'asc' | 'desc'
       });
 
-      res.json(result);
+      res.status(HttpStatus.OK).json(result);
    
   };
 
@@ -47,10 +49,10 @@ export class LogController {
 
       const log = await this.logService.getLog(userId, id);
       if (!log) {
-        res.status(404).json({ message: 'Log not found' });
+        res.status(HttpStatus.NOT_FOUND).json({ message: HttpResponse.LOG_NOT_FOUND });
         return;
       }
-      res.json(log);
+      res.status(HttpStatus.OK).json(log);
    
   };
 
@@ -70,10 +72,10 @@ export class LogController {
       });
 
       if (!updatedLog) {
-        res.status(404).json({ message: 'Log not found' });
+        res.status(HttpStatus.NOT_FOUND).json({ message: HttpResponse.LOG_NOT_FOUND });
         return;
       }
-      res.json(updatedLog);
+      res.status(HttpStatus.OK).json(updatedLog);
    
   };
 
@@ -85,9 +87,9 @@ export class LogController {
 
       const success = await this.logService.deleteLog(userId, id);
       if (!success) {
-        res.status(404).json({ message: 'Log not found' });
+        res.status(HttpStatus.NOT_FOUND).json({ message: HttpResponse.LOG_NOT_FOUND });
         return;
       }
-      res.status(204).send();
+      res.status(HttpStatus.NOT_FOUND).send();
   };
 } 

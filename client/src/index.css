@@ -1,3 +1,12 @@
+
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
 .page-container {
     margin-left: 16px;
     margin-right: 16px;
@@ -5,6 +14,8 @@
     margin-top: 100px;
     padding-bottom: 100px;
     transition: margin-left 0.3s ease;
+    min-height: calc(100vh - 100px);
+    position: relative;
 }
 
 @media (min-width: 768px) {

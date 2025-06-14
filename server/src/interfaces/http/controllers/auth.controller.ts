@@ -6,6 +6,7 @@ import {
   REFRESH_COOKIE_EXPIRY,
 } from "../../../config/constants";
 import { HttpStatus } from "../../../config/statusCodes";
+import { HttpResponse } from "../../../config/responseMessages";
 
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -22,18 +23,21 @@ export class AuthController {
 
   getCsrfToken = async (_req: Request, res: Response): Promise<void> => {
     this.setCsrfToken(res);
-    res.json({ message: "CSRF token generated successfully" });
+    res
+      .status(HttpStatus.CREATED)
+      .json({ message: HttpResponse.CSRF_GENERATED });
   };
 
   getUserDetail = async (req: Request, res: Response): Promise<void> => {
-    res.json({ message: "User Refreshed successfully ", user: req.user });
+    res
+      .status(HttpStatus.OK)
+      .json({ message: HttpResponse.FETCH_USER, user: req.user });
   };
 
   signup = async (req: Request, res: Response): Promise<void> => {
     const user = await this.authService.signup(req.body);
-    res.json({
-      message:
-        "Signup successful. Please check your email for OTP verification.",
+    res.status(HttpStatus.CREATED).json({
+      message: HttpResponse.SIGNUP_SUCCESS,
       user,
     });
   };
@@ -53,8 +57,8 @@ export class AuthController {
       maxAge: REFRESH_COOKIE_EXPIRY,
     });
 
-    res.json({
-      message: "Email verified successfully",
+    res.status(HttpStatus.OK).json({
+      message: HttpResponse.VERIFIED_EMAIL,
       user,
     });
   };
@@ -74,8 +78,8 @@ export class AuthController {
       maxAge: REFRESH_COOKIE_EXPIRY,
     });
 
-    res.json({
-      message: "Login successful",
+    res.status(HttpStatus.OK).json({
+      message: HttpResponse.LOGIN_SUCCESSFUL,
       user,
     });
   };
@@ -85,8 +89,8 @@ export class AuthController {
     const accessToken = req.cookies.accessToken;
     if (accessToken) {
       const user = await this.authService.validateAccessToken(accessToken);
-      res.json({
-        message: "Access token is still valid",
+      res.status(HttpStatus.OK).json({
+        message: HttpResponse.VALID_TOKEN,
         user,
       });
       return;
@@ -96,7 +100,7 @@ export class AuthController {
     if (!refreshToken) {
       res
         .status(HttpStatus.UNAUTHORIZED)
-        .json({ message: "Refresh token required" });
+        .json({ message: HttpResponse.REQUIRED_TOKEN });
       return;
     }
 
@@ -116,8 +120,8 @@ export class AuthController {
       maxAge: REFRESH_COOKIE_EXPIRY,
     });
 
-    res.json({
-      message: "Tokens refreshed successfully",
+    res.status(HttpStatus.OK).json({
+      message: HttpResponse.TOKEN_REFRESH_SUCCESS,
       user,
     });
   };
@@ -133,13 +137,13 @@ export class AuthController {
       maxAge: 0,
     });
 
-    res.json({ message: "Logged out successfully" });
+    res.status(HttpStatus.OK).json({ message: HttpResponse.LOGOUT_SUCCESS });
   };
 
   resendOTP = async (req: Request, res: Response): Promise<void> => {
     const { email } = req.body;
     const result = await this.authService.resendOTP(email);
-    res.json(result);
+    res.status(HttpStatus.CREATED).json(result);
   };
 
   googleAuth = async (req: Request, res: Response): Promise<void> => {
@@ -160,8 +164,8 @@ export class AuthController {
     // Set CSRF token
     this.setCsrfToken(res);
 
-    res.json({
-      message: "Google authentication successful",
+    res.status(HttpStatus.OK).json({
+      message: HttpResponse.GOOGLE_LOGIN_SUCCESS,
       user,
     });
   };
@@ -172,18 +176,18 @@ export class AuthController {
   ): Promise<void> => {
     const { email } = req.body;
     const result = await this.authService.initiatePasswordReset(email);
-    res.json(result);
+    res.status(HttpStatus.OK).json(result);
   };
 
   verifyResetOTP = async (req: Request, res: Response): Promise<void> => {
     const { email, otp } = req.body;
     const result = await this.authService.verifyResetOTP(email, otp);
-    res.json(result);
+    res.status(HttpStatus.OK).json(result);
   };
 
   updatePassword = async (req: Request, res: Response): Promise<void> => {
     const { email, newPassword } = req.body;
     const result = await this.authService.updatePassword(email, newPassword);
-    res.json(result);
+    res.status(HttpStatus.OK).json(result);
   };
 }

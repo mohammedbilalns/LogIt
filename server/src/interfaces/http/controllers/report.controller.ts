@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { ReportService } from "../../../application/usecases/reports/report.service";
+import { HttpStatus } from "../../../config/statusCodes";
+import { HttpResponse } from "../../../config/responseMessages";
 
 export class ReportController {
   constructor(private reportService: ReportService) {}
@@ -15,7 +17,7 @@ export class ReportController {
       reason,
     });
 
-    res.json(report);
+    res.status(HttpStatus.CREATED).json(report);
   };
 
   getReports = async (req: Request, res: Response): Promise<void> => {
@@ -34,7 +36,7 @@ export class ReportController {
           : (status as "pending" | "reviewed" | "resolved"),
     });
 
-    res.json({ reports, totalPages });
+    res.status(HttpStatus.OK).json({ reports, totalPages });
   };
 
   updateReportStatus = async (req: Request, res: Response): Promise<void> => {
@@ -46,7 +48,7 @@ export class ReportController {
       status as "pending" | "reviewed" | "resolved"
     );
 
-    res.json(updatedReport);
+    res.status(HttpStatus.OK).json(updatedReport);
   };
 
   blockArticle = async (req: Request, res: Response): Promise<void> => {
@@ -59,8 +61,8 @@ export class ReportController {
       articleId
     );
 
-    res.json({
-      message: "Article blocked successfully",
+    res.status(HttpStatus.OK).json({
+      message:HttpResponse.BLOCKED_ARTICLE,
       reports: updatedReports,
     });
   };

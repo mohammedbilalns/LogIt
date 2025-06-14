@@ -8,7 +8,7 @@ import CreateButton from '@/components/user/CreateButton';
 import ArticleRow from '@components/article/ArticleRow';
 import ArticleRowSkeleton from '@/components/skeletons/ArticleRowSkeleton';
 import { useMediaQuery } from '@mantine/hooks';
-import TagSearchSelector from '@/components/tags/TagSearchSelector';
+import TagFilterSection from '@/components/tags/TagFilterSection';
 
 interface ArticleFilters {
   tagIds: string[];
@@ -131,37 +131,13 @@ export default function ArticlesPage() {
           </Group>
         </Group>
 
-        {/* Tags Filter Section */}
-        <Paper withBorder p="md" radius="md">
-          <Stack gap="md">
-            {/* Quick Select Tags */}
-            <Stack gap="xs">
-              <Text fw={500}>Quick Select Tags:</Text>
-              <Group gap="xs" wrap="wrap">
-                {tags.map((tag) => (
-                  <Chip
-                    key={tag._id}
-                    checked={selectedTags.includes(tag._id)}
-                    onChange={(checked) => handleTagChange(tag._id, checked)}
-                    size="sm"
-                    variant="light"
-                    color="blue"
-                  >
-                    {tag.name}
-                  </Chip>
-                ))}
-              </Group>
-            </Stack>
-
-            {/* Tag Search */}
-            <TagSearchSelector
-              label="Search Additional Tags"
-              description="Search and select more tags to filter articles"
-              value={searchTags}
-              onChange={setSearchTags}
-            />
-          </Stack>
-        </Paper>
+        <TagFilterSection
+          selectedTags={selectedTags}
+          searchTags={searchTags}
+          onSelectedTagsChange={handleTagChange}
+          onSearchTagsChange={setSearchTags}
+          searchDescription="Search and select more tags to filter articles"
+        />
 
         <Stack gap="md">
           {articles.length > 0 ? (

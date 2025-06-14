@@ -12,7 +12,7 @@ import { notifications } from '@mantine/notifications';
 import UserSidebar from '@components/user/UserSidebar';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import TagSearchSelector from '@/components/tags/TagSearchSelector';
+import TagFilterSection from '@/components/tags/TagFilterSection';
 import { ConfirmModal } from '@/components/confirm';
 
 interface LogFilters {
@@ -188,34 +188,13 @@ export default function LogsPage() {
             </Group>
           </Group>
 
-          <Paper withBorder p="md" radius="md">
-            <Stack gap="md">
-              <Stack gap="xs">
-                <Text fw={500}>Quick Select Tags:</Text>
-                <Group gap="xs" wrap="wrap">
-                  {tags.map((tag) => (
-                    <Chip
-                      key={tag._id}
-                      checked={selectedTags.includes(tag._id)}
-                      onChange={(checked) => handleTagChange(tag._id, checked)}
-                      size="sm"
-                      variant="light"
-                      color="blue"
-                    >
-                      {tag.name}
-                    </Chip>
-                  ))}
-                </Group>
-              </Stack>
-
-              <TagSearchSelector
-                label="Search Additional Tags"
-                description="Search and select more tags to filter logs"
-                value={searchTags}
-                onChange={setSearchTags}
-              />
-            </Stack>
-          </Paper>
+          <TagFilterSection
+            selectedTags={selectedTags}
+            searchTags={searchTags}
+            onSelectedTagsChange={handleTagChange}
+            onSearchTagsChange={setSearchTags}
+            searchDescription="Search and select more tags to filter logs"
+          />
 
           <Stack gap="md">
             {logsToDisplay.length > 0 ? (
