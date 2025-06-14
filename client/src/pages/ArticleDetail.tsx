@@ -9,6 +9,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
+import { ConfirmModal } from '@/components/confirm';
 import {
   Box,
   Button,
@@ -408,33 +409,15 @@ export default function ArticleDetailPage() {
         </form>
       </Modal>
 
-      <Modal
+      <ConfirmModal
         opened={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDeleteArticle}
         title="Delete Article"
-        centered
-        zIndex={2000}
-      >
-        <Stack gap="md">
-          <Text>Are you sure you want to delete this article? This action cannot be undone.</Text>
-          <Group justify="flex-end" mt="md">
-            <Button
-              variant="default"
-              onClick={() => setDeleteModalOpen(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button
-              color="red"
-              onClick={handleDeleteArticle}
-              loading={loading}
-            >
-              Delete
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+        message="Are you sure you want to delete this article? This action cannot be undone."
+        confirmLabel="Delete"
+        loading={loading}
+      />
     </>
   );
 }

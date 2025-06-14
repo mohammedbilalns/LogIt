@@ -158,7 +158,7 @@ const userManagementSlice = createSlice({
       })
       .addCase(changePassword.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to change password';
+        state.error = action.payload as string || 'Failed to change password';
       });
   },
 });

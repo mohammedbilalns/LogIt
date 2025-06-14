@@ -29,6 +29,7 @@ import { fetchReports, updateReportStatus, blockArticle, Report } from '@/store/
 import { useDebouncedValue, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
+import { ConfirmModal } from '@/components/confirm';
 
 export default function ReportsManagement() {
   const dispatch = useDispatch<AppDispatch>();
@@ -44,6 +45,8 @@ export default function ReportsManagement() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'reviewed' | 'resolved'>('all');
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
   const isTablet = useMediaQuery(`(max-width: ${theme.breakpoints.md})`);
+  const [blockModalOpen, setBlockModalOpen] = useState(false);
+  const [articleToBlock, setArticleToBlock] = useState<string | null>(null);
 
   const { reports = [], loading, error, totalPages } = useSelector(
     (state: RootState) => state.report
@@ -79,9 +82,16 @@ export default function ReportsManagement() {
     }
   }, [dispatch]);
 
-  const handleBlockArticle = useCallback(async (articleId: string) => {
+  const handleBlockArticle = useCallback((articleId: string) => {
+    setArticleToBlock(articleId);
+    setBlockModalOpen(true);
+  }, []);
+
+  const handleBlockConfirm = useCallback(async () => {
+    if (!articleToBlock) return;
+    
     try {
-      await dispatch(blockArticle(articleId)).unwrap();
+      await dispatch(blockArticle(articleToBlock)).unwrap();
       notifications.show({
         title: 'Success',
         message: 'Article blocked successfully',
@@ -93,8 +103,11 @@ export default function ReportsManagement() {
         message: error.message || 'Failed to block article',
         color: 'red',
       });
+    } finally {
+      setBlockModalOpen(false);
+      setArticleToBlock(null);
     }
-  }, [dispatch]);
+  }, [dispatch, articleToBlock]);
 
   const handleViewArticle = useCallback((articleId: string) => {
     navigate(`/admin/articles/${articleId}`);
@@ -376,6 +389,20 @@ export default function ReportsManagement() {
           )}
         </Paper>
       </Stack>
+
+      <ConfirmModal
+        opened={blockModalOpen}
+        onClose={() => {
+          setBlockModalOpen(false);
+          setArticleToBlock(null);
+        }}
+        onConfirm={handleBlockConfirm}
+        title="Block Article"
+        message="Are you sure you want to block this article? This action cannot be undone."
+        confirmLabel="Block"
+        confirmColor="red"
+        loading={loading}
+      />
     </Container>
   );
 } 

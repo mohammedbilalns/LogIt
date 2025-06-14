@@ -13,6 +13,7 @@ import UserSidebar from '@components/user/UserSidebar';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import TagSearchSelector from '@/components/tags/TagSearchSelector';
+import { ConfirmModal } from '@/components/confirm';
 
 interface LogFilters {
   tagIds: string[];
@@ -245,33 +246,18 @@ export default function LogsPage() {
         </Box>
       </Box>
 
-      <Modal
+      <ConfirmModal
         opened={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        title="Delete Log"
-        centered
-        zIndex={2000}
-        styles={{
-          overlay: {
-            zIndex: 2000
-          },
-          content: {
-            zIndex: 2001
-          }
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setLogToDelete(null);
         }}
-      >
-        <Stack>
-          <Text>Are you sure you want to delete this log? This action cannot be undone.</Text>
-          <Group justify="flex-end">
-            <Button variant="default" onClick={() => setDeleteModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button color="red" onClick={handleDeleteConfirm}>
-              Delete
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+        onConfirm={handleDeleteConfirm}
+        title="Delete Log"
+        message="Are you sure you want to delete this log? This action cannot be undone."
+        confirmLabel="Delete"
+        loading={loading}
+      />
     </>
   );
 } 

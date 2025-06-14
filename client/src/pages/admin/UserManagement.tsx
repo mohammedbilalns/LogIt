@@ -26,6 +26,7 @@ import { AppDispatch, RootState } from '@/store';
 import { fetchUsers, setSearchQuery, blockUser, unblockUser, UserManagementState } from '@slices/userManagementSlice';
 import { useDebouncedValue, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
+import { ConfirmModal } from '@/components/confirm';
 
 export default function UserManagement() {
   const dispatch = useDispatch<AppDispatch>();
@@ -39,6 +40,8 @@ export default function UserManagement() {
   const [pageSize, setPageSize] = useState(10);
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
   const isTablet = useMediaQuery(`(max-width: ${theme.breakpoints.md})`);
+  const [blockModalOpen, setBlockModalOpen] = useState(false);
+  const [userToBlock, setUserToBlock] = useState<{ id: string; isBlocked: boolean } | null>(null);
 
   const { users, loading, error, totalPages } = useSelector(
     (state: RootState) => state.userManagement as UserManagementState
@@ -58,16 +61,23 @@ export default function UserManagement() {
   }), [isOpen, isMobile]);
 
   const handleBlockUser = useCallback(async (userId: string, isBlocked: boolean) => {
+    setUserToBlock({ id: userId, isBlocked });
+    setBlockModalOpen(true);
+  }, []);
+
+  const handleBlockConfirm = useCallback(async () => {
+    if (!userToBlock) return;
+    
     try {
-      if (isBlocked) {
-        await dispatch(unblockUser(userId)).unwrap();
+      if (userToBlock.isBlocked) {
+        await dispatch(unblockUser(userToBlock.id)).unwrap();
         notifications.show({
           title: 'Success',
           message: 'User has been unblocked',
           color: 'green',
         });
       } else {
-        await dispatch(blockUser(userId)).unwrap();
+        await dispatch(blockUser(userToBlock.id)).unwrap();
         notifications.show({
           title: 'Success',
           message: 'User has been blocked',
@@ -81,8 +91,11 @@ export default function UserManagement() {
         message: errorMessage,
         color: 'red',
       });
+    } finally {
+      setBlockModalOpen(false);
+      setUserToBlock(null);
     }
-  }, [dispatch]);
+  }, [dispatch, userToBlock]);
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.currentTarget.value);
@@ -314,6 +327,20 @@ export default function UserManagement() {
           )}
         </Paper>
       </Stack>
+
+      <ConfirmModal
+        opened={blockModalOpen}
+        onClose={() => {
+          setBlockModalOpen(false);
+          setUserToBlock(null);
+        }}
+        onConfirm={handleBlockConfirm}
+        title={userToBlock?.isBlocked ? "Unblock User" : "Block User"}
+        message={`Are you sure you want to ${userToBlock?.isBlocked ? 'unblock' : 'block'} this user?`}
+        confirmLabel={userToBlock?.isBlocked ? "Unblock" : "Block"}
+        confirmColor={userToBlock?.isBlocked ? "green" : "red"}
+        loading={loading}
+      />
     </Container>
   );
 } 
