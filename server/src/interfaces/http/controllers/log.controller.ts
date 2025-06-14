@@ -6,8 +6,7 @@ export class LogController {
 
   createLog = async (req: Request, res: Response): Promise<void> => {
       const { title, content, tags, mediaUrls, createdAt } = req.body;
-      const userId = req.user?.id;
-      if (!userId) throw new Error('User not authenticated');
+      const userId = req.user?.id 
 
       const log = await this.logService.createLog(userId, {
         title,
@@ -24,8 +23,7 @@ export class LogController {
   getLogs = async (req: Request, res: Response): Promise<void> => {
 
       const { page, limit, search, filters, sortBy, sortOrder } = req.query;
-      const userId = req.user?.id;
-      if (!userId) throw new Error('User not authenticated');
+      const userId = req.user?.id|| ''
 
       const parsedFilters = filters ? JSON.parse(filters as string) : {};
       const result = await this.logService.getLogs(userId, {

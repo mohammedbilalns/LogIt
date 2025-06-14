@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import { logger } from '../../../utils/logger';
+import { HttpStatus } from '../../../config/statusCodes';
 
 
 const generateToken = () => crypto.randomBytes(32).toString('hex');
@@ -19,7 +20,7 @@ export const csrfMiddleware = () => {
     const storedToken = req.cookies['csrfToken'];
     console.log('Stored token:', storedToken);
     if (!csrfToken || !storedToken || csrfToken !== storedToken) {
-      return res.status(403).json({ message: 'Invalid CSRF token' });
+      return res.status(HttpStatus.FORBIDDEN).json({ message: 'Invalid CSRF token' });
     }
 
     next();

@@ -2,12 +2,13 @@ import { User } from '../../../domain/entities/user.entity';
 import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
 import { IArticleRepository } from '../../../domain/repositories/article.repository.interface';
 import { LogRepository } from '../../../domain/repositories/log.repository';
-import { UserNotFoundError, InvalidPasswordError, PasswordMismatchError, InvalidProfileDataError, UserBlockedError } from '../../../application/errors/user.errors';
+import { UserNotFoundError, InvalidPasswordError, PasswordMismatchError, UserBlockedError, UnauthorizedError } from '../../errors/auth.errors';
 import { MongoUserRepository } from '../../../infrastructure/repositories/user.repository';
 import { MongoArticleRepository } from '../../../infrastructure/repositories/article.repository';
 import { MongoLogRepository } from '../../../infrastructure/repositories/log.repository';
 
 import bcrypt from 'bcryptjs';
+import { InvalidFieldsError, MissingFieldsError } from '../../errors/form.errors';
 
 export class UserService {
   private userRepository: IUserRepository;
@@ -27,12 +28,15 @@ export class UserService {
     }
   }
 
-  async updateProfile(userId: string, profileData: {
+  async updateProfile(userId: string | undefined, profileData: {
     name?: string;
     profileImage?: string;
     profession?: string;
     bio?: string;
   }): Promise<User> {
+    if(!userId){
+      throw new UnauthorizedError()
+    }
     const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new UserNotFoundError();
@@ -43,11 +47,11 @@ export class UserService {
 
     // Validate profile data
     if (profileData.name && profileData.name.length < 2) {
-      throw new InvalidProfileDataError('Name must be at least 2 characters long');
+      throw new InvalidFieldsError('Name must be at least 2 characters long')
     }
 
     if (profileData.bio && profileData.bio.length > 500) {
-      throw new InvalidProfileDataError('Bio must not exceed 500 characters');
+      throw new InvalidFieldsError('Bio must not exceed 500 characters')
     }
 
     const updatedUser = await this.userRepository.update(userId, profileData);
@@ -58,25 +62,28 @@ export class UserService {
     return updatedUser;
   }
 
-  async changePassword(userId: string, oldPassword: string, newPassword: string): Promise<User> {
+  async changePassword(userId: string| undefined, oldPassword: string, newPassword: string): Promise<User> {
+    if(!userId){
+      throw new UnauthorizedError()
+    }
+    if(!oldPassword || !newPassword){
+      throw new MissingFieldsError()
+    }
     const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new UserNotFoundError();
     }
 
-    // Check if user is blocked
-    await this.checkUserBlocked(userId);
-
     // Verify old password
     const isPasswordValid = await this.userRepository.verifyPassword(userId, oldPassword);
     if (!isPasswordValid) {
-      throw new InvalidPasswordError('Current password is incorrect');
+      throw new InvalidPasswordError();
     }
 
     // Check if new password is same as old password
     const isSamePassword = await this.userRepository.verifyPassword(userId, newPassword);
     if (isSamePassword) {
-      throw new PasswordMismatchError('New password cannot be the same as current password');
+      throw new PasswordMismatchError();
     }
 
     // Validate new password requirements
@@ -113,8 +120,11 @@ export class UserService {
     return updatedUser;
   }
 
-  async getHomeData(userId: string) {
+  async getHomeData(userId: string | undefined) {
     try {
+      if(!userId){
+        throw new UnauthorizedError()
+      }
       // Verify user exists
       const user = await this.userRepository.findById(userId);
       if (!user) {

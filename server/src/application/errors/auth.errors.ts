@@ -100,3 +100,11 @@ export class InvalidResetOTPError extends HttpError {
     this.name = 'InvalidResetOTPError';
   }
 }
+
+
+export class UnauthorizedError extends HttpError {
+  constructor(message: string = 'User ID is required'){
+    super(HttpStatus.UNAUTHORIZED, message)
+    this.name = 'UnauthorizedError'
+  }
+}

@@ -5,7 +5,7 @@ import { HttpStatus } from "../../../config/statusCodes";
 export const errorMiddleware = () => {
   return (err: unknown, _req: Request, res: Response, next: NextFunction) => {
     if (err) {
-      console.log("Error caught here");
+      logger.cyan("Middleware", "Error middleware");
 
       logger.red("Error", err instanceof Error ? err.message : "Unknown error");
       function hasStatusCode(error: unknown): error is { statusCode: number } {

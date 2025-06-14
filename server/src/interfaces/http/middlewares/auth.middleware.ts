@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import env from '../../../config/env';
 import { logger } from '../../../utils/logger';
 import { UserService } from '../../../application/usecases/usermanagement/user.service';
+import { HttpStatus } from '../../../config/statusCodes'
 
 declare module 'express' {
     interface Request {
@@ -24,7 +25,7 @@ export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
       logger.cyan("ACCESS_TOKEN", token);
 
       if (!token) {
-        res.status(401).json({ message: 'Authentication required' });
+        res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Authentication required' });
         return;
       }
 

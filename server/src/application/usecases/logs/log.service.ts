@@ -6,6 +6,8 @@ import { logger } from '../../../utils/logger';
 import { ITagRepository } from '../../../domain/repositories/tag.repository.interface';
 import { Tag } from '../../../domain/entities/tag.entity';
 import { LogTag } from '../../../domain/entities/log-tag.entity';
+import { UnauthorizedError } from '../../errors/auth.errors';
+import { InternalServerError } from '../../errors/internal.errors';
 
 interface CreateLogData {
   title: string;
@@ -50,8 +52,11 @@ export class LogService {
     private tagRepository: ITagRepository
   ) {}
 
-  async createLog(userId: string, data: CreateLogData): Promise<LogWithRelations> {
+  async createLog(userId: string | undefined, data: CreateLogData): Promise<LogWithRelations> {
     try {
+      if(!userId){
+        throw new UnauthorizedError()
+      }
       const log = await this.logRepository.create({
         userId,
         title: data.title,
@@ -59,7 +64,7 @@ export class LogService {
       });
 
       if (!log.id) {
-        throw new Error('Failed to create log: missing id');
+        throw new InternalServerError('Missing Log Id')
       }
 
       const logId = log.id;
@@ -92,7 +97,7 @@ export class LogService {
 
       const logWithRelations = await this.getLogWithRelations(logId);
       if (!logWithRelations) {
-        throw new Error('Failed to create log with relations');
+        throw new InternalServerError('Failed to create log with relations');
       }
       return logWithRelations;
     } catch (error) {
@@ -108,7 +113,7 @@ export class LogService {
 
       const logIds = logs.map(log => {
         if (!log.id) {
-          throw new Error('Log missing id');
+          throw new InternalServerError('Log missing id');
         }
         return log.id;
       });
@@ -131,7 +136,7 @@ export class LogService {
 
       const logsWithRelations = logs.map(log => {
         if (!log.id) {
-          throw new Error('Log missing id');
+          throw new InternalServerError('Log missing id');
         }
         const logId = log.id;
         return {
@@ -166,7 +171,7 @@ export class LogService {
       }
 
       if (!log.id) {
-        throw new Error('Log missing id');
+        throw new InternalServerError('Log missing id');
       }
 
       const [tags, media] = await Promise.all([
@@ -204,10 +209,6 @@ export class LogService {
       const log = await this.logRepository.findById(logId);
       if (!log || log.userId !== userId) {
         return null;
-      }
-
-      if (!log.id) {
-        throw new Error('Log missing id');
       }
 
       await this.logRepository.update(logId, {
@@ -289,10 +290,6 @@ export class LogService {
   private async getLogWithRelations(logId: string): Promise<LogWithRelations | null> {
     const log = await this.logRepository.findById(logId);
     if (!log) return null;
-
-    if (!log.id) {
-      throw new Error('Log missing id');
-    }
 
     const [tags, media] = await Promise.all([
       this.logTagRepository.findByLogId(logId),

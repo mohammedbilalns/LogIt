@@ -21,10 +21,11 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "resolveJsonModule": true,
-    "baseUrl": ".",
+    // "baseUrl": ".",
     "paths": {
       "@shared/*": ["../shared/*"],
-      "@routes/*": ["./interfaces/http/routes/*"]
+      "@routes/*": ["./interfaces/http/routes/*"],
+      "@config/*": ["./config/*"]
     }
   },
   "exclude": ["node_modules"],

@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { OTP } from "src/domain/entities/otp.entity";
+import { OTP } from "../../domain/entities/otp.entity";
 
 // type that omits the id from OTP 
 type OTPWithoutId = Omit<OTP, 'id'>;

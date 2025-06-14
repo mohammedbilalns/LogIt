@@ -9,8 +9,6 @@ const router = Router();
 const userService = new UserService();
 const userController = new UserController(userService);
 
-
-
 // Protected routes
 router.use(
   asyncHandler((req, res, next) => authMiddleware()(req, res, next)),
@@ -30,8 +28,9 @@ router.put(
   asyncHandler((req, res) => userController.changePassword(req, res))
 );
 
-router.get("/home",
-  asyncHandler((req,res)=> userController.getHome(req,res))
- );
+router.get(
+  "/home",
+  asyncHandler((req, res) => userController.getHome(req, res))
+);
 
 export default router;

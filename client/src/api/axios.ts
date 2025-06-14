@@ -72,28 +72,30 @@ export const setupAxiosInterceptors = (store: { dispatch: AppDispatch }) => {
       if (!originalRequest) {
         return Promise.reject(error);
       }
-      
-    if (SKIP_AUTH_ROUTES.some(path => originalRequest.url?.includes(path))) {
-      return Promise.reject(error);
-    }
 
-      if(error.response?.status === 403 && 
-         typeof error.response?.data === 'object' && 
-         error.response?.data !== null &&
-         'message' in error.response.data &&
-         (error.response.data as { message?: string }).message === "User is blocked"){
+      const status = error.response?.status;
+      const message = (error.response?.data as any)?.message;
+
+      // Handle blocked user
+      if (
+        status === 403 &&
+        message === 'User is blocked'
+      ) {
         store.dispatch({ type: 'auth/logout' });
         window.location.href = '/login?error=blocked';
         return Promise.reject(error);
       }
 
-      // If the error is not 401 or the request is already a refresh token request reject
-      if (error.response?.status !== 401 || originalRequest.url?.includes('/auth/refresh')) {
+      // Only attempt refresh if status is 401 and message matches
+      if (
+        status !== 401 ||
+        message !== 'Authentication required' ||
+        originalRequest.url?.includes('/auth/refresh')
+      ) {
         return Promise.reject(error);
       }
 
       if (isRefreshing) {
-        // add request to queue when refreshing 
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -103,22 +105,17 @@ export const setupAxiosInterceptors = (store: { dispatch: AppDispatch }) => {
             }
             return axiosInstance(originalRequest);
           })
-          .catch((err: unknown) => {
-            return Promise.reject(err);
-          });
+          .catch((err) => Promise.reject(err));
       }
 
       isRefreshing = true;
 
       try {
-        // Attempt to refresh the token
         const response = await axiosInstance.post('/auth/refresh');
         const { accessToken } = response.data;
 
-        // Process all queued requests
         processQueue(null, accessToken);
 
-        // Retry the original request
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         }

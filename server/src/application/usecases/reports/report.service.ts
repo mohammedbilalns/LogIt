@@ -3,12 +3,16 @@ import { Report } from '../../../domain/entities/report.entity';
 import { logger } from '../../../utils/logger';
 import { ArticleService } from '../articles/article.service';
 import { UserManagementService } from '../usermanagement/usermanagement.service';
+// import { AlreadyReportedError, ReporterNotFoundError, ReportNotFoundError } from '../../errors/report.errors';
+import { UnauthorizedError } from '../../errors/auth.errors';
+import { InvalidFieldsError, MissingFieldsError } from '../../errors/form.errors';
+import { ResourceConflictError, ResourceNotFoundError } from '../../errors/resource.errors';
 
 interface CreateReportParams {
-  reportedBy: string;  // This is the user ID
-  targetType: 'article' | 'user';
-  targetId: string;
-  reason: string;
+  reportedBy: string | undefined ;  
+  targetType: 'article' | 'user'| undefined;
+  targetId: string | undefined;
+  reason: string | undefined;
 }
 
 interface GetReportsParams {
@@ -30,6 +34,17 @@ export class ReportService {
 
   async createReport(data: CreateReportParams): Promise<Report> {
     try {
+      if(!data.reportedBy){
+        throw new UnauthorizedError()
+      }
+      if(!data.targetId || !data.targetType || !data.reason){
+        throw new MissingFieldsError()
+      }
+
+      if (data.targetType !== 'article' && data.targetType !== 'user') {
+        throw new InvalidFieldsError('Invalid Target Type')
+      }
+
       // Check if user has already reported this target
       const exists = await this.reportRepository.existsByTarget({
         targetType: data.targetType,
@@ -38,13 +53,13 @@ export class ReportService {
       });
 
       if (exists) {
-        throw new Error('You have already reported this content');
+        throw new ResourceConflictError("Report Already exists");
       }
 
       // Verify that the reporter exists and get details
       const reporter = await this.userManagementService.getUserById(data.reportedBy);
       if (!reporter) {
-        throw new Error('Reporter not found');
+        throw new ResourceNotFoundError("Reporter no found");
       }
 
       const reportData = {
@@ -107,9 +122,10 @@ export class ReportService {
 
   async updateReportStatus(reportId: string, status: 'pending' | 'reviewed' | 'resolved'): Promise<Report | null> {
     try {
+
       const report = await this.reportRepository.findById(reportId);
       if (!report) {
-        throw new Error('Report not found');
+        throw new ResourceNotFoundError("Report Not found")
       }
 
       const updatedReport = await this.reportRepository.updateStatus(reportId, status);

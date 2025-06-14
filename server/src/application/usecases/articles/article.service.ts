@@ -1,11 +1,16 @@
-import { Article, ArticleWithTags } from '../../../domain/entities/article.entity';
-import { IArticleRepository } from '../../../domain/repositories/article.repository.interface';
-import { ITagRepository } from '../../../domain/repositories/tag.repository.interface';
-import { IArticleTagRepository } from '../../../domain/repositories/article-tag.repository.interface';
-import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
-import { ReportRepository } from '../../../domain/repositories/report.repository.interface';
-import { logger } from '../../../utils/logger';
+import {
+  Article,
+  ArticleWithTags,
+} from "../../../domain/entities/article.entity";
+import { IArticleRepository } from "../../../domain/repositories/article.repository.interface";
+import { ITagRepository } from "../../../domain/repositories/tag.repository.interface";
+import { IArticleTagRepository } from "../../../domain/repositories/article-tag.repository.interface";
+import { IUserRepository } from "../../../domain/repositories/user.repository.interface";
+import { ReportRepository } from "../../../domain/repositories/report.repository.interface";
+import { logger } from "../../../utils/logger";
 
+import { MissingFieldsError } from "../../errors/form.errors";
+import { ResourceNotFoundError } from "../../errors/resource.errors";
 export class ArticleService {
   constructor(
     private articleRepository: IArticleRepository,
@@ -15,44 +20,60 @@ export class ArticleService {
     private reportRepository: ReportRepository
   ) {}
 
-  async createArticle(article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>, tagIds: string[]): Promise<ArticleWithTags | string> {
-    
- 
+  async createArticle(
+    article: Omit<Article, "id" | "createdAt" | "updatedAt"> & {
+  authorId?: string;},
+    tagIds: string[]
+  ): Promise<ArticleWithTags | string> {
+    if (!article.authorId || !article.title || !article.content) {
+      throw new MissingFieldsError();
+    }
+
     const newArticle = await this.articleRepository.create(article);
-    
     // Create article-tag relationships
     for (const tagId of tagIds) {
       const tag = await this.tagRepository.findById(tagId);
       if (tag) {
-        await this.articleTagRepository.create({ articleId: newArticle.id!, tagId });
+        await this.articleTagRepository.create({
+          articleId: newArticle.id!,
+          tagId,
+        });
         await this.tagRepository.incrementUsageCount(tagId);
       }
     }
-
-
     return this.getArticleWithTags(newArticle.id!);
   }
 
-  async getArticle(id: string, userId?: string): Promise<ArticleWithTags | null> {
+  async getArticle(
+    id: string,
+    userId?: string
+  ): Promise<ArticleWithTags | null> {
     const article = await this.articleRepository.findById(id);
     if (!article) return null;
-    
+
     const articleWithTags = await this.getArticleWithTags(id);
 
     // Check if the article is reported by the user
     if (userId) {
       const isReported = await this.reportRepository.existsByTarget({
-        targetType: 'article',
+        targetType: "article",
         targetId: id,
-        reporterId: userId
+        reporterId: userId,
       });
       return { ...articleWithTags, isReported };
     }
-    
+
     return articleWithTags;
   }
 
-  async updateArticle(id: string, article: Partial<Article>, tagIds?: string[]): Promise<ArticleWithTags | null> {
+  async updateArticle(
+    id: string,
+    article: Partial<Article>,
+    tagIds?: string[]
+  ): Promise<ArticleWithTags | null> {
+    if (!article.title || article.content) {
+      throw new MissingFieldsError();
+    }
     const updatedArticle = await this.articleRepository.update(id, article);
     if (!updatedArticle) return null;
 
@@ -84,7 +105,7 @@ export class ArticleService {
       await this.tagRepository.decrementUsageCount(tag.tagId);
     }
     await this.articleTagRepository.deleteByArticleId(id);
-    
+
     // Delete the article
     await this.articleRepository.delete(id);
   }
@@ -94,7 +115,7 @@ export class ArticleService {
     limit?: number;
     search?: string;
     sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
+    sortOrder?: "asc" | "desc";
     filters?: {
       authorId?: string;
       isActive?: boolean;
@@ -102,63 +123,72 @@ export class ArticleService {
       tagIds?: string[];
     };
   }): Promise<{ articles: ArticleWithTags[]; total: number }> {
-
-   const normalizedParams = {
+    const normalizedParams = {
       ...params,
-      filters: params.filters ? {
-        ...params.filters,
-        tags: params.filters.tagIds || params.filters.tags,
-        tagIds: undefined
-      } : undefined
+      filters: params.filters
+        ? {
+            ...params.filters,
+            tags: params.filters.tagIds || params.filters.tags,
+            tagIds: undefined,
+          }
+        : undefined,
     };
 
     const result = await this.articleRepository.findAll(normalizedParams);
-  
 
     const articlesWithTags = await Promise.all(
-      result.data.map(article => this.getArticleWithTags(article.id!))
+      result.data.map((article) => this.getArticleWithTags(article.id!))
     );
 
-
     //  sorting by  usage count
-    if (params.sortBy === 'tagUsageCount') {
+    if (params.sortBy === "tagUsageCount") {
       articlesWithTags.sort((a, b) => {
         const aTagCount = a.tags.length;
         const bTagCount = b.tags.length;
-        return params.sortOrder === 'desc' ? bTagCount - aTagCount : aTagCount - bTagCount;
+        return params.sortOrder === "desc"
+          ? bTagCount - aTagCount
+          : aTagCount - bTagCount;
       });
     }
 
     return { articles: articlesWithTags, total: result.total };
   }
 
-  private async getArticleWithTags(articleId: string): Promise<ArticleWithTags> {
+  private async getArticleWithTags(
+    articleId: string
+  ): Promise<ArticleWithTags> {
     const article = await this.articleRepository.findById(articleId);
-    if (!article) throw new Error('Article not found');
+    if (!article) throw new ResourceNotFoundError("Article Not Found");
 
-    const articleTags = await this.articleTagRepository.findByArticleId(articleId);
-    const tagIds = articleTags.map(at => at.tagId);
-    const tags = await Promise.all(tagIds.map(id => this.tagRepository.findById(id)));
-    const tagNames = tags.map(tag => tag?.name).filter((name): name is string => name !== null);
+    const articleTags = await this.articleTagRepository.findByArticleId(
+      articleId
+    );
+    const tagIds = articleTags.map((at) => at.tagId);
+    const tags = await Promise.all(
+      tagIds.map((id) => this.tagRepository.findById(id))
+    );
+    const tagNames = tags
+      .map((tag) => tag?.name)
+      .filter((name): name is string => name !== null);
 
     // Get author information
     const author = await this.userRepository.findById(article.authorId);
-    const authorName = author ? author.name : 'Unknown Author';
+    const authorName = author ? author.name : "Unknown Author";
 
     return {
       ...article,
       tags: tagIds,
       tagNames,
-      author: authorName
+      author: authorName,
     };
   }
 
   async blockArticle(articleId: string): Promise<void> {
     const article = await this.articleRepository.findById(articleId);
     if (!article) {
-      throw new Error('Article not found');
+      throw new ResourceNotFoundError("Article Not Found");
     }
     await this.articleRepository.update(articleId, { isActive: false });
-    logger.green('ARTICLE_BLOCKED', `Article ${articleId} has been blocked`);
+    logger.green("ARTICLE_BLOCKED", `Article ${articleId} has been blocked`);
   }
-} 
+}

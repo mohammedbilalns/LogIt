@@ -1,5 +1,7 @@
-import { Tag } from '../../../domain/entities/tag.entity';
-import { ITagRepository } from '../../../domain/repositories/tag.repository.interface';
+import { UnauthorizedError } from "../../errors/auth.errors";
+import { Tag } from "../../../domain/entities/tag.entity";
+import { ITagRepository } from "../../../domain/repositories/tag.repository.interface";
+import { InvalidFieldsError } from "../../errors/form.errors";
 
 interface GetTagsParams {
   page?: number;
@@ -12,7 +14,7 @@ interface GetTagsParams {
 export class TagService {
   constructor(private tagRepository: ITagRepository) {}
 
-  async createTag(tag: Omit<Tag, 'id'>): Promise<Tag> {
+  async createTag(tag: Omit<Tag, "id">): Promise<Tag> {
     return this.tagRepository.create(tag);
   }
 
@@ -20,18 +22,22 @@ export class TagService {
     return this.tagRepository.findById(id);
   }
 
-  async getTags(params: GetTagsParams): Promise<{ tags: Tag[]; total: number }> {
+  async getTags(
+    params: GetTagsParams
+  ): Promise<{ tags: Tag[]; total: number }> {
     const { userId, limit = 5, promoted } = params;
-    
+    if (!params.search || typeof params.search !== "string") {
+      throw new InvalidFieldsError("Search query is required");
+    }
     if (promoted === true) {
       const promotedTags = await this.tagRepository.findAll({
         ...params,
         filters: { promoted: true },
-        limit: limit
+        limit: limit,
       });
       return {
         tags: promotedTags.data,
-        total: promotedTags.total
+        total: promotedTags.total,
       };
     }
 
@@ -39,26 +45,26 @@ export class TagService {
       const nonPromotedTags = await this.tagRepository.findAll({
         ...params,
         filters: { promoted: false },
-        limit: limit
+        limit: limit,
       });
       return {
         tags: nonPromotedTags.data,
-        total: nonPromotedTags.total
+        total: nonPromotedTags.total,
       };
     }
 
-    // get promoted tags 
+    // get promoted tags
     const promotedTags = await this.tagRepository.findAll({
       ...params,
       filters: { promoted: true },
-      limit: limit
+      limit: limit,
     });
 
-    // If there is  enough promoted tags, return 
+    // If there is  enough promoted tags, return
     if (promotedTags.data.length >= limit) {
       return {
         tags: promotedTags.data.slice(0, limit),
-        total: promotedTags.total
+        total: promotedTags.total,
       };
     }
 
@@ -66,26 +72,30 @@ export class TagService {
     if (userId) {
       const userTags = await this.tagRepository.findUserMostUsedTags(userId, {
         limit: limit - promotedTags.data.length,
-        excludeIds: promotedTags.data.map(tag => tag.id).filter((id): id is string => id !== undefined)
+        excludeIds: promotedTags.data
+          .map((tag) => tag.id)
+          .filter((id): id is string => id !== undefined),
       });
 
       // Combine promoted and user tags
       return {
         tags: [...promotedTags.data, ...userTags.data],
-        total: promotedTags.total + userTags.total
+        total: promotedTags.total + userTags.total,
       };
     }
 
     // get most used tags overall
     const mostUsedTags = await this.tagRepository.findMostUsedTags({
       limit: limit - promotedTags.data.length,
-      excludeIds: promotedTags.data.map(tag => tag.id).filter((id): id is string => id !== undefined)
+      excludeIds: promotedTags.data
+        .map((tag) => tag.id)
+        .filter((id): id is string => id !== undefined),
     });
 
     // Combine promoted and most used tags
     return {
       tags: [...promotedTags.data, ...mostUsedTags.data],
-      total: promotedTags.total + mostUsedTags.total
+      total: promotedTags.total + mostUsedTags.total,
     };
   }
 
@@ -105,29 +115,36 @@ export class TagService {
     return this.tagRepository.update(id, { promoted: false });
   }
 
-  async getPromotedAndUserTags(userId: string, limit: number = 5): Promise<{ tags: Tag[]; total: number }> {
+  async getPromotedAndUserTags(
+    userId: string | undefined,
+    limit: number = 5
+  ): Promise<{ tags: Tag[]; total: number }> {
     //  get promoted tags
+    if (!userId) {
+      throw new UnauthorizedError();
+    }
     const promotedTags = await this.tagRepository.findAll({
       filters: { promoted: true },
-      limit: limit
+      limit: limit,
     });
-
 
     if (promotedTags.data.length >= limit) {
       return {
         tags: promotedTags.data.slice(0, limit),
-        total: promotedTags.total
+        total: promotedTags.total,
       };
     }
 
     const userTags = await this.tagRepository.findUserMostUsedTags(userId, {
       limit: limit - promotedTags.data.length,
-      excludeIds: promotedTags.data.map(tag => tag.id).filter((id): id is string => id !== undefined)
+      excludeIds: promotedTags.data
+        .map((tag) => tag.id)
+        .filter((id): id is string => id !== undefined),
     });
 
     return {
       tags: [...promotedTags.data, ...userTags.data],
-      total: promotedTags.total + userTags.total
+      total: promotedTags.total + userTags.total,
     };
   }
-} 
+}
