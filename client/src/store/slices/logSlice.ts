@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '@axios';
 import { RootState } from '@/store';
 import axios from 'axios';
+import { API_ROUTES } from '@/constants/routes';
 
 interface Tag {
     id: string;
@@ -50,7 +51,7 @@ export const fetchLogs = createAsyncThunk(
     }, { getState, rejectWithValue }) => {
         try {
             const state = getState() as RootState;
-            const response = await axiosInstance.get('/logs', {
+            const response = await axiosInstance.get(API_ROUTES.LOGS.BASE, {
                 params: {
                     page,
                     limit,
@@ -84,7 +85,7 @@ export const fetchLog = createAsyncThunk(
     'logs/fetchOne',
     async (id: string, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get(`/logs/${id}`);
+            const response = await axiosInstance.get(API_ROUTES.LOGS.BY_ID(id));
             return {
                 ...response.data,
                 tags: response.data.tags || [],
@@ -112,7 +113,7 @@ export const createLog = createAsyncThunk(
         createdAt: Date | null;
     }, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.post('/logs', {
+            const response = await axiosInstance.post(API_ROUTES.LOGS.BASE, {
                 title: logData.title,
                 content: logData.content,
                 tags: logData.tags,
@@ -146,7 +147,7 @@ export const updateLog = createAsyncThunk(
         createdAt: Date | null;
     }, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.put(`/logs/${id}`, {
+            const response = await axiosInstance.put(API_ROUTES.LOGS.BY_ID(id), {
                 title: logData.title,
                 content: logData.content,
                 tags: logData.tags,
@@ -170,7 +171,7 @@ export const deleteLog = createAsyncThunk(
     'logs/delete',
     async (id: string, { rejectWithValue }) => {
         try {
-            await axiosInstance.delete(`/logs/${id}`);
+            await axiosInstance.delete(API_ROUTES.LOGS.BY_ID(id));
             return id;
         } catch (error: unknown) {
             if (axios.isAxiosError(error)) {

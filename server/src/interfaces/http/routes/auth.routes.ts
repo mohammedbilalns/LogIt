@@ -19,19 +19,11 @@ router.get(
   asyncHandler((req, res) => authController.getCsrfToken(req, res))
 );
 
-router.get(
-  "/me",
-  asyncHandler((req, res, next) =>
-    authorizeRoles("user", "admin", "superadmin")(req, res, next)
-  ),
-  (req, res) => authController.getUserDetail(req, res)
-);
-
-// Token refresh
 router.post(
   "/refresh",
   asyncHandler((req, res) => authController.refresh(req, res))
 );
+
 router.post(
   "/google",
   asyncHandler((req, res) => authController.googleAuth(req, res))

@@ -69,20 +69,7 @@ export class MongoArticleRepository extends BaseRepository<ArticleDocument, Arti
       this.model.countDocuments(query)
     ]);
 
-    console.log('MongoArticleRepository.findAll - Query result:', {
-      total,
-      articleCount: data.length,
-      firstArticle: data[0] ? {
-        id: data[0]._id?.toString() || '',
-        title: data[0].title || '',
-        isActive: data[0].isActive ?? true
-      } : null,
-      query: {
-        ...query,
-        _id: articleIds ? { $in: articleIds } : undefined
-      }
-    });
-
+   
     return {
       data: data.map(doc => ({
         id: doc._id?.toString() || '',

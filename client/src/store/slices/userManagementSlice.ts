@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { RootState } from '@/store';
 import axiosInstance from '@axios';
 import { User } from '@type/user.types';
+import { API_ROUTES } from '@/constants/routes';
 
 export interface UserManagementState {
   users: User[];
@@ -28,7 +29,7 @@ export const fetchUsers = createAsyncThunk(
   'userManagement/fetchUsers',
   async ({ page, limit, search }: { page: number; limit: number; search: string }, { getState }) => {
     const state = getState() as RootState;
-    const response = await axiosInstance.get('/admin/users', {
+    const response = await axiosInstance.get(API_ROUTES.USER_MANAGEMENT.BASE, {
       params: {
         page,
         limit,
@@ -43,7 +44,7 @@ export const fetchUsers = createAsyncThunk(
 export const blockUser = createAsyncThunk(
   'userManagement/blockUser',
   async (id: string) => {
-    const response = await axiosInstance.patch(`/admin/users/${id}`, { isBlocked: true });
+    const response = await axiosInstance.patch(API_ROUTES.USER_MANAGEMENT.BY_ID(id), { isBlocked: true });
     return response.data;
   }
 );
@@ -51,7 +52,7 @@ export const blockUser = createAsyncThunk(
 export const unblockUser = createAsyncThunk(
   'userManagement/unblockUser',
   async (id: string) => {
-    const response = await axiosInstance.patch(`/admin/users/${id}`, { isBlocked: false });
+    const response = await axiosInstance.patch(API_ROUTES.USER_MANAGEMENT.BY_ID(id), { isBlocked: false });
     return response.data;
   }
 );
@@ -64,7 +65,7 @@ export const updateProfile = createAsyncThunk(
     bio: string;
     profileImage: string | null;
   }) => {
-    const response = await axiosInstance.put('/user/update-profile', profileData);
+    const response = await axiosInstance.put(API_ROUTES.USER_MANAGEMENT.UPDATE_PROFILE, profileData);
     return response.data;
   }
 );
@@ -75,7 +76,7 @@ export const changePassword = createAsyncThunk(
     oldPassword: string;
     newPassword: string;
   }) => {
-    const response = await axiosInstance.put('/user/change-password', passwordData);
+    const response = await axiosInstance.put(API_ROUTES.AUTH.CHANGE_PASSWORD, passwordData);
     return response.data;
   }
 );

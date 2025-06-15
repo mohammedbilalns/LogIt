@@ -4,6 +4,7 @@ import { RootState } from '@/store';
 import {  ArticleState } from '@type/article.types';
 import axios from 'axios';
 import { PayloadAction } from '@reduxjs/toolkit';
+import { API_ROUTES } from '@/constants/routes';
 
 const initialState: ArticleState = {
   articles: [],
@@ -26,7 +27,7 @@ export const createArticle = createAsyncThunk(
     tagIds: string[]; 
     featured_image?: string;
   }) => {
-    const response = await axiosInstance.post('/articles', articleData);
+    const response = await axiosInstance.post(API_ROUTES.ARTICLES.BASE, articleData);
     return response.data;
   }
 );
@@ -43,7 +44,7 @@ export const updateArticle = createAsyncThunk(
     }
   }) => {
   
-    const response = await axiosInstance.put(`/articles/${id}`, articleData);
+    const response = await axiosInstance.put(API_ROUTES.ARTICLES.BY_ID(id), articleData);
     return response.data;
   }
 );
@@ -51,7 +52,7 @@ export const updateArticle = createAsyncThunk(
 export const deleteArticle = createAsyncThunk(
   'articles/delete',
   async (id: string) => {
-    await axiosInstance.delete(`/articles/${id}`);
+    await axiosInstance.delete(API_ROUTES.ARTICLES.BY_ID(id));
     return id;
   }
 );
@@ -67,7 +68,7 @@ export const fetchArticles = createAsyncThunk(
     filters?: string;
   }, { getState }) => {
     const state = getState() as RootState;
-    const response = await axiosInstance.get('/articles', {
+    const response = await axiosInstance.get(API_ROUTES.ARTICLES.BASE, {
       params: {
         page,
         limit,
@@ -92,7 +93,7 @@ export const fetchUserArticles = createAsyncThunk(
         return rejectWithValue('User not authenticated');
       }
 
-      const response = await axiosInstance.get('/articles', {
+      const response = await axiosInstance.get(API_ROUTES.ARTICLES.BASE, {
         params: {
           page,
           limit,
@@ -120,7 +121,7 @@ export const fetchUserArticles = createAsyncThunk(
 export const fetchArticle = createAsyncThunk(
   'articles/fetchOne',
   async (id: string) => {
-    const response = await axiosInstance.get(`/articles/${id}`);
+    const response = await axiosInstance.get(API_ROUTES.ARTICLES.BY_ID(id));
     return response.data;
   }
 );

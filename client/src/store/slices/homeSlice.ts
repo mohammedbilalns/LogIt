@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '@/api/axios';
 import { RootState } from '..';
+import { API_ROUTES } from '@/constants/routes';
 
 interface HomeData {
   articlesCount: number;
@@ -36,7 +37,7 @@ export const fetchHomeData = createAsyncThunk(
   'home/fetchData',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get('/user/home');
+      const response = await axiosInstance.get(API_ROUTES.HOME.BASE);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch home data');

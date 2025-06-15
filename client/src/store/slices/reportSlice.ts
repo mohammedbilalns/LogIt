@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axiosInstance from '@axios';
 import axios from 'axios';
+import { API_ROUTES } from '@/constants/routes';
 
 export interface Report {
   id: string;
@@ -45,7 +46,7 @@ export const fetchReports = createAsyncThunk(
         ...(status && status !== 'all' && { status }),
       });
 
-      const response = await axiosInstance.get(`/reports?${params.toString()}`);
+      const response = await axiosInstance.get(`${API_ROUTES.REPORTS.BASE}?${params.toString()}`);
       
       // Ensure the response has the expected structure
       if (!response.data || !Array.isArray(response.data.reports)) {
@@ -71,7 +72,7 @@ export const updateReportStatus = createAsyncThunk(
   'report/updateStatus',
   async ({ id, status }: { id: string; status: 'reviewed' | 'resolved' }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.patch(`/reports/${id}/status`, { status });
+      const response = await axiosInstance.patch(API_ROUTES.REPORTS.REPORT_STATUS(id), { status });
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update report status');
@@ -83,7 +84,7 @@ export const blockArticle = createAsyncThunk(
   'report/blockArticle',
   async (articleId: string, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post(`/reports/block-article/${articleId}`);
+      const response = await axiosInstance.post(API_ROUTES.REPORTS.BLOCK_ARTICLE(articleId));
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to block article');
@@ -95,7 +96,7 @@ export const createReport = createAsyncThunk(
   'report/create',
   async ({ targetType, targetId, reason }: { targetType: 'article' | 'user'; targetId: string; reason: string }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post('/reports', { targetType, targetId, reason });
+      const response = await axiosInstance.post(API_ROUTES.REPORTS.BASE, { targetType, targetId, reason });
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create report');

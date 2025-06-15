@@ -3,6 +3,7 @@ import api from '@axios';
 import { AuthResponse, LoginRequest, SignupRequest } from '@type/user.types';
 import { AuthState } from '@type/auth.types';
 import { AxiosError } from 'axios';
+import { API_ROUTES } from '@/constants/routes';
 
 interface ApiErrorResponse {
   message: string;
@@ -27,7 +28,7 @@ export const signup = createAsyncThunk(
   'auth/signup',
   async (credentials: SignupRequest, { rejectWithValue }) => {
     try {
-      const response = await api.post<AuthResponse>('/auth/signup', credentials);
+      const response = await api.post<AuthResponse>(API_ROUTES.AUTH.SIGNUP, credentials);
       return response.data;
     } catch (error) {
       const apiError = error as ApiError;
@@ -41,7 +42,7 @@ export const verifyEmail = createAsyncThunk(
   'auth/verifyEmail',
   async ({ email, otp }: { email: string; otp: string }, { rejectWithValue }) => {
     try {
-      const response = await api.post<AuthResponse>('/auth/verify-otp', { email, otp });
+      const response = await api.post<AuthResponse>(API_ROUTES.AUTH.VERIFY_OTP, { email, otp });
       return response.data;
     } catch (error) {
       const apiError = error as ApiError;
@@ -55,7 +56,7 @@ export const login = createAsyncThunk(
   'auth/login',
   async (credentials: LoginRequest, { rejectWithValue }) => {
     try {
-      const response = await api.post<AuthResponse>('/auth/login', credentials);
+      const response = await api.post<AuthResponse>(API_ROUTES.AUTH.LOGIN, credentials);
       return response.data;
     } catch (error) {
       const apiError = error as ApiError;
@@ -68,7 +69,7 @@ export const login = createAsyncThunk(
 
 export const logout = createAsyncThunk('auth/logout', async (_, { rejectWithValue }) => {
   try {
-    await api.post('/auth/logout');
+    await api.post(API_ROUTES.AUTH.LOGOUT);
     return null;
   } catch (error) {
     const apiError = error as ApiError;
@@ -79,7 +80,7 @@ export const logout = createAsyncThunk('auth/logout', async (_, { rejectWithValu
 
 export const checkAuth = createAsyncThunk('auth/check', async (_, { rejectWithValue }) => {
   try {
-    const response = await api.post<AuthResponse>('/auth/refresh');
+    const response = await api.post<AuthResponse>(API_ROUTES.AUTH.REFRESH);
     console.log("Refresh response in the frontend ", response)
     return response.data;
   } catch {
@@ -91,7 +92,7 @@ export const resendOTP = createAsyncThunk(
   'auth/resendOTP',
   async (email: string, { rejectWithValue }) => {
     try {
-      const response = await api.post<{ message: string }>('/auth/resend-otp', { email });
+      const response = await api.post<{ message: string }>(API_ROUTES.AUTH.RESEND_OTP, { email });
       return response.data;
     } catch (error) {
       const apiError = error as ApiError;
@@ -105,7 +106,7 @@ export const googleAuth = createAsyncThunk(
   'auth/google',
   async (credential: string, { rejectWithValue }) => {
     try {
-      const response = await api.post<AuthResponse>('/auth/google', { credential });
+      const response = await api.post<AuthResponse>(API_ROUTES.AUTH.GOOGLE, { credential });
       return response.data;
     } catch (error) {
       const apiError = error as ApiError;
@@ -120,7 +121,7 @@ export const initiatePasswordReset = createAsyncThunk(
   'auth/initiatePasswordReset',
   async (email: string, { rejectWithValue }) => {
     try {
-      const response = await api.post('/auth/reset-password', { email });
+      const response = await api.post(API_ROUTES.AUTH.RESET_PASSWORD, { email });
       return { email, message: response.data.message };
     } catch (error) {
       const apiError = error as ApiError;
@@ -148,7 +149,7 @@ export const updatePassword = createAsyncThunk(
   'auth/updatePassword',
   async ({ email, otp, newPassword }: { email: string; otp: string; newPassword: string }, { rejectWithValue }) => {
     try {
-      const response = await api.post('/auth/update-password', { email, otp, newPassword });
+      const response = await api.post(API_ROUTES.AUTH.UPDATE_PASSWORD, { email, otp, newPassword });
       return response.data;
     } catch (error) {
       const apiError = error as ApiError;
@@ -162,7 +163,7 @@ export const changePassword = createAsyncThunk(
   'auth/changePassword',
   async ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }, { rejectWithValue }) => {
     try {
-      const response = await api.put('/user/change-password', { currentPassword, newPassword });
+      const response = await api.put(API_ROUTES.AUTH.CHANGE_PASSWORD, { currentPassword, newPassword });
       return response.data;
     } catch (error) {
       const apiError = error as ApiError;

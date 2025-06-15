@@ -52,7 +52,9 @@ export class AuthService {
 
   async validateAccessToken(token: string) {
     try {
+
       const decoded = this.tokenService.verifyAccessToken(token);
+      
       const user = await this.userRepository.findById(decoded.id);
       
       if (!user) {

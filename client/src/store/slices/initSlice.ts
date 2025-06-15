@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '@axios';
 import { checkAuth } from './authSlice';
+import { API_ROUTES } from '@/constants/routes';
 
 interface InitState {
   isInitialized: boolean;
@@ -16,7 +17,7 @@ export const initializeApp = createAsyncThunk(
   'init/initialize',
   async (_, { dispatch, rejectWithValue }) => {
     try {
-      await api.get('/auth/csrf');
+      await api.get(API_ROUTES.AUTH.CSRF);
       await dispatch(checkAuth());
       return true;
     } catch (error: any) {

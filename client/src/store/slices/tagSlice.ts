@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '@axios';
 import { TagState} from "@type/tag.types"
+import { API_ROUTES } from '@/constants/routes';
 
 
 
@@ -21,7 +22,7 @@ const initialState: TagState = {
 export const searchTags = createAsyncThunk(
   'tags/search',
   async (query: string) => {
-    const response = await axiosInstance.get(`/tags/search?query=${encodeURIComponent(query)}`);
+    const response = await axiosInstance.get(`${API_ROUTES.TAGS.BASE}/search?query=${encodeURIComponent(query)}`);
     return response.data;
   }
 );
@@ -29,7 +30,7 @@ export const searchTags = createAsyncThunk(
 export const createTag = createAsyncThunk(
   'tags/create',
   async (name: string) => {
-    const response = await axiosInstance.post('/tags', { name });
+    const response = await axiosInstance.post(API_ROUTES.TAGS.BASE, { name });
     return response.data;
   }
 );
@@ -54,7 +55,7 @@ export const fetchTags = createAsyncThunk(
     if (sortOrder) params.append('sortOrder', sortOrder);
     if (userId) params.append('userId', userId);
 
-    const response = await axiosInstance.get(`/tags?${params.toString()}`);
+    const response = await axiosInstance.get(`${API_ROUTES.TAGS.BASE}?${params.toString()}`);
     return response.data;
   }
 );
@@ -62,7 +63,7 @@ export const fetchTags = createAsyncThunk(
 export const deleteTag = createAsyncThunk(
   'tags/delete',
   async (id: string) => {
-    await axiosInstance.delete(`/tags/${id}`);
+    await axiosInstance.delete(API_ROUTES.TAGS.BY_ID(id));
     return id;
   }
 );
@@ -70,7 +71,7 @@ export const deleteTag = createAsyncThunk(
 export const promoteTag = createAsyncThunk(
   'tags/promote',
   async (id: string) => {
-    const response = await axiosInstance.post(`/tags/${id}/promote`);
+    const response = await axiosInstance.post(API_ROUTES.TAGS.PROMOTE(id));
     return response.data;
   }
 );
@@ -78,7 +79,7 @@ export const promoteTag = createAsyncThunk(
 export const demoteTag = createAsyncThunk(
   'tags/demote',
   async (id: string) => {
-    const response = await axiosInstance.post(`/tags/${id}/demote`);
+    const response = await axiosInstance.post(API_ROUTES.TAGS.DEMOTE(id));
     return response.data;
   }
 );
@@ -88,7 +89,7 @@ export const fetchPromotedAndUserTags = createAsyncThunk(
   async ({ limit = 5 }: { limit?: number }) => {
     const params = new URLSearchParams();
     if (limit) params.append('limit', limit.toString());
-    const response = await axiosInstance.get(`/tags/promoted-and-user?${params.toString()}`);
+    const response = await axiosInstance.get(`${API_ROUTES.TAGS.BASE}/promoted-and-user?${params.toString()}`);
     return response.data;
   }
 );

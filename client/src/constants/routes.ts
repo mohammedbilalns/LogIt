@@ -1,0 +1,44 @@
+export const API_ROUTES = {
+  AUTH: {
+    SIGNUP: '/auth/signup',
+    LOGIN: '/auth/login',
+    LOGOUT: '/auth/logout',
+    VERIFY_OTP: '/auth/verify-otp',
+    RESEND_OTP: '/auth/resend-otp',
+    RESET_PASSWORD: '/auth/reset-password',
+    UPDATE_PASSWORD: '/auth/update-password',
+    CHANGE_PASSWORD: '/user/change-password',
+    GOOGLE: '/auth/google',
+    REFRESH: '/auth/refresh',
+    CSRF: '/auth/csrf',
+  },
+  ARTICLES: {
+    BASE: '/articles',
+    BY_ID: (id: string) => `/articles/${id}`,
+    FETCH_USER_ARTICLES: 'articles/fetchUserArticles',
+  },
+  LOGS: {
+    BASE: '/logs',
+    BY_ID: (id: string) => `/logs/${id}`,
+  },
+  REPORTS: {
+    BASE: '/reports',
+    REPORT_STATUS: (id: string) => `/reports/${id}/status`,
+    BLOCK_ARTICLE: (id: string) => `/reports/block-article/${id}`,
+  },
+  TAGS: {
+    BASE: '/tags',
+    BY_ID: (id: string) => `/tags/${id}`,
+    PROMOTE: (id: string) => `/tags/${id}/promote`,
+    DEMOTE: (id: string) => `/tags/${id}/demote`,
+  },
+  UPLOAD: {},
+  USER_MANAGEMENT: {
+    BASE: '/admin/users',
+    BY_ID: (id: string) => `/admin/users/${id}`,
+    UPDATE_PROFILE: '/user/update-profile',
+  },
+  HOME: {
+    BASE: '/user/home',
+  },
+};

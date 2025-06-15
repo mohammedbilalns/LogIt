@@ -7,6 +7,7 @@ import {
 } from "../../../config/constants";
 import { HttpStatus } from "../../../config/statusCodes";
 import { HttpResponse } from "../../../config/responseMessages";
+import { logger } from "../../../utils/logger";
 
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -85,7 +86,7 @@ export class AuthController {
   };
 
   refresh = async (req: Request, res: Response): Promise<void> => {
-    // Check for existing access token
+    logger.magenta("Referesh route called", "referesh");
     const accessToken = req.cookies.accessToken;
     if (accessToken) {
       const user = await this.authService.validateAccessToken(accessToken);
@@ -104,26 +105,40 @@ export class AuthController {
       return;
     }
 
-    const {
-      user,
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
-    } = await this.authService.refreshToken(refreshToken);
+    try {
+      const {
+        user,
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      } = await this.authService.refreshToken(refreshToken);
 
-    res.cookie("accessToken", newAccessToken, {
-      ...COOKIE_OPTIONS,
-      maxAge: ACCESS_COOKIE_EXPIRY,
-    });
+      res.cookie("accessToken", newAccessToken, {
+        ...COOKIE_OPTIONS,
+        maxAge: ACCESS_COOKIE_EXPIRY,
+      });
 
-    res.cookie("refreshToken", newRefreshToken, {
-      ...COOKIE_OPTIONS,
-      maxAge: REFRESH_COOKIE_EXPIRY,
-    });
+      res.cookie("refreshToken", newRefreshToken, {
+        ...COOKIE_OPTIONS,
+        maxAge: REFRESH_COOKIE_EXPIRY,
+      });
 
-    res.status(HttpStatus.OK).json({
-      message: HttpResponse.TOKEN_REFRESH_SUCCESS,
-      user,
-    });
+      res.status(HttpStatus.OK).json({
+        message: HttpResponse.TOKEN_REFRESH_SUCCESS,
+        user,
+      });
+    } catch {
+      res.cookie("accessToken", "", {
+        ...COOKIE_OPTIONS,
+        maxAge: 0,
+      });
+      res.cookie("refreshToken", "", {
+        ...COOKIE_OPTIONS,
+        maxAge: 0,
+      });
+      res.status(HttpStatus.UNAUTHORIZED).json({
+        message: HttpResponse.REQUIRED_TOKEN,
+      });
+    }
   };
 
   logout = async (_req: Request, res: Response): Promise<void> => {

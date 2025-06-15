@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { UserWithoutPassword } from '../../domain/entities/user.entity';
 import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY } from '../../config/constants';
 import { InvalidTokenTypeError } from '../errors/auth.errors';
+import { logger } from '../../utils/logger';
 
 export class TokenService {
   constructor(private jwtSecret: string) {}
@@ -28,11 +29,18 @@ export class TokenService {
   }
 
   verifyAccessToken(token: string): { id: string; email: string; role: string; type?: string } {
-    const decoded = jwt.verify(token, this.jwtSecret) as { id: string; email: string; role: string; type?: string };
-    if (decoded.type !== 'access') {
-      throw new InvalidTokenTypeError();
+    try {
+      const decoded = jwt.verify(token, this.jwtSecret) as { id: string; email: string; role: string; type?: string };
+
+      if (decoded.type !== 'access') {
+        throw new InvalidTokenTypeError();
+      }
+      
+      return decoded;
+    } catch (error) {
+      logger.red("Token verification failed:", error instanceof Error ? error.message : "Unknown error");
+      throw error;
     }
-    return decoded;
   }
 
   verifyRefreshToken(token: string): { id: string; email: string; role: string; type?: string } {
