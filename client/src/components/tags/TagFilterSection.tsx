@@ -1,4 +1,4 @@
-import { Group, Paper, Stack, Text, Chip } from '@mantine/core';
+import { Group, Paper, Stack, Text, Chip, useMantineColorScheme } from '@mantine/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { AppDispatch, RootState } from '@/store';
@@ -19,18 +19,32 @@ export default function TagFilterSection({
   searchTags,
   onSelectedTagsChange,
   onSearchTagsChange,
-  searchLabel = "Search Additional Tags",
-  searchDescription = "Search and select more tags to filter",
+  searchLabel = 'Search Additional Tags',
+  searchDescription = 'Search and select more tags to filter',
 }: TagFilterSectionProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { tags } = useSelector((state: RootState) => state.tags);
+  const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === 'dark';
 
   useEffect(() => {
     dispatch(fetchPromotedAndUserTags({ limit: 5 }));
   }, [dispatch]);
 
   return (
-    <Paper withBorder p="md" radius="md">
+    <Paper
+      p="md"
+      radius="lg"
+      withBorder={false}
+      style={{
+        backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
+        backdropFilter: 'blur(16px)',
+        border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+        boxShadow: isDark
+          ? '0 4px 24px rgba(0,0,0,0.5)'
+          : '0 4px 16px rgba(0,0,0,0.1)',
+      }}
+    >
       <Stack gap="md">
         <Stack gap="xs">
           <Text fw={500}>Quick Select Tags:</Text>
@@ -59,4 +73,4 @@ export default function TagFilterSection({
       </Stack>
     </Paper>
   );
-} 
+}

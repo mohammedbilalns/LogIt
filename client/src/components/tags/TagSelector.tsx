@@ -28,7 +28,7 @@ function TagSelector({ value, onChange }: TagSelectorProps) {
 
   // Fetch tags when component mounts
   useEffect(() => {
-    dispatch(fetchTags());
+    dispatch(fetchTags({ search: '' }));
   }, [dispatch]);
 
   // Update selected tag names 
@@ -106,7 +106,7 @@ function TagSelector({ value, onChange }: TagSelectorProps) {
   const handleDropdownOpen = useCallback(() => {
     setIsDropdownOpen(true);
     if (!searchQuery) {
-      dispatch(fetchTags());
+      dispatch(fetchTags({ search: '' }));
     }
   }, [dispatch, searchQuery]);
 
@@ -139,7 +139,7 @@ function TagSelector({ value, onChange }: TagSelectorProps) {
       if (query.trim()) {
         dispatch(searchTags(query));
       } else {
-        dispatch(fetchTags());
+        dispatch(fetchTags({ search: '' }));
       }
     }, 300); // 300ms debounce
   }, [dispatch]);

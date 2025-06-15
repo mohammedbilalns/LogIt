@@ -1,6 +1,26 @@
-import { ActionIcon, Paper, Stack, useMantineColorScheme, Group, Text, UnstyledButton, Box, Portal } from '@mantine/core';
+import {
+  ActionIcon,
+  Paper,
+  Stack,
+  useMantineColorScheme,
+  Group,
+  Text,
+  UnstyledButton,
+  Box,
+  Portal,
+} from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconDashboard, IconUsers, IconReportAnalytics, IconTags, IconSubscript, IconChartBar, IconShield, IconMenu2, IconChevronLeft } from '@tabler/icons-react';
+import {
+  IconDashboard,
+  IconUsers,
+  IconReportAnalytics,
+  IconTags,
+  IconSubscript,
+  IconChartBar,
+  IconShield,
+  IconMenu2,
+  IconChevronLeft,
+} from '@tabler/icons-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store';
@@ -17,39 +37,14 @@ export default function AdminSidebar() {
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const sidebarItems = [
-    {
-      icon: IconDashboard,
-      label: 'Dashboard',
-      path: '/admin',
-    },
-    {
-      icon: IconUsers,
-      label: 'User Management',
-      path: '/admin/users',
-    },
-    {
-      icon: IconReportAnalytics,
-      label: 'Reports Management',
-      path: '/admin/reports',
-    },
-    {
-      icon: IconTags,
-      label: 'Tag Management',
-      path: '/admin/tags',
-    },
-    {
-      icon: IconSubscript,
-      label: 'Subscription Settings',
-      path: '/admin/subscriptions',
-    },
-    {
-      icon: IconChartBar,
-      label: 'Analytics',
-      path: '/admin/analytics',
-    },
+    { icon: IconDashboard, label: 'Dashboard', path: '/admin' },
+    { icon: IconUsers, label: 'User Management', path: '/admin/users' },
+    { icon: IconReportAnalytics, label: 'Reports Management', path: '/admin/reports' },
+    { icon: IconTags, label: 'Tag Management', path: '/admin/tags' },
+    { icon: IconSubscript, label: 'Subscription Settings', path: '/admin/subscriptions' },
+    { icon: IconChartBar, label: 'Analytics', path: '/admin/analytics' },
   ];
 
-  // Add Admin Management button for superadmin
   if (user?.role === 'superadmin') {
     sidebarItems.push({
       icon: IconShield,
@@ -111,57 +106,74 @@ export default function AdminSidebar() {
 
       <Portal>
         <Paper
-          shadow="md"
           p="md"
           style={{
             position: 'fixed',
             left: isMobile ? (isOpen ? '1rem' : '-300px') : (isOpen ? '1rem' : '-300px'),
             top: '5rem',
-            backgroundColor: isDark ? 'var(--mantine-color-dark-6)' : 'var(--mantine-color-white)',
-            borderRadius: 'var(--mantine-radius-lg)',
             width: '250px',
+            height: 'calc(100vh - 6rem)',
+            zIndex: 1001,
             display: 'flex',
             flexDirection: 'column',
-            height: 'calc(100vh - 6rem)',
             justifyContent: 'space-between',
-            transition: 'left 0.3s ease',
-            zIndex: 1001,
             overflow: 'hidden',
+            borderRadius: 'var(--mantine-radius-lg)',
+            transition: 'left 0.3s ease',
+            background: isDark
+              ? 'rgba(30, 30, 30, 0.6)'
+              : 'rgba(255, 255, 255, 0.5)',
+            backdropFilter: 'blur(12px)',
+            boxShadow: isDark
+              ? '0 4px 30px rgba(0,0,0,0.4)'
+              : '0 4px 20px rgba(0,0,0,0.15)',
+            border: isDark
+              ? '1px solid rgba(255, 255, 255, 0.1)'
+              : '1px solid rgba(0, 0, 0, 0.1)',
           }}
         >
           <Stack gap="xs" style={{ overflowY: 'auto' }}>
             {sidebarItems.map((item, index) => {
               const isActive = location.pathname === item.path;
+
               return (
                 <Group key={item.label} justify="space-between" align="center" wrap="nowrap">
                   <UnstyledButton
                     onClick={() => handleNavigation(item.path)}
                     style={{
                       borderRadius: 'var(--mantine-radius-md)',
-                      backgroundColor: isActive 
-                        ? (isDark ? 'var(--mantine-color-blue-9)' : 'var(--mantine-color-blue-0)')
+                      backgroundColor: isActive
+                        ? (isDark ? 'rgba(51, 110, 255, 0.4)' : 'rgba(51, 110, 255, 0.1)')
                         : 'transparent',
                       padding: '0.5rem',
                       transition: 'background-color 150ms ease',
                       flex: 1,
                       '&:hover': {
-                        backgroundColor: isDark ? 'var(--mantine-color-dark-5)' : 'var(--mantine-color-gray-0)',
+                        backgroundColor: isDark
+                          ? 'rgba(255,255,255,0.05)'
+                          : 'rgba(0,0,0,0.03)',
                       },
                     }}
                   >
                     <Group gap="md">
                       <ActionIcon
-                        variant={isActive ? "filled" : "light"}
+                        variant={isActive ? 'filled' : 'light'}
                         size="lg"
                         color="blue"
                         radius="md"
                       >
                         <item.icon size={20} />
                       </ActionIcon>
-                      <Text 
-                        size="sm" 
+                      <Text
+                        size="sm"
                         fw={isActive ? 600 : 400}
-                        c={isActive ? (isDark ? 'white' : 'var(--mantine-color-blue-9)') : undefined}
+                        c={
+                          isActive
+                            ? isDark
+                              ? 'white'
+                              : 'var(--mantine-color-blue-9)'
+                            : undefined
+                        }
                       >
                         {item.label}
                       </Text>
@@ -191,4 +203,4 @@ export default function AdminSidebar() {
       </Portal>
     </>
   );
-} 
+}

@@ -43,8 +43,6 @@ interface FormErrors {
   content?: string;
 }
 
-
-
 const lowlight = createLowlight();
 lowlight.register({ts, javascript, html, css, python, ruby, java, csharp, php, go, swift, kotlin});
 
@@ -232,7 +230,21 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
   };
 
   return (
-    <Box pos="relative" style={{ width: '100%', zIndex: 0 }}>
+    <Box 
+      pos="relative" 
+      style={{ 
+        width: '100%', 
+        zIndex: 0,
+        backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
+        backdropFilter: 'blur(16px)',
+        border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+        borderRadius: 'var(--mantine-radius-lg)',
+        boxShadow: isDark
+          ? '0 4px 24px rgba(0,0,0,0.5)'
+          : '0 4px 16px rgba(0,0,0,0.1)',
+        padding: isMobile ? '1rem' : '1.5rem',
+      }}
+    >
       <Box mb="xl">
         <TextInput
           label="Title"
@@ -252,23 +264,45 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
             input: {
               fontSize: isMobile ? '1rem' : '1.25rem',
               padding: isMobile ? '0.75rem' : '1rem',
+              backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
+              backdropFilter: 'blur(8px)',
+              border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)',
+              '&:focus': {
+                borderColor: isDark ? 'var(--mantine-color-blue-6)' : 'var(--mantine-color-blue-5)',
+              },
+            },
+            label: {
+              color: isDark ? 'var(--mantine-color-gray-0)' : 'var(--mantine-color-dark-9)',
+              marginBottom: '0.5rem',
             }
           }}
         />
       </Box>
 
       <Box mb="xl" style={{ width: '100%', position: 'relative', zIndex: 0 }}>
-        <RichTextEditor editor={editor} style={{ width: '100%' }}>
+        <RichTextEditor 
+          editor={editor} 
+          style={{ 
+            width: '100%',
+            backgroundColor: 'transparent',
+          }}
+        >
           <RichTextEditor.Toolbar 
             sticky 
             stickyOffset={isMobile ? 60 : 80}
             style={{
-              backgroundColor: isDark ? 'var(--mantine-color-dark-7)' : 'white',
-              borderBottom: `1px solid ${isDark ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-3)'}`,
+              backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
+              backdropFilter: 'blur(16px)',
+              border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)',
+              borderRadius: 'var(--mantine-radius-md)',
+              boxShadow: isDark
+                ? '0 2px 12px rgba(0,0,0,0.3)'
+                : '0 2px 12px rgba(0,0,0,0.05)',
               width: '100%',
               position: 'sticky',
               top: isMobile ? '60px' : '80px',
-              zIndex: 100
+              zIndex: 100,
+              padding: '0.5rem',
             }}
           >
             <RichTextEditor.ControlsGroup>
@@ -326,6 +360,14 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
                   };
                   input.click();
                 }}
+                styles={{
+                  root: {
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
+                    '&:hover': {
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.9)',
+                    },
+                  }
+                }}
               >
                 Image
               </Button>
@@ -336,7 +378,10 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
             style={{ 
               minHeight: isMobile ? '300px' : '500px', 
               maxHeight: 'none',
-              backgroundColor: isDark ? 'var(--mantine-color-dark-6)' : 'white',
+              backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
+              backdropFilter: 'blur(8px)',
+              border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+              borderRadius: 'var(--mantine-radius-md)',
               color: isDark ? 'var(--mantine-color-gray-0)' : 'inherit',
               padding: '1.5rem',
               width: '100%',
@@ -352,6 +397,10 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
                 '& p': {
                   fontSize: isMobile ? '1rem' : '1.125rem',
                   lineHeight: 1.6,
+                  color: isDark ? 'var(--mantine-color-gray-0)' : 'inherit',
+                },
+                '& h1, & h2, & h3, & h4': {
+                  color: isDark ? 'var(--mantine-color-gray-0)' : 'inherit',
                 },
                 '& h1': {
                   fontSize: isMobile ? '1.75rem' : '2rem',
@@ -362,6 +411,18 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
                 '& h3': {
                   fontSize: isMobile ? '1.25rem' : '1.5rem',
                 },
+                '& blockquote': {
+                  borderLeftColor: isDark ? 'var(--mantine-color-gray-6)' : 'var(--mantine-color-gray-4)',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                },
+                '& code': {
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                  color: isDark ? 'var(--mantine-color-blue-3)' : 'var(--mantine-color-blue-7)',
+                },
+                '& pre': {
+                  backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)',
+                  border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
+                }
               }
             }}
             onPaste={(e) => {
@@ -396,9 +457,19 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
 
       <Group justify="flex-end" gap="md" wrap="wrap" mt="xl" mb="xl">
         <Button 
-          variant="outline" 
+          variant="light"
           onClick={onClose}
           size={isMobile ? "sm" : "md"}
+          styles={{
+            root: {
+              backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
+              backdropFilter: 'blur(8px)',
+              border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)',
+              '&:hover': {
+                backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.9)',
+              },
+            }
+          }}
         >
           Cancel
         </Button>
@@ -408,6 +479,18 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
           size={isMobile ? "sm" : "md"}
           loading={articleLoading || tagsLoading || isUploading}
           loaderProps={{ size: 'sm', color: 'white' }}
+          styles={{
+            root: {
+              backgroundColor: isDark ? 'var(--mantine-color-blue-7)' : 'var(--mantine-color-blue-6)',
+              backdropFilter: 'blur(8px)',
+              '&:hover': {
+                backgroundColor: isDark ? 'var(--mantine-color-blue-8)' : 'var(--mantine-color-blue-7)',
+              },
+              '&:disabled': {
+                backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+              }
+            }
+          }}
         >
           {mode === 'create' ? 'Publish Article' : 'Update Article'}
         </Button>

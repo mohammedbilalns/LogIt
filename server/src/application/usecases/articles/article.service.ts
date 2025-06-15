@@ -71,7 +71,8 @@ export class ArticleService {
     article: Partial<Article>,
     tagIds?: string[]
   ): Promise<ArticleWithTags | null> {
-    if (!article.title || article.content) {
+
+    if (!article.title || !article.content) {
       throw new MissingFieldsError();
     }
     const updatedArticle = await this.articleRepository.update(id, article);

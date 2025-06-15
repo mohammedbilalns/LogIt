@@ -10,13 +10,14 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import { ConfirmModal } from '@/components/confirm';
+import TagList from '@/components/tags/TagList';
 import {
   Box,
   Button,
   Center,
   Chip,
   Group,
-  Loader,
+  Skeleton,
   Modal,
   Paper,
   Radio,
@@ -31,6 +32,70 @@ import { useForm } from '@mantine/form';
 import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { AppDispatch, RootState } from '@/store';
+
+const ArticleDetailSkeleton = () => {
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === 'dark';
+  const theme = useMantineTheme();
+  const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
+
+  return (
+    <Box
+      style={{
+        marginLeft: isMobile ? theme.spacing.md : isSidebarOpen ? '290px' : theme.spacing.md,
+        marginRight: isMobile ? theme.spacing.md : theme.spacing.xl,
+        paddingTop: '30px',
+        transition: 'margin-left 0.3s ease',
+      }}
+    >
+      <Paper
+        radius="lg"
+        p={isMobile ? 'md' : 'xl'}
+        style={{
+          backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
+          backdropFilter: 'blur(16px)',
+          border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+          boxShadow: isDark
+            ? '0 4px 24px rgba(0,0,0,0.5)'
+            : '0 4px 16px rgba(0,0,0,0.1)',
+        }}
+      >
+        <Stack gap="md">
+          <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
+            <Box style={{ minWidth: 0, flex: 1 }}>
+              <Skeleton height={isMobile ? 32 : 40} width="80%" mb="xs" />
+              <Group gap="xs" mt={4} wrap="wrap">
+                <Skeleton height={20} width={120} />
+                <Skeleton height={20} width={20} />
+                <Skeleton height={20} width={100} />
+              </Group>
+            </Box>
+            <Group gap="sm">
+              <Skeleton height={36} width={120} />
+              <Skeleton height={36} width={120} />
+            </Group>
+          </Group>
+
+          <Box mt="md">
+            <Skeleton height={20} width="100%" mb="md" />
+            <Skeleton height={20} width="95%" mb="md" />
+            <Skeleton height={20} width="90%" mb="md" />
+            <Skeleton height={20} width="85%" mb="md" />
+            <Skeleton height={20} width="92%" mb="md" />
+            <Skeleton height={20} width="88%" mb="md" />
+          </Box>
+
+          <Group gap="xs" wrap="wrap">
+            <Skeleton height={24} width={80} radius="xl" />
+            <Skeleton height={24} width={100} radius="xl" />
+            <Skeleton height={24} width={90} radius="xl" />
+          </Group>
+        </Stack>
+      </Paper>
+    </Box>
+  );
+};
 
 export default function ArticleDetailPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -52,7 +117,6 @@ export default function ArticleDetailPage() {
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
-  // Check if the current user is an admin
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
   const isAuthor = user?._id === article?.authorId;
 
@@ -103,19 +167,28 @@ export default function ArticleDetailPage() {
   }, [reportSuccess, reportError, dispatch, reportForm, id]);
 
   if (loading) {
-    return (
-      <Center h="100vh">
-        <Loader size="lg" />
-      </Center>
-    );
+    return <ArticleDetailSkeleton />;
   }
 
   if (!article) {
     return (
       <Center h="100vh">
-        <Text size="xl" c="dimmed">
-          Article not found
-        </Text>
+        <Paper
+          radius="lg"
+          p="xl"
+          style={{
+            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
+            backdropFilter: 'blur(16px)',
+            border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+            boxShadow: isDark
+              ? '0 4px 24px rgba(0,0,0,0.5)'
+              : '0 4px 16px rgba(0,0,0,0.1)',
+          }}
+        >
+          <Text size="xl" c="dimmed">
+            Article not found
+          </Text>
+        </Paper>
       </Center>
     );
   }
@@ -277,7 +350,18 @@ export default function ArticleDetailPage() {
           transition: 'margin-left 0.3s ease',
         }}
       >
-        <Paper shadow="sm" radius="md" p={isMobile ? 'md' : 'xl'} withBorder>
+        <Paper
+          radius="lg"
+          p={isMobile ? 'md' : 'xl'}
+          style={{
+            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
+            backdropFilter: 'blur(16px)',
+            border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+            boxShadow: isDark
+              ? '0 4px 24px rgba(0,0,0,0.5)'
+              : '0 4px 16px rgba(0,0,0,0.1)',
+          }}
+        >
           <Stack gap="md">
             <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
               <Box style={{ minWidth: 0, flex: 1 }}>
@@ -343,13 +427,11 @@ export default function ArticleDetailPage() {
               </ReactMarkdown>
             </Box>
 
-            <Group gap="xs" mt="xl" wrap="wrap">
-              {article.tagNames.map((tag) => (
-                <Chip key={tag} size="sm" checked readOnly variant="light" color="blue">
-                  {tag}
-                </Chip>
-              ))}
-            </Group>
+            <TagList 
+              tags={article.tagNames.map(name => ({ name }))} 
+              size="sm"
+              maxVisible={10}
+            />
           </Stack>
         </Paper>
       </Box>
@@ -360,6 +442,16 @@ export default function ArticleDetailPage() {
         title="Report Article"
         centered
         zIndex={2000}
+        styles={{
+          content: {
+            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.95)',
+            backdropFilter: 'blur(16px)',
+            border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+          },
+          header: {
+            backgroundColor: 'transparent',
+          },
+        }}
       >
         <form onSubmit={reportForm.onSubmit(handleReportSubmit)}>
           <Stack gap="md">
@@ -416,7 +508,7 @@ export default function ArticleDetailPage() {
         title="Delete Article"
         message="Are you sure you want to delete this article? This action cannot be undone."
         confirmLabel="Delete"
-              loading={loading}
+        loading={loading}
       />
     </>
   );

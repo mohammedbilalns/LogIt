@@ -35,36 +35,28 @@ export default function Signup() {
     },
     validate: {
       name: (value) => {
-        if (!value.trim()) {
-          return 'Name is required';
-        }
-        return value.length < 2 || value.length > 20 ? 'Name must have at least 2 characters and less than 20 characters' : null;
+        if (!value.trim()) return 'Name is required';
+        return value.length < 2 || value.length > 20
+          ? 'Name must be 2–20 characters'
+          : null;
       },
       email: (value) => {
-        if (!value.trim()) {
-          return 'Email is required';
-        }
+        if (!value.trim()) return 'Email is required';
         const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-        if (!emailRegex.test(value)) {
-          return 'Please enter a valid email address';
-        }
-        return null;
+        return !emailRegex.test(value)
+          ? 'Please enter a valid email address'
+          : null;
       },
       password: (value) => {
-        if (!value.trim()) {
-          return 'Password is required';
-        }
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
-        if (!passwordRegex.test(value)) {
-          return 'Password must be at least 8 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character';
-        }
-        return null;
+        if (!value.trim()) return 'Password is required';
+        const passwordRegex =
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
+        return !passwordRegex.test(value)
+          ? 'Password must be 8+ characters with uppercase, lowercase, number & symbol'
+          : null;
       },
       confirmPassword: (value, values) => {
-        if (value !== values.password) {
-          return 'Passwords do not match';
-        }
-        return null;
+        return value !== values.password ? 'Passwords do not match' : null;
       },
     },
   });
@@ -84,12 +76,22 @@ export default function Signup() {
 
   return (
     <Container size={580} my={20} mt={100} px={isMobile ? 'xs' : 'md'}>
-      <Paper radius="lg" p={isMobile ? 'md' : 'xl'} withBorder>
+      <Paper
+        radius="lg"
+        p={isMobile ? 'md' : 'xl'}
+        withBorder={false}
+        style={{
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(16px)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+        }}
+      >
         <Center mb="lg">
           <IconUserPlus size={42} color="var(--mantine-color-blue-6)" />
         </Center>
 
-        <Title order={2} ta="center" mb="xs">
+        <Title order={2} ta="center" mb="xs" fw={700}>
           Create your account
         </Title>
 
@@ -110,7 +112,7 @@ export default function Signup() {
 
             <TextInput
               label="Email"
-              placeholder="your@email.com"
+              placeholder="you@example.com"
               radius="md"
               size="md"
               withAsterisk
@@ -128,7 +130,7 @@ export default function Signup() {
 
             <PasswordInput
               label="Confirm Password"
-              placeholder="Confirm your password"
+              placeholder="Repeat your password"
               radius="md"
               size="md"
               withAsterisk
@@ -147,6 +149,8 @@ export default function Signup() {
               loading={loading}
               fullWidth
               size="md"
+              variant="gradient"
+              gradient={{ from: 'blue', to: 'cyan', deg: 45 }}
             >
               Create account
             </Button>
@@ -155,6 +159,7 @@ export default function Signup() {
               label="Already have an account?"
               labelPosition="center"
               my="xs"
+              color="gray"
             />
 
             <Stack gap="sm">
@@ -176,4 +181,4 @@ export default function Signup() {
       </Paper>
     </Container>
   );
-} 
+}

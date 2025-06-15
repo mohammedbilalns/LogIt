@@ -26,13 +26,16 @@ import {
 } from '@slices/authSlice';
 import { useEffect, useState, useCallback } from 'react';
 import { notifications } from '@mantine/notifications';
+import { useMediaQuery } from '@mantine/hooks';
 
-const OTP_EXPIRY_TIME = 5 * 60; 
-const RESEND_COOLDOWN = 60; 
+const OTP_EXPIRY_TIME = 5 * 60;
+const RESEND_COOLDOWN = 60;
 
 export default function ResetPassword() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 768px)');
+
   const { loading, error, resetPasswordEmail, resetPasswordVerified } = useSelector(
     (state: RootState) => state.auth
   );
@@ -47,14 +50,9 @@ export default function ResetPassword() {
     },
     validate: {
       email: (value) => {
-        if (!value.trim()) {
-          return 'Email is required';
-        }
-        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-        if (!emailRegex.test(value)) {
-          return 'Please enter a valid email address';
-        }
-        return null;
+        if (!value.trim()) return 'Email is required';
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(value) ? null : 'Invalid email address';
       },
     },
   });
@@ -66,21 +64,14 @@ export default function ResetPassword() {
     },
     validate: {
       newPassword: (value) => {
-        if (!value.trim()) {
-          return 'Password is required';
-        }
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
-        if (!passwordRegex.test(value)) {
-          return 'Password must be at least 8 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character';
-        }
-        return null;
+        if (!value.trim()) return 'Password is required';
+        const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
+        return strongRegex.test(value)
+          ? null
+          : 'Password must be 8+ chars with uppercase, lowercase, number, and special char';
       },
-      confirmPassword: (value, values) => {
-        if (value !== values.newPassword) {
-          return 'Passwords do not match';
-        }
-        return null;
-      },
+      confirmPassword: (value, values) =>
+        value !== values.newPassword ? 'Passwords do not match' : null,
     },
   });
 
@@ -90,13 +81,8 @@ export default function ResetPassword() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const startResendCooldown = useCallback(() => {
-    setResendCooldown(RESEND_COOLDOWN);
-  }, []);
-
-  const resetOtpExpiry = useCallback(() => {
-    setOtpExpiryTime(OTP_EXPIRY_TIME);
-  }, []);
+  const startResendCooldown = useCallback(() => setResendCooldown(RESEND_COOLDOWN), []);
+  const resetOtpExpiry = useCallback(() => setOtpExpiryTime(OTP_EXPIRY_TIME), []);
 
   useEffect(() => {
     return () => {
@@ -107,16 +93,11 @@ export default function ResetPassword() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      if (otpExpiryTime > 0) {
-        setOtpExpiryTime(prev => prev - 1);
-      }
-      if (resendCooldown > 0) {
-        setResendCooldown(prev => prev - 1);
-      }
+      setOtpExpiryTime((prev) => (prev > 0 ? prev - 1 : 0));
+      setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
-
     return () => clearInterval(timer);
-  }, [otpExpiryTime, resendCooldown]);
+  }, []);
 
   useEffect(() => {
     if (otpExpiryTime === 0 && resetPasswordEmail && !resetPasswordVerified) {
@@ -146,21 +127,14 @@ export default function ResetPassword() {
 
   const handleOTPChange = (value: string) => {
     setOtp(value);
-    if (error) {
-      dispatch(clearError());
-    }
+    if (error) dispatch(clearError());
   };
 
   const handlePasswordSubmit = async (values: typeof passwordForm.values) => {
     if (resetPasswordEmail && otp) {
       const result = await dispatch(
-        updatePassword({
-          email: resetPasswordEmail,
-          otp,
-          newPassword: values.newPassword,
-        })
+        updatePassword({ email: resetPasswordEmail, otp, newPassword: values.newPassword })
       );
-      
       if (result.meta.requestStatus === 'fulfilled') {
         notifications.show({
           title: 'Password updated',
@@ -197,7 +171,7 @@ export default function ResetPassword() {
               {...emailForm.getInputProps('email')}
             />
             <Button type="submit" radius="xl" loading={loading} fullWidth size="md">
-              Send Reset Otp
+              Send Reset OTP
             </Button>
             {error && (
               <Text c="red" size="sm" ta="center">
@@ -216,7 +190,7 @@ export default function ResetPassword() {
             <Box ta="center">
               <PinInput
                 length={6}
-                size="lg"
+                size={isMobile ? 'md' : 'lg'}
                 value={otp}
                 onChange={handleOTPChange}
                 error={Boolean(error)}
@@ -227,7 +201,7 @@ export default function ResetPassword() {
               />
             </Box>
 
-            <Text c={otpExpiryTime < 60 ? "red" : "dimmed"} size="sm" ta="center" fw={500}>
+            <Text c={otpExpiryTime < 60 ? 'red' : 'dimmed'} size="sm" ta="center" fw={500}>
               OTP expires in: {formatTime(otpExpiryTime)}
             </Text>
 
@@ -257,9 +231,9 @@ export default function ResetPassword() {
               <Text size="sm" c="dimmed">
                 Didn't receive the code?
               </Text>
-              <Button 
-                variant="subtle" 
-                size="sm" 
+              <Button
+                variant="subtle"
+                size="sm"
                 onClick={handleResendOTP}
                 loading={loading}
                 disabled={resendCooldown > 0}
@@ -300,8 +274,18 @@ export default function ResetPassword() {
   };
 
   return (
-    <Container size={470} my={40} mt={200}>
-      <Paper radius="lg" p="xl" withBorder>
+    <Container size={470} my={40} mt={200} px={isMobile ? 'xs' : 'md'}>
+      <Paper
+        radius="lg"
+        p={isMobile ? 'md' : 'xl'}
+        withBorder
+        style={{
+          backdropFilter: 'blur(10px)',
+          backgroundColor: 'rgba(255, 255, 255, 0.5)',
+          border: '1px solid rgba(0,0,0,0.05)',
+          boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
+        }}
+      >
         <Center mb="lg">
           {!resetPasswordEmail ? (
             <IconLock size={50} color="var(--mantine-color-blue-6)" />
@@ -337,15 +321,10 @@ export default function ResetPassword() {
 
         {renderStep()}
 
-        <Button
-          variant="subtle"
-          fullWidth
-          mt="md"
-          onClick={() => navigate('/login')}
-        >
+        <Button variant="subtle" fullWidth mt="md" onClick={() => navigate('/login')}>
           Back to Login
         </Button>
       </Paper>
     </Container>
   );
-} 
+}

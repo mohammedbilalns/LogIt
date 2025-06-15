@@ -17,6 +17,7 @@ import {
   Box,
   rem,
   Portal,
+  Tooltip,
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -38,20 +39,24 @@ export default function Navbar() {
   };
 
   return (
-    <Portal >
+    <Portal>
       <Box
         style={{
           position: 'fixed',
           top: 0,
           left: 0,
           right: 0,
-          borderBottom: `1px solid ${isDark ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-3)'
-            }`,
-          backgroundColor: isDark ? 'var(--mantine-color-dark-7)' : 'var(--mantine-color-gray-0)',
+          zIndex: 1000,
+          backgroundColor: isDark
+            ? 'rgba(24, 24, 27, 0.4)'
+            : 'rgba(255, 255, 255, 0.3)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
+          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
         }}
-
       >
-        <Group justify="space-between" align="center" wrap="nowrap" p="md">
+        <Group justify="space-between" align="center" wrap="nowrap" px="lg" py="sm">
           {/* Logo */}
           <UnstyledButton onClick={() => isAuthenticated ? navigate('/home') : navigate('/')}>
             <Group align="center" gap="xs">
@@ -61,14 +66,14 @@ export default function Navbar() {
                 w={35}
                 h={35}
                 fit="contain"
+                radius="md"
               />
               <span
                 style={{
                   fontFamily: 'cursive',
-                  fontWeight: 'bold',
-                  fontSize: rem(20),
+                  fontWeight: 700,
+                  fontSize: rem(22),
                   color: isDark ? 'white' : 'black',
-                  marginLeft: '4px',
                 }}
               >
                 LogIt
@@ -76,53 +81,95 @@ export default function Navbar() {
             </Group>
           </UnstyledButton>
 
-          {/* Search  */}
+          {/* Search */}
           {isAuthenticated && !isMobile && (
             <TextInput
               placeholder="Search LogIt"
               leftSection={<IconSearch size={16} />}
-              radius="md"
+              radius="xl"
               w={rem(300)}
+              size="sm"
+              styles={{
+                input: {
+                  backgroundColor: isDark
+                    ? 'rgba(36, 36, 40, 0.6)'
+                    : 'rgba(255, 255, 255, 0.6)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                },
+              }}
             />
           )}
 
           {/* Actions */}
-          <Group gap="xs" wrap="nowrap">
+          <Group gap="sm" wrap="nowrap">
             {isAuthenticated ? (
               <>
                 {isMobile && (
-                  <ActionIcon variant="subtle" color="blue">
-                    <IconSearch size={20} />
-                  </ActionIcon>
+                  <Tooltip label="Search">
+                    <ActionIcon variant="light" size="md" color="blue" radius="xl">
+                      <IconSearch size={20} />
+                    </ActionIcon>
+                  </Tooltip>
                 )}
-                <ActionIcon variant="subtle">
-                  <IconBell />
-                </ActionIcon>
-                <ActionIcon variant="subtle" onClick={handleLogout}>
-                  <IconLogout />
-                </ActionIcon>
+                <Tooltip label="Notifications">
+                  <ActionIcon variant="light" size="md" radius="xl">
+                    <IconBell size={20} />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label="Logout">
+                  <ActionIcon
+                    variant="light"
+                    size="md"
+                    radius="xl"
+                    onClick={handleLogout}
+                  >
+                    <IconLogout size={20} />
+                  </ActionIcon>
+                </Tooltip>
               </>
             ) : (
               !isMobile && (
-                <Group>
-                  <Button variant="subtle" onClick={() => navigate('/login')}>
+                <Group gap="xs">
+                  <Button
+                    variant="light"
+                    size="sm"
+                    radius="xl"
+                    onClick={() => navigate('/login')}
+                  >
                     Login
                   </Button>
-                  <Button onClick={() => navigate('/signup')}>Sign Up</Button>
+                  <Button
+                    size="sm"
+                    radius="xl"
+                    onClick={() => navigate('/signup')}
+                  >
+                    Sign Up
+                  </Button>
                 </Group>
               )
             )}
 
+            {/* Theme Toggle */}
             <Switch
               size="md"
               onLabel={<IconSun size={14} />}
               offLabel={<IconMoon size={14} />}
               checked={isDark}
               onChange={() => toggleColorScheme()}
+              color="blue"
+              styles={{
+                track: {
+                  backgroundColor: isDark
+                    ? 'rgba(36, 36, 40, 0.5)'
+                    : 'rgba(200, 200, 200, 0.5)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                },
+              }}
             />
           </Group>
         </Group>
       </Box>
-   </Portal>
+    </Portal>
   );
 }

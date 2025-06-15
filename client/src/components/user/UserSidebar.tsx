@@ -1,6 +1,26 @@
-import { ActionIcon, Paper, Stack, useMantineColorScheme, Group, Text, UnstyledButton, Box, Divider, Avatar, Portal } from '@mantine/core';
+import {
+  ActionIcon,
+  Paper,
+  Stack,
+  useMantineColorScheme,
+  Group,
+  Text,
+  UnstyledButton,
+  Box,
+  Divider,
+  Avatar,
+  Portal,
+} from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconHome, IconArticle, IconNotes, IconMessage, IconNetwork, IconMenu2, IconChevronLeft } from '@tabler/icons-react';
+import {
+  IconHome,
+  IconArticle,
+  IconNotes,
+  IconMessage,
+  IconNetwork,
+  IconMenu2,
+  IconChevronLeft,
+} from '@tabler/icons-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store';
@@ -23,58 +43,27 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
 
   const shouldRenderSidebar = !isModalOpen;
 
-  if (!shouldRenderSidebar) {
-    return null;
-  }
+  if (!shouldRenderSidebar) return null;
 
   const sidebarItems = [
-    {
-      icon: IconHome,
-      label: 'Home',
-      path: '/home',
-    },
-    {
-      icon: IconArticle,
-      label: 'Articles',
-      path: '/articles',
-    },
-    {
-      icon: IconNotes,
-      label: 'Logs',
-      path: '/logs',
-    },
-    {
-      icon: IconMessage,
-      label: 'Chats',
-      path: '/chats',
-    },
-    {
-      icon: IconNetwork,
-      label: 'Network',
-      path: '/network',
-    },
+    { icon: IconHome, label: 'Home', path: '/home' },
+    { icon: IconArticle, label: 'Articles', path: '/articles' },
+    { icon: IconNotes, label: 'Logs', path: '/logs' },
+    { icon: IconMessage, label: 'Chats', path: '/chats' },
+    { icon: IconNetwork, label: 'Network', path: '/network' },
   ];
 
   const getInitials = (name?: string) => {
-    if (!name) {
-      return '?';
-    }
+    if (!name) return '?';
     const parts = name.split(' ');
-    if (parts.length === 1) {
-      return parts[0][0];
-    }
-    return parts[0][0] + parts[parts.length - 1][0];
+    return parts.length === 1 ? parts[0][0] : parts[0][0] + parts[parts.length - 1][0];
   };
 
-  const handleToggleSidebar = () => {
-    dispatch(toggleSidebar());
-  };
+  const handleToggleSidebar = () => dispatch(toggleSidebar());
 
   const handleNavigation = (path: string) => {
     navigate(path);
-    if (isMobile) {
-      dispatch(toggleSidebar());
-    }
+    if (isMobile) dispatch(toggleSidebar());
   };
 
   return (
@@ -119,61 +108,72 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
 
       <Portal>
         <Paper
-          shadow="md"
           p="md"
           style={{
             position: 'fixed',
             left: isMobile ? (isOpen ? '1rem' : '-300px') : (isOpen ? '1rem' : '-300px'),
             top: '5rem',
-            backgroundColor: isDark ? 'var(--mantine-color-dark-6)' : 'var(--mantine-color-white)',
-            borderRadius: 'var(--mantine-radius-lg)',
             width: '250px',
+            height: 'calc(100vh - 6rem)',
             display: 'flex',
             flexDirection: 'column',
-            height: 'calc(100vh - 6rem)',
             justifyContent: 'space-between',
-            transition: 'left 0.3s ease',
             zIndex: 1001,
+            transition: 'left 0.3s ease',
             overflow: 'hidden',
+            borderRadius: '1rem',
+            backgroundColor: isDark ? 'rgba(30, 30, 30, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+            backdropFilter: 'blur(12px)',
+            border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
+            boxShadow: isDark
+              ? '0 8px 24px rgba(0,0,0,0.4)'
+              : '0 8px 24px rgba(0,0,0,0.15)',
           }}
         >
           <Stack gap="xs" style={{ overflowY: 'auto' }}>
             {sidebarItems.map((item, index) => {
-              const isActive = item.path === '/articles' 
-                ? location.pathname.startsWith('/articles')
-                : item.path === '/logs'
-                ? location.pathname.startsWith('/logs')
-                : location.pathname === item.path;
+              const isActive =
+                item.path === '/articles'
+                  ? location.pathname.startsWith('/articles')
+                  : item.path === '/logs'
+                  ? location.pathname.startsWith('/logs')
+                  : location.pathname === item.path;
+
               return (
                 <Group key={item.label} justify="space-between" align="center" wrap="nowrap">
                   <UnstyledButton
                     onClick={() => handleNavigation(item.path)}
                     style={{
-                      borderRadius: 'var(--mantine-radius-md)',
-                      backgroundColor: isActive 
-                        ? (isDark ? 'var(--mantine-color-blue-9)' : 'var(--mantine-color-blue-0)')
+                      borderRadius: '0.5rem',
+                      backgroundColor: isActive
+                        ? isDark
+                          ? 'rgba(0, 123, 255, 0.25)'
+                          : 'rgba(0, 123, 255, 0.1)'
                         : 'transparent',
                       padding: '0.5rem',
-                      transition: 'background-color 150ms ease',
                       flex: 1,
-                      '&:hover': {
-                        backgroundColor: isDark ? 'var(--mantine-color-dark-5)' : 'var(--mantine-color-gray-0)',
-                      },
+                      transition: 'background-color 150ms ease',
                     }}
                   >
                     <Group gap="md">
                       <ActionIcon
-                        variant={isActive ? "filled" : "light"}
+                        variant={isActive ? 'filled' : 'light'}
                         size="lg"
                         color="blue"
                         radius="md"
                       >
                         <item.icon size={20} />
                       </ActionIcon>
-                      <Text 
-                        size="sm" 
+                      <Text
+                        size="sm"
                         fw={isActive ? 600 : 400}
-                        c={isActive ? (isDark ? 'white' : 'var(--mantine-color-blue-9)') : undefined}
+                        c={
+                          isActive
+                            ? isDark
+                              ? 'white'
+                              : 'var(--mantine-color-blue-9)'
+                            : undefined
+                        }
                       >
                         {item.label}
                       </Text>
@@ -199,17 +199,20 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
               );
             })}
           </Stack>
+
           <Box>
             <Divider my="sm" />
             <UnstyledButton
               onClick={() => handleNavigation('/profile')}
               style={{
-                borderRadius: 'var(--mantine-radius-md)',
-                backgroundColor: location.pathname === '/profile'
-                  ? (isDark ? 'var(--mantine-color-blue-9)' : 'var(--mantine-color-blue-0)')
-                  : 'transparent',
+                borderRadius: '0.5rem',
+                backgroundColor:
+                  location.pathname === '/profile'
+                    ? isDark
+                      ? 'rgba(0, 123, 255, 0.25)'
+                      : 'rgba(0, 123, 255, 0.1)'
+                    : 'transparent',
                 padding: '0.5rem',
-                transition: 'background-color 150ms ease',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -217,11 +220,7 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
               }}
             >
               <Group gap="sm" align="center" style={{ flexWrap: 'nowrap', width: '100%' }}>
-                <Avatar 
-                  color="blue" 
-                  radius="xl"
-                  src={user?.profileImage}
-                >
+                <Avatar color="blue" radius="xl" src={user?.profileImage}>
                   {getInitials(user?.name)}
                 </Avatar>
                 <Box style={{ overflow: 'hidden' }}>
@@ -229,9 +228,13 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
                     size="sm"
                     fw={600}
                     truncate
-                    c={location.pathname === '/profile'
-                      ? (isDark ? 'white' : 'var(--mantine-color-blue-9)')
-                      : undefined}
+                    c={
+                      location.pathname === '/profile'
+                        ? isDark
+                          ? 'white'
+                          : 'var(--mantine-color-blue-9)'
+                        : undefined
+                    }
                   >
                     {user?.name || 'User'}
                   </Text>
@@ -246,4 +249,4 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
       </Portal>
     </>
   );
-} 
+}

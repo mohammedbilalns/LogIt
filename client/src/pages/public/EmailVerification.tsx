@@ -1,4 +1,4 @@
-import  { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -15,12 +15,17 @@ import {
 } from '@mantine/core';
 import { IconMailCheck } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '@/store';
-import { verifyEmail, clearError, resendOTP, setVerificationEmail } from '@slices/authSlice';
+import {
+  verifyEmail,
+  clearError,
+  resendOTP,
+  setVerificationEmail,
+} from '@slices/authSlice';
 import { notifications } from '@mantine/notifications';
 import { useMediaQuery } from '@mantine/hooks';
 
-const OTP_EXPIRY_TIME = 5 * 60; 
-const RESEND_COOLDOWN = 60; 
+const OTP_EXPIRY_TIME = 5 * 60;
+const RESEND_COOLDOWN = 60;
 
 export default function EmailVerification() {
   const dispatch = useDispatch<AppDispatch>();
@@ -28,9 +33,11 @@ export default function EmailVerification() {
   const [otp, setOtp] = useState('');
   const [otpExpiryTime, setOtpExpiryTime] = useState(OTP_EXPIRY_TIME);
   const [resendCooldown, setResendCooldown] = useState(0);
+
   const { loading, resendLoading, error, isAuthenticated, verificationEmail } = useSelector(
     (state: RootState) => state.auth
   );
+
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const formatTime = (seconds: number) => {
@@ -39,13 +46,8 @@ export default function EmailVerification() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const startResendCooldown = useCallback(() => {
-    setResendCooldown(RESEND_COOLDOWN);
-  }, []);
-
-  const resetOtpExpiry = useCallback(() => {
-    setOtpExpiryTime(OTP_EXPIRY_TIME);
-  }, []);
+  const startResendCooldown = useCallback(() => setResendCooldown(RESEND_COOLDOWN), []);
+  const resetOtpExpiry = useCallback(() => setOtpExpiryTime(OTP_EXPIRY_TIME), []);
 
   useEffect(() => {
     if (!verificationEmail) {
@@ -57,20 +59,15 @@ export default function EmailVerification() {
     return () => {
       dispatch(clearError());
     };
-  }, [isAuthenticated, navigate, dispatch, verificationEmail]);
+  }, [verificationEmail, isAuthenticated, navigate, dispatch]);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      if (otpExpiryTime > 0) {
-        setOtpExpiryTime(prev => prev - 1);
-      }
-      if (resendCooldown > 0) {
-        setResendCooldown(prev => prev - 1);
-      }
+      setOtpExpiryTime(prev => Math.max(prev - 1, 0));
+      setResendCooldown(prev => Math.max(prev - 1, 0));
     }, 1000);
-
     return () => clearInterval(timer);
-  }, [otpExpiryTime, resendCooldown]);
+  }, []);
 
   useEffect(() => {
     if (otpExpiryTime === 0) {
@@ -82,18 +79,18 @@ export default function EmailVerification() {
     e.preventDefault();
     if (verificationEmail && otp.length === 6 && otpExpiryTime > 0) {
       const result = await dispatch(verifyEmail({ email: verificationEmail, otp }));
-     
+
       if (verifyEmail.rejected.match(result) && result.payload === 'Maximum OTP retry attempts exceeded') {
         notifications.show({
-          title: 'Maximum OTP retry attempts exceeded',
-          message: 'Please sign up again',
+          title: 'Maximum OTP Attempts Exceeded',
+          message: 'Please sign up again.',
           color: 'red',
         });
         navigate('/signup');
       } else if (verifyEmail.fulfilled.match(result)) {
         notifications.show({
-          title: 'Success',
-          message: 'Email verified successfully! Welcome to LogIt.',
+          title: 'Email Verified',
+          message: 'Welcome to LogIt!',
           color: 'green',
         });
       }
@@ -101,10 +98,10 @@ export default function EmailVerification() {
   };
 
   const handleOTPChange = (value: string) => {
-    setOtp(value);
     if (error) {
       dispatch(clearError());
     }
+    setOtp(value);
   };
 
   const handleResendOTP = async () => {
@@ -120,17 +117,27 @@ export default function EmailVerification() {
 
   return (
     <Container size={580} my={100} px={isMobile ? 'xs' : 'md'}>
-      <Paper radius="lg" p={isMobile ? 'md' : 'xl'} withBorder>
+      <Paper
+        radius="md"
+        p={isMobile ? 'md' : 'xl'}
+        withBorder
+        style={{
+          backdropFilter: 'blur(10px)',
+          backgroundColor: 'rgba(255, 255, 255, 0.5)',
+          border: '1px solid rgba(0,0,0,0.05)',
+          boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
+        }}
+      >
         <Center mb="xl">
           <IconMailCheck size={50} color="var(--mantine-color-blue-6)" />
         </Center>
-        
+
         <Title order={2} ta="center" mb="sm">
-          Verify your email
+          Verify Your Email
         </Title>
-        
+
         <Text c="dimmed" size="sm" ta="center" mb="xl">
-          We&apos;ve sent a verification code to{' '}
+          We've sent a verification code to{' '}
           <Text span fw={500} c="blue">
             {verificationEmail}
           </Text>
@@ -138,21 +145,26 @@ export default function EmailVerification() {
 
         <form onSubmit={handleSubmit}>
           <Stack>
-            <Box ta="center">
+            <Center>
               <PinInput
                 length={6}
-                size={isMobile ? "md" : "lg"}
+                size={isMobile ? 'md' : 'lg'}
                 value={otp}
                 onChange={handleOTPChange}
                 error={Boolean(error)}
                 type="number"
                 oneTimeCode
-                aria-label="Verification code"
+                autoFocus
                 disabled={otpExpiryTime === 0}
               />
-            </Box>
+            </Center>
 
-            <Text c={otpExpiryTime < 60 ? "red" : "dimmed"} size="sm" ta="center" fw={500}>
+            <Text
+              c={otpExpiryTime < 60 ? 'red' : 'dimmed'}
+              size="sm"
+              ta="center"
+              fw={500}
+            >
               OTP expires in: {formatTime(otpExpiryTime)}
             </Text>
 
@@ -163,33 +175,36 @@ export default function EmailVerification() {
             )}
 
             {otpExpiryTime === 0 && (
-              <Text c="yellow" size="sm" ta="center">
-                OTP has expired. Please request a new one.
+              <Text c="orange" size="sm" ta="center">
+                OTP expired. Please resend.
               </Text>
             )}
 
             <Button
               type="submit"
-              radius="xl"
+              radius="md"
               loading={loading}
               disabled={otp.length !== 6 || otpExpiryTime === 0}
               fullWidth
+              style={{ boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)' }}
             >
               Verify Email
             </Button>
 
             <Group justify="center" gap="xs">
               <Text size="sm" c="dimmed">
-                Didn&apos;t receive the code?
+                Didn't receive the code?
               </Text>
-              <Button 
-                variant="subtle" 
-                size="sm" 
+              <Button
+                variant="subtle"
+                size="sm"
                 onClick={handleResendOTP}
                 loading={resendLoading}
                 disabled={resendCooldown > 0}
               >
-                {resendCooldown > 0 ? `Resend in ${formatTime(resendCooldown)}` : 'Resend'}
+                {resendCooldown > 0
+                  ? `Resend in ${formatTime(resendCooldown)}`
+                  : 'Resend'}
               </Button>
             </Group>
 
@@ -197,6 +212,7 @@ export default function EmailVerification() {
               variant="subtle"
               fullWidth
               mt="md"
+              radius="md"
               onClick={() => {
                 dispatch(setVerificationEmail(null));
                 navigate('/signup');
@@ -209,4 +225,4 @@ export default function EmailVerification() {
       </Paper>
     </Container>
   );
-} 
+}

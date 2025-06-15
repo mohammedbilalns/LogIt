@@ -1,16 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  Avatar,
+  Box,
+  Button,
+  Group,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { notifications } from '@mantine/notifications';
 import ArticleRow from '@components/article/ArticleRow';
+import ArticleRowSkeleton from '@components/skeletons/ArticleRowSkeleton';
 import ChangePasswordModal from '@components/user/ChangePasswordModal';
 import UpdateProfileModal from '@components/user/UpdateProfileModal';
 import UserSidebar from '@components/user/UserSidebar';
-import { fetchUserArticles } from '@slices/articleSlice';
-import { useDispatch, useSelector } from 'react-redux';
-import { Avatar, Box, Button, Group, Stack, Text, Title } from '@mantine/core';
-import { useDisclosure, useMediaQuery } from '@mantine/hooks';
-import { notifications } from '@mantine/notifications';
-import ArticleRowSkeleton from '@/components/skeletons/ArticleRowSkeleton';
 import CreateButton from '@/components/user/CreateButton';
 import { AppDispatch, RootState } from '@/store';
+import { fetchUserArticles } from '@slices/articleSlice';
 import { changePassword, checkAuth } from '@/store/slices/authSlice';
 import { updateProfile } from '@/store/slices/userManagementSlice';
 
@@ -30,24 +38,31 @@ interface UpdateProfileForm {
 export default function ProfilePage() {
   const dispatch = useDispatch<AppDispatch>();
   const [page, setPage] = useState(1);
+  const observerTarget = useRef<HTMLDivElement>(null);
+
   const { user } = useSelector((state: RootState) => state.auth);
   const { userArticles, loading, userArticlesHasMore } = useSelector(
     (state: RootState) => state.articles
   );
+  const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
+
   const [passwordOpened, { open: openPassword, close: closePassword }] = useDisclosure(false);
   const [profileOpened, { open: openProfile, close: closeProfile }] = useDisclosure(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
-  const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     dispatch(fetchUserArticles({ page: 1, limit: 5 }));
   }, [dispatch]);
 
   useEffect(() => {
-    const currentObserver = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
+    if (page > 1) {
+      dispatch(fetchUserArticles({ page, limit: 5 }));
+    }
+  }, [page, dispatch]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
         if (entry.isIntersecting && userArticlesHasMore && !loading) {
           setPage((prev) => prev + 1);
         }
@@ -59,44 +74,32 @@ export default function ProfilePage() {
       }
     );
 
-    const currentTarget = observerTarget.current;
-    if (currentTarget) {
-      currentObserver.observe(currentTarget);
-    }
+    const target = observerTarget.current;
+    if (target) observer.observe(target);
 
     return () => {
-      if (currentTarget) {
-        currentObserver.unobserve(currentTarget);
-      }
+      if (target) observer.unobserve(target);
     };
   }, [userArticlesHasMore, loading]);
 
-  useEffect(() => {
-    if (page > 1) {
-      dispatch(fetchUserArticles({ page, limit: 5 }));
-    }
-  }, [page, dispatch]);
-
   const handleChangePassword = async (values: ChangePasswordForm) => {
     try {
-      const result = await dispatch(
+      await dispatch(
         changePassword({
           currentPassword: values.currentPassword,
           newPassword: values.newPassword,
         })
       ).unwrap();
 
-      if (result) {
-        notifications.show({
-          title: 'Success',
-          message: 'Password changed successfully',
-          color: 'green',
-        });
-      }
-    } catch (error: unknown) {
+      notifications.show({
+        title: 'Success',
+        message: 'Password changed successfully',
+        color: 'green',
+      });
+    } catch (error: any) {
       notifications.show({
         title: 'Error',
-        message: (error as string) || 'Failed to change password',
+        message: error?.message || 'Failed to change password',
         color: 'red',
       });
     } finally {
@@ -115,7 +118,6 @@ export default function ProfilePage() {
         })
       ).unwrap();
 
-      // Refresh user data
       await dispatch(checkAuth());
 
       notifications.show({
@@ -123,37 +125,28 @@ export default function ProfilePage() {
         message: 'Profile updated successfully',
         color: 'green',
       });
-    } catch (error: unknown) {
+    } catch (error: any) {
       notifications.show({
         title: 'Error',
-        message: error instanceof Error ? error.message : 'Failed to update profile',
+        message: error?.message || 'Failed to update profile',
         color: 'red',
       });
     }
   };
 
   const getInitials = (name?: string) => {
-    if (!name) {
-      return '?';
-    }
-    const parts = name.split(' ');
-    if (parts.length === 1) {
-      return parts[0][0];
-    }
-    return parts[0][0] + parts[parts.length - 1][0];
+    if (!name) return '?';
+    const parts = name.trim().split(' ');
+    return parts.map(p => p[0]).join('').slice(0, 2).toUpperCase();
   };
 
-  const renderSkeletons = () => {
-    return Array(3)
-      .fill(0)
-      .map((_, index) => <ArticleRowSkeleton key={index} />);
-  };
+  const renderSkeletons = () =>
+    Array.from({ length: 3 }, (_, i) => <ArticleRowSkeleton key={i} />);
 
   return (
     <>
       <UserSidebar isModalOpen={passwordOpened || profileOpened} />
       <Box className={`page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`}>
-        {/* Profile Header */}
         <Box mb={40}>
           <Stack align="center" gap="xs">
             <Avatar src={user?.profileImage} size={isMobile ? 80 : 120} radius="xl">
@@ -166,9 +159,7 @@ export default function ProfilePage() {
               {user?.bio}
             </Text>
             <Group mt="sm" wrap="wrap" justify="center">
-              <Button variant="filled" onClick={openProfile}>
-                Edit Profile
-              </Button>
+              <Button onClick={openProfile}>Edit Profile</Button>
               <Button variant="default" onClick={openPassword}>
                 Change Password
               </Button>
@@ -179,7 +170,6 @@ export default function ProfilePage() {
           </Stack>
         </Box>
 
-        {/* Recent Articles */}
         <Box>
           <Title order={4} mb="md">
             Recent Articles
@@ -190,20 +180,9 @@ export default function ProfilePage() {
             ) : userArticles.length > 0 ? (
               <>
                 {userArticles.map((article) => (
-                  <ArticleRow
-                    key={article._id}
-                    article={{
-                      _id: article._id,
-                      title: article.title,
-                      content: article.content,
-                      author: article.author,
-                      featured_image: article.featured_image,
-                      tagNames: article.tagNames || [],
-                      createdAt: article.createdAt,
-                    }}
-                  />
+                  <ArticleRow key={article._id} article={article} />
                 ))}
-                <div ref={observerTarget} style={{ height: '20px', width: '100%' }} />
+                <div ref={observerTarget} style={{ height: 20 }} />
                 {loading && page > 1 && renderSkeletons()}
               </>
             ) : (
@@ -223,15 +202,14 @@ export default function ProfilePage() {
           onClose={closePassword}
           onSubmit={handleChangePassword}
         />
-
         <UpdateProfileModal
           opened={profileOpened}
           onClose={closeProfile}
           onSubmit={handleUpdateProfile}
           initialValues={{
-            name: user?.name,
-            profession: user?.profession,
-            bio: user?.bio,
+            name: user?.name || '',
+            profession: user?.profession || '',
+            bio: user?.bio || '',
             profileImage: user?.profileImage || null,
           }}
         />

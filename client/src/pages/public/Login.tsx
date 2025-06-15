@@ -1,4 +1,4 @@
-import  { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useForm } from '@mantine/form';
 import {
   TextInput,
@@ -51,7 +51,6 @@ export default function Login() {
         if (!value.trim()) {
           return 'Password is required';
         }
-
         return null;
       },
     },
@@ -72,12 +71,22 @@ export default function Login() {
 
   return (
     <Container size={580} my={40} mt={140} px={isMobile ? 'xs' : 'md'}>
-      <Paper radius="lg" p={isMobile ? 'md' : 'xl'} withBorder>
+      <Paper
+        radius="lg"
+        p={isMobile ? 'md' : 'xl'}
+        withBorder={false}
+        style={{
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(16px)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+        }}
+      >
         <Center mb="lg">
           <IconLock size={42} color="var(--mantine-color-blue-6)" />
         </Center>
 
-        <Title order={2} ta="center" mb="xs">
+        <Title order={2} ta="center" mb="xs" fw={700}>
           Welcome back to LogIt
         </Title>
 
@@ -86,7 +95,7 @@ export default function Login() {
         </Text>
 
         {isBlocked && (
-          <Alert 
+          <Alert
             icon={<IconAlertCircle size={16} />}
             title="Account Blocked"
             color="red"
@@ -129,6 +138,8 @@ export default function Login() {
               loading={loading}
               fullWidth
               size="md"
+              variant="gradient"
+              gradient={{ from: 'blue', to: 'cyan', deg: 45 }}
             >
               Sign in
             </Button>
@@ -149,6 +160,7 @@ export default function Login() {
               label="Don't have an account?"
               labelPosition="center"
               my="xs"
+              color="gray"
             />
 
             <Stack gap="sm">
@@ -170,4 +182,4 @@ export default function Login() {
       </Paper>
     </Container>
   );
-} 
+}

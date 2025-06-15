@@ -31,6 +31,7 @@ export function ConfirmModal({
       centered
       zIndex={2000}
       lockScroll
+      radius="md" // Matched corner radius
     >
       <Stack gap="md">
         <Text>{message}</Text>
@@ -39,6 +40,7 @@ export function ConfirmModal({
             variant="default"
             onClick={onClose}
             disabled={loading}
+            radius="md"
           >
             {cancelLabel}
           </Button>
@@ -46,6 +48,7 @@ export function ConfirmModal({
             color={confirmColor}
             onClick={onConfirm}
             loading={loading}
+            radius="md"
           >
             {confirmLabel}
           </Button>

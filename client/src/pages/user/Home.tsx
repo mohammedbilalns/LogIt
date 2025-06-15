@@ -45,25 +45,25 @@ export default function Home() {
   }, [homeError]);
 
   const statsData = [
-    { 
-      label: 'Total Logs', 
-      value: homeData?.logsCount.toString() || '0', 
-      icon: <IconFileText size={28} /> 
+    {
+      label: 'Total Logs',
+      value: homeData?.logsCount.toString() || '0',
+      icon: <IconFileText size={28} />
     },
-    { 
-      label: 'Articles Written', 
-      value: homeData?.articlesCount.toString() || '0', 
-      icon: <IconFileText size={28} /> 
+    {
+      label: 'Articles Written',
+      value: homeData?.articlesCount.toString() || '0',
+      icon: <IconFileText size={28} />
     },
-    { 
-      label: 'Messages', 
-      value: homeData?.messagesCount.toString() || '0', 
-      icon: <IconMessages size={28} /> 
+    {
+      label: 'Messages',
+      value: homeData?.messagesCount.toString() || '0',
+      icon: <IconMessages size={28} />
     },
-    { 
-      label: 'Followers', 
-      value: homeData?.followersCount.toString() || '0', 
-      icon: <IconUsers size={28} /> 
+    {
+      label: 'Followers',
+      value: homeData?.followersCount.toString() || '0',
+      icon: <IconUsers size={28} />
     },
   ];
 
@@ -71,7 +71,7 @@ export default function Home() {
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 24) {
       return `${diffInHours} hours ago`;
     } else {
@@ -164,19 +164,19 @@ export default function Home() {
                       bottom: 0,
                     }}
                   >
-                    <CartesianGrid 
-                      strokeDasharray="3 3" 
-                      stroke={isDark ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-2)'} 
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke={isDark ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-2)'}
                       vertical={false}
                     />
-                    <XAxis 
-                      dataKey="day" 
-                      stroke={isDark ? 'var(--mantine-color-dark-2)' : 'var(--mantine-color-gray-6)'} 
+                    <XAxis
+                      dataKey="day"
+                      stroke={isDark ? 'var(--mantine-color-dark-2)' : 'var(--mantine-color-gray-6)'}
                       tick={{ fill: isDark ? 'var(--mantine-color-dark-0)' : 'var(--mantine-color-gray-7)' }}
                       axisLine={{ stroke: isDark ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-3)' }}
                     />
-                    <YAxis 
-                      stroke={isDark ? 'var(--mantine-color-dark-2)' : 'var(--mantine-color-gray-6)'} 
+                    <YAxis
+                      stroke={isDark ? 'var(--mantine-color-dark-2)' : 'var(--mantine-color-gray-6)'}
                       tick={{ fill: isDark ? 'var(--mantine-color-dark-0)' : 'var(--mantine-color-gray-7)' }}
                       axisLine={{ stroke: isDark ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-3)' }}
                     />
@@ -187,7 +187,7 @@ export default function Home() {
                         borderRadius: 'var(--mantine-radius-md)',
                         boxShadow: 'var(--mantine-shadow-md)',
                       }}
-                      labelStyle={{ 
+                      labelStyle={{
                         color: isDark ? 'var(--mantine-color-dark-0)' : 'var(--mantine-color-gray-9)',
                         fontWeight: 500,
                       }}
@@ -200,12 +200,12 @@ export default function Home() {
                       dataKey="logs"
                       stroke="var(--mantine-color-blue-6)"
                       strokeWidth={2}
-                      dot={{ 
+                      dot={{
                         r: 4,
                         fill: isDark ? 'var(--mantine-color-dark-7)' : 'var(--mantine-color-white)',
                         strokeWidth: 2,
                       }}
-                      activeDot={{ 
+                      activeDot={{
                         r: 6,
                         fill: isDark ? 'var(--mantine-color-dark-7)' : 'var(--mantine-color-white)',
                         strokeWidth: 2,
@@ -216,12 +216,12 @@ export default function Home() {
                       dataKey="articles"
                       stroke="var(--mantine-color-green-6)"
                       strokeWidth={2}
-                      dot={{ 
+                      dot={{
                         r: 4,
                         fill: isDark ? 'var(--mantine-color-dark-7)' : 'var(--mantine-color-white)',
                         strokeWidth: 2,
                       }}
-                      activeDot={{ 
+                      activeDot={{
                         r: 6,
                         fill: isDark ? 'var(--mantine-color-dark-7)' : 'var(--mantine-color-white)',
                         strokeWidth: 2,
