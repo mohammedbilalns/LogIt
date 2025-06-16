@@ -65,9 +65,7 @@ export default function Signup() {
     if (verificationEmail) {
       navigate('/verify-email', { state: { email: verificationEmail } });
     }
-    return () => {
-      dispatch(clearError());
-    };
+  
   }, [verificationEmail, loading, error, navigate, dispatch]);
 
   const handleSubmit = async (values: typeof form.values) => {
