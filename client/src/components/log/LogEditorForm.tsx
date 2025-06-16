@@ -62,7 +62,7 @@ export default function LogEditorForm({
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const { loading: logLoading, currentLog, error: logError } = useSelector((state: RootState) => state.logs);
-  const { loading: tagsLoading } = useSelector((state: RootState) => state.tags);
+  const { loading: tagsLoading, error: tagError } = useSelector((state: RootState) => state.tags);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [cropperOpen, setCropperOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState<File | null>(null);
@@ -333,7 +333,7 @@ export default function LogEditorForm({
               {mode === 'create' ? 'Create New Log' : 'Edit Log'}
             </Title>
 
-            {logError && (
+            {(logError || tagError || formError) && (
               <Text 
                 c="red" 
                 size="sm" 
@@ -345,7 +345,7 @@ export default function LogEditorForm({
                   border: '1px solid rgba(255,0,0,0.2)'
                 }}
               >
-                {logError}
+                {logError || tagError || formError}
               </Text>
             )}
 
@@ -415,7 +415,13 @@ export default function LogEditorForm({
 
             <TagSelector
               value={form.values.tags}
-              onChange={(tags) => form.setFieldValue('tags', tags)}
+              onChange={(tags) => {
+                form.setFieldValue('tags', tags);
+                // Clear tag error when tags are changed
+                if (tagError) {
+                  dispatch({ type: 'tags/clearError' });
+                }
+              }}
             />
 
             <FileInput

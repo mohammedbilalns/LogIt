@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '@axios';
 import { TagState} from "@type/tag.types"
 import { API_ROUTES } from '@/constants/routes';
+import axios from 'axios';
 
 
 
@@ -29,9 +30,16 @@ export const searchTags = createAsyncThunk(
 
 export const createTag = createAsyncThunk(
   'tags/create',
-  async (name: string) => {
-    const response = await axiosInstance.post(API_ROUTES.TAGS.BASE, { name });
-    return response.data;
+  async (name: string, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post(API_ROUTES.TAGS.BASE, { name });
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        return rejectWithValue(error.response?.data?.message || 'Failed to create tag');
+      }
+      return rejectWithValue('An unexpected error occurred');
+    }
   }
 );
 
@@ -45,18 +53,25 @@ export const fetchTags = createAsyncThunk(
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
     userId?: string;
-  }) => {
-    const params = new URLSearchParams();
-    if (page) params.append('page', page.toString());
-    if (limit) params.append('limit', limit.toString());
-    params.append('search', search || '');
-    if (promoted !== undefined) params.append('promoted', promoted.toString());
-    if (sortBy) params.append('sortBy', sortBy);
-    if (sortOrder) params.append('sortOrder', sortOrder);
-    if (userId) params.append('userId', userId);
+  }, { rejectWithValue }) => {
+    try {
+      const params = new URLSearchParams();
+      if (page) params.append('page', page.toString());
+      if (limit) params.append('limit', limit.toString());
+      params.append('search', search || '');
+      if (promoted !== undefined) params.append('promoted', promoted.toString());
+      if (sortBy) params.append('sortBy', sortBy);
+      if (sortOrder) params.append('sortOrder', sortOrder);
+      if (userId) params.append('userId', userId);
 
-    const response = await axiosInstance.get(`${API_ROUTES.TAGS.BASE}?${params.toString()}`);
-    return response.data;
+      const response = await axiosInstance.get(`${API_ROUTES.TAGS.BASE}?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        return rejectWithValue(error.response?.data?.message || 'Failed to fetch tags');
+      }
+      return rejectWithValue('An unexpected error occurred');
+    }
   }
 );
 
@@ -70,17 +85,31 @@ export const deleteTag = createAsyncThunk(
 
 export const promoteTag = createAsyncThunk(
   'tags/promote',
-  async (id: string) => {
-    const response = await axiosInstance.post(API_ROUTES.TAGS.PROMOTE(id));
-    return response.data;
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post(API_ROUTES.TAGS.PROMOTE(id));
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        return rejectWithValue(error.response?.data?.message || 'Failed to promote tag');
+      }
+      return rejectWithValue('An unexpected error occurred');
+    }
   }
 );
 
 export const demoteTag = createAsyncThunk(
   'tags/demote',
-  async (id: string) => {
-    const response = await axiosInstance.post(API_ROUTES.TAGS.DEMOTE(id));
-    return response.data;
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post(API_ROUTES.TAGS.DEMOTE(id));
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        return rejectWithValue(error.response?.data?.message || 'Failed to demote tag');
+      }
+      return rejectWithValue('An unexpected error occurred');
+    }
   }
 );
 
@@ -101,6 +130,11 @@ const tagSlice = createSlice({
     clearSearchResults: (state) => {
       state.searchResults = [];
     },
+    clearError: (state) => {
+      state.error = null;
+      state.errorAllTags = null;
+      state.errorPromotedTags = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -115,7 +149,7 @@ const tagSlice = createSlice({
       })
       .addCase(searchTags.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to search tags';
+        state.error = action.payload as string || 'Failed to search tags';
       })
       // Create Tag
       .addCase(createTag.pending, (state) => {
@@ -129,7 +163,7 @@ const tagSlice = createSlice({
       })
       .addCase(createTag.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to create tag';
+        state.error = action.payload as string || 'Failed to create tag';
       })
       // Fetch Tags
       .addCase(fetchTags.pending, (state, action) => {
@@ -150,15 +184,14 @@ const tagSlice = createSlice({
           state.tags = action.payload.tags;
           state.total = action.payload.total;
         }
-        console.log('fetchTags fulfilled - action.payload:', action.payload);
       })
       .addCase(fetchTags.rejected, (state, action) => {
         if (action.meta.arg.promoted) {
           state.loadingPromotedTags = false;
-          state.errorPromotedTags = action.error.message || 'Failed to fetch promoted tags';
+          state.errorPromotedTags = action.payload as string || 'Failed to fetch promoted tags';
         } else {
           state.loadingAllTags = false;
-          state.errorAllTags = action.error.message || 'Failed to fetch all tags';
+          state.errorAllTags = action.payload as string || 'Failed to fetch all tags';
         }
       })
       // Delete Tag
@@ -175,28 +208,44 @@ const tagSlice = createSlice({
         state.error = action.error.message || 'Failed to delete tag';
       })
       // Promote Tag
+      .addCase(promoteTag.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(promoteTag.fulfilled, (state, action) => {
+        state.loading = false;
         const index = state.tags.findIndex(tag => tag._id === action.payload._id);
         if (index !== -1) {
           state.tags[index] = action.payload;
         }
-        //  update searchResults if the promoted tag is there
         const searchIndex = state.searchResults.findIndex(tag => tag._id === action.payload._id);
         if (searchIndex !== -1) {
           state.searchResults[searchIndex] = action.payload;
         }
       })
+      .addCase(promoteTag.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string || 'Failed to promote tag';
+      })
       // Demote Tag
+      .addCase(demoteTag.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(demoteTag.fulfilled, (state, action) => {
+        state.loading = false;
         const index = state.tags.findIndex(tag => tag._id === action.payload._id);
         if (index !== -1) {
           state.tags[index] = action.payload;
         }
-        //  update searchResults if the demoted tag is there
         const searchIndex = state.searchResults.findIndex(tag => tag._id === action.payload._id);
         if (searchIndex !== -1) {
           state.searchResults[searchIndex] = action.payload;
         }
+      })
+      .addCase(demoteTag.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string || 'Failed to demote tag';
       })
       // Fetch Promoted and User Tags
       .addCase(fetchPromotedAndUserTags.pending, (state) => {
@@ -215,5 +264,5 @@ const tagSlice = createSlice({
   },
 });
 
-export const { clearSearchResults } = tagSlice.actions;
+export const { clearSearchResults, clearError } = tagSlice.actions;
 export default tagSlice.reducer; 

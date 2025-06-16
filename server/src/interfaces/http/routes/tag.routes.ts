@@ -5,6 +5,8 @@ import { MongoTagRepository } from "../../../infrastructure/repositories/tag.rep
 import { authorizeRoles, authMiddleware } from "../middlewares/auth.middleware";
 import { asyncHandler } from "../../../utils/asyncHandler";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
+import { validate } from "../middlewares/validation.middleware";
+import { createTagSchema } from "../../../application/validations/tag.validation";
 
 const router = Router();
 const tagRepository = new MongoTagRepository();
@@ -33,6 +35,7 @@ router.get(
 
 router.post(
   "/",
+  validate(createTagSchema),
   asyncHandler((req, res, next) => authorizeRoles("user")(req, res, next)),
   asyncHandler((req, res) => tagController.createTag(req, res))
 );
