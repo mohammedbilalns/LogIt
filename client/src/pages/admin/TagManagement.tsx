@@ -96,6 +96,7 @@ export default function TagManagement() {
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.currentTarget.value);
+    setPage(1);
   }, []);
 
   const handlePageSizeChange = useCallback((value: string | null) => {

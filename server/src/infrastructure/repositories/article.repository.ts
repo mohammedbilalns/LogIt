@@ -40,15 +40,12 @@ export class MongoArticleRepository extends BaseRepository<ArticleDocument, Arti
     if (tagIds && Array.isArray(tagIds) && tagIds.length > 0) {
       const articleTagModel = mongoose.model('ArticleTag');
       
-      // Convert string IDs to ObjectIds
       const tagObjectIds = tagIds.map(id => new mongoose.Types.ObjectId(id));
       
-      //  apply tag filtering if we have  tags
       const articleTagIds = await articleTagModel.distinct('articleId', {
         tagId: { $in: tagObjectIds }
       });
 
-      // Convert ObjectIds to strings
       articleIds = articleTagIds.map(id => id.toString());
     }
 
@@ -59,7 +56,6 @@ export class MongoArticleRepository extends BaseRepository<ArticleDocument, Arti
       query._id = { $in: articleIds.map(id => new mongoose.Types.ObjectId(id)) };
     }
 
-    //  query for both find and count
     const [data, total] = await Promise.all([
       this.model.find(query)
         .sort({ [restParams.sortBy || 'createdAt']: restParams.sortOrder === 'asc' ? 1 : -1 })

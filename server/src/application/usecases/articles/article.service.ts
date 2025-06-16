@@ -53,7 +53,6 @@ export class ArticleService {
 
     const articleWithTags = await this.getArticleWithTags(id);
 
-    // Check if the article is reported by the user
     if (userId) {
       const isReported = await this.reportRepository.existsByTarget({
         targetType: "article",
