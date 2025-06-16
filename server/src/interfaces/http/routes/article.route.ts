@@ -9,6 +9,8 @@ import { MongoReportRepository } from "../../../infrastructure/repositories/repo
 import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
 import { asyncHandler } from "../../../utils/asyncHandler";
+import { validate } from "../middlewares/validation.middleware";
+import { createArticleSchema, updateArticleSchema } from "../../../application/validations/article.validation";
 
 const router = Router();
 
@@ -32,7 +34,7 @@ const articleController = new ArticleController(articleService);
 // Public routes
 router.get(
   "/",
-  asyncHandler((req, res) => articleController.getArticles(req, res))
+  asyncHandler((req,res)=> articleController.getArticles(req,res))
 );
 
 // Protected routes
@@ -49,6 +51,7 @@ router.get(
 router.post(
   "/",
   asyncHandler((req, res, next) => authorizeRoles("user")(req, res, next)),
+  validate(createArticleSchema),
   asyncHandler((req, res) => articleController.createArticle(req, res))
 );
 
@@ -57,6 +60,7 @@ router.put(
   asyncHandler((req, res, next) =>
     authorizeRoles("user", "admin", "superadmin")(req, res, next)
   ),
+  validate(updateArticleSchema),
   asyncHandler((req, res) => articleController.updateArticle(req, res))
 );
 
