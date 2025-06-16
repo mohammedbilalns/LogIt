@@ -35,17 +35,25 @@ export const fetchUsers = createAsyncThunk(
 
 export const blockUser = createAsyncThunk(
   'userManagement/blockUser',
-  async (id: string) => {
-    const response = await axiosInstance.patch(API_ROUTES.USER_MANAGEMENT.BY_ID(id), { isBlocked: true });
-    return response.data;
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.patch(API_ROUTES.USER_MANAGEMENT.BY_ID(id), { isBlocked: true });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to block user');
+    }
   }
 );
 
 export const unblockUser = createAsyncThunk(
   'userManagement/unblockUser',
-  async (id: string) => {
-    const response = await axiosInstance.patch(API_ROUTES.USER_MANAGEMENT.BY_ID(id), { isBlocked: false });
-    return response.data;
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.patch(API_ROUTES.USER_MANAGEMENT.BY_ID(id), { isBlocked: false });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to unblock user');
+    }
   }
 );
 
@@ -116,17 +124,35 @@ const userManagementSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch users';
       })
+      .addCase(blockUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(blockUser.fulfilled, (state, action) => {
+        state.loading = false;
         const userIndex = state.users.findIndex(user => user._id === action.payload.id);
         if (userIndex !== -1) {
           state.users[userIndex] = { ...state.users[userIndex], isBlocked: true };
         }
       })
+      .addCase(blockUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(unblockUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(unblockUser.fulfilled, (state, action) => {
+        state.loading = false;
         const userIndex = state.users.findIndex(user => user._id === action.payload.id);
         if (userIndex !== -1) {
           state.users[userIndex] = { ...state.users[userIndex], isBlocked: false };
         }
+      })
+      .addCase(unblockUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       })
       .addCase(updateProfile.pending, (state) => {
         state.loading = true;

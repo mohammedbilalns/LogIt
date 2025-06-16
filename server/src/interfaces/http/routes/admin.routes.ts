@@ -4,6 +4,8 @@ import { UserManagementService } from "../../../application/usecases/usermanagem
 import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
 import { asyncHandler } from "../../../utils/asyncHandler";
+import { validate } from "../middlewares/validation.middleware";
+import { updateUserSchema } from "../../../application/validations/admin.validation";
 
 const router = Router();
 const userManagementService = new UserManagementService();
@@ -26,6 +28,7 @@ router.get(
 // update users
 router.patch(
   "/users/:id",
+  validate(updateUserSchema),
   asyncHandler((req, res) => adminController.updateUser(req, res))
 );
 

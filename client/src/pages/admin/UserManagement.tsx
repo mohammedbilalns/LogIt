@@ -68,7 +68,7 @@ export default function UserManagement() {
 
   const handleBlockConfirm = useCallback(async () => {
     if (!userToBlock) return;
-    
+
     try {
       if (userToBlock.isBlocked) {
         await dispatch(unblockUser(userToBlock.id)).unwrap();
@@ -85,11 +85,10 @@ export default function UserManagement() {
           color: 'red',
         });
       }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update user status';
+    } catch (error: any) {
       notifications.show({
         title: 'Error',
-        message: errorMessage,
+        message: error.message || 'Failed to update user status',
         color: 'red',
       });
     } finally {
@@ -135,18 +134,18 @@ export default function UserManagement() {
   const containerPadding = isMobile ? "md" : "xl";
 
   return (
-    <Container 
-      size="xl" 
-      py="xl" 
+    <Container
+      size="xl"
+      py="xl"
       px={containerPadding}
       style={containerStyle}
     >
       <Stack gap="lg">
-        <Paper 
-          shadow="xs" 
-          p="md" 
-          withBorder 
-          style={{ 
+        <Paper
+          shadow="xs"
+          p="md"
+          withBorder
+          style={{
             backgroundColor: isDark ? theme.colors.dark[7] : theme.white,
           }}
         >
@@ -167,15 +166,15 @@ export default function UserManagement() {
           <ScrollArea>
             <Box style={{
               minWidth: isMobile ? 650 : 800,
-              ['@media (max-width: 768px)'] : {
-                 minWidth: 650,
+              ['@media (max-width: 768px)']: {
+                minWidth: 650,
               }
             }}>
-              <Table 
-                striped 
-                highlightOnHover 
-                withTableBorder 
-                withColumnBorders 
+              <Table
+                striped
+                highlightOnHover
+                withTableBorder
+                withColumnBorders
               >
                 <Table.Thead>
                   <Table.Tr>
@@ -216,7 +215,7 @@ export default function UserManagement() {
                         </Text>
                       </Table.Td>
                       <Table.Td>
-                        <Badge 
+                        <Badge
                           variant="light"
                           color={user.provider === 'google' ? 'blue' : 'gray'}
                           size={isMobile ? "md" : "lg"}
@@ -225,7 +224,7 @@ export default function UserManagement() {
                         </Badge>
                       </Table.Td>
                       <Table.Td>
-                        <Badge 
+                        <Badge
                           color={user.isBlocked ? 'red' : 'green'}
                           variant="light"
                           size={isMobile ? "md" : "lg"}
@@ -257,8 +256,8 @@ export default function UserManagement() {
           </ScrollArea>
 
           {loading && (
-            <Box 
-              style={{ 
+            <Box
+              style={{
                 padding: '1rem',
                 display: 'flex',
                 justifyContent: 'center',
@@ -272,10 +271,10 @@ export default function UserManagement() {
               </Stack>
             </Box>
           )}
-          
+
           {error && (
-            <Box 
-              style={{ 
+            <Box
+              style={{
                 padding: '1rem',
                 display: 'flex',
                 justifyContent: 'center',
@@ -283,13 +282,13 @@ export default function UserManagement() {
                 borderTop: '1px solid var(--mantine-color-gray-3)'
               }}
             >
-              <Text c="red" size="sm">{error}</Text>
+              <Text c="red" size="sm" fw={500}>{error}</Text>
             </Box>
           )}
 
           {!loading && !error && users.length === 0 && (
-            <Box 
-              style={{ 
+            <Box
+              style={{
                 padding: '1rem',
                 display: 'flex',
                 justifyContent: 'center',
