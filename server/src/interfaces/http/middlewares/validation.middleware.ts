@@ -10,6 +10,7 @@ export const validate = (schema: AnyZodObject) => {
     } catch (error) {
       if (error instanceof ZodError) {
         const errorMessage = error.errors.map(err => err.message).join(', ');
+        console.log("validation error",  errorMessage)
         res.status(HttpStatus.BAD_REQUEST).json({
           message: errorMessage
         });

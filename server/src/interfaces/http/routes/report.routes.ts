@@ -10,6 +10,8 @@ import { MongoUserRepository } from "../../../infrastructure/repositories/user.r
 import { asyncHandler } from "../../../utils/asyncHandler";
 import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
+import { validate } from "../middlewares/validation.middleware";
+import { createReportSchema, updateReportStatusSchema } from "../../../application/validations/report.validation";
 
 const router = Router();
 
@@ -37,6 +39,7 @@ router.use(asyncHandler((req, res, next) => csrfMiddleware()(req, res, next)));
 // Public routes (authenticated users)
 router.post(
   "/",
+  validate(createReportSchema),
   asyncHandler((req, res) => reportController.createReport(req, res))
 );
 
@@ -55,6 +58,7 @@ router.get(
 // Update report status
 router.patch(
   "/:id/status",
+  validate(updateReportStatusSchema),
   asyncHandler((req, res) => reportController.updateReportStatus(req, res))
 );
 
