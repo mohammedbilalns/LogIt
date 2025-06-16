@@ -1,12 +1,12 @@
-export interface Article {
-  id?: string;
+import { BaseEntity } from "./base.entity";
+
+export interface Article extends BaseEntity {
   authorId: string;
   title: string;
   isActive: boolean;
   content: string;
   featured_image?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+
 } 
 
 export interface ArticleWithTags extends Article {

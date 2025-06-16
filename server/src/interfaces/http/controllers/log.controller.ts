@@ -42,7 +42,9 @@ export class LogController {
     const { id } = req.params;
     const userId = req.user?.id;
 
+
     const log = await this.logService.getLog(userId, id);
+
     if (!log) {
       res
         .status(HttpStatus.NOT_FOUND)
@@ -78,6 +80,7 @@ export class LogController {
     const { id } = req.params;
     const userId = req.user?.id;
 
+
     const success = await this.logService.deleteLog(userId, id);
     if (!success) {
       res
@@ -85,6 +88,6 @@ export class LogController {
         .json({ message: HttpResponse.LOG_NOT_FOUND });
       return;
     }
-    res.status(HttpStatus.NOT_FOUND).send();
+    res.status(HttpStatus.OK).send();
   };
 }

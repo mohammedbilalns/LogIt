@@ -1,13 +1,20 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
-import { IOTPRepository } from '../../../domain/repositories/otp.repository.interface';
-import { User, UserWithoutPassword } from '../../../domain/entities/user.entity';
-import env from '../../../config/env';
-import { OTP_EXPIRY } from '../../../config/constants';
-import { MailService } from '../../services/mail.service';
-import { TokenService } from '../../services/token.service';
-import { ValidationService, SignupData, LoginData } from '../../services/validation.service';
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { IUserRepository } from "../../../domain/repositories/user.repository.interface";
+import { IOTPRepository } from "../../../domain/repositories/otp.repository.interface";
+import {
+  User,
+  UserWithoutPassword,
+} from "../../../domain/entities/user.entity";
+import env from "../../../config/env";
+import { OTP_EXPIRY } from "../../../config/constants";
+import { MailService } from "../../services/mail.service";
+import { TokenService } from "../../services/token.service";
+import {
+  ValidationService,
+  SignupData,
+  LoginData,
+} from "../../services/validation.service";
 import {
   EmailAlreadyRegisteredError,
   InvalidCredentialsError,
@@ -18,15 +25,15 @@ import {
   EmailAlreadyWithGoogleIdError,
   PasswordResetNotAllowedError,
   InvalidResetOTPError,
-  UserBlockedError
-} from '../../errors/auth.errors';
-import { HttpResponse } from '../../../config/responseMessages';
+  UserBlockedError,
+} from "../../errors/auth.errors";
+import { HttpResponse } from "../../../config/responseMessages";
 
 export class AuthService {
   private mailService: MailService;
   private tokenService: TokenService;
   private validationService: ValidationService;
-  
+
   constructor(
     private userRepository: IUserRepository,
     private otpRepository: IOTPRepository,
@@ -37,8 +44,24 @@ export class AuthService {
     this.validationService = new ValidationService();
   }
 
-  private validateUserFields(user: User): asserts user is User & { id: string; name: string; email: string; role: string; createdAt: Date; updatedAt: Date } {
-    if (!user.id || !user.name || !user.email || !user.role || !user.createdAt || !user.updatedAt) {
+  private validateUserFields(
+    user: User
+  ): asserts user is User & {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    createdAt: Date;
+    updatedAt: Date;
+  } {
+    if (
+      !user.id ||
+      !user.name ||
+      !user.email ||
+      !user.role ||
+      !user.createdAt ||
+      !user.updatedAt
+    ) {
       throw new Error(HttpResponse.MISSING_USER_DATA);
     }
   }
@@ -52,16 +75,17 @@ export class AuthService {
 
   async validateAccessToken(token: string) {
     try {
-
       const decoded = this.tokenService.verifyAccessToken(token);
-      
       const user = await this.userRepository.findById(decoded.id);
-      
+
       if (!user) {
         throw new UserNotFoundError();
       }
 
-      return this.createUserWithoutPassword(user);
+      return {
+        user: this.createUserWithoutPassword(user),
+        csrfToken: this.generateCsrfToken()
+      };
     } catch {
       throw new InvalidTokenError();
     }
@@ -73,19 +97,20 @@ export class AuthService {
 
   async signup(userData: SignupData) {
     const validatedData = this.validationService.validateSignupData(userData);
-    
-    const existingUser = await this.userRepository.findByEmail(validatedData.email);
 
-    if(existingUser?.isBlocked) {
+    const existingUser = await this.userRepository.findByEmail(
+      validatedData.email
+    );
+
+    if (existingUser?.isBlocked) {
       throw new UserBlockedError();
     }
-    if(!existingUser?.password && existingUser?.googleId) {
+    if (!existingUser?.password && existingUser?.googleId) {
       throw new EmailAlreadyWithGoogleIdError();
     }
     if (existingUser?.isVerified) {
       throw new EmailAlreadyRegisteredError();
     }
-   
 
     if (existingUser) {
       await this.userRepository.deleteByEmail(validatedData.email);
@@ -97,7 +122,7 @@ export class AuthService {
       ...validatedData,
       password: hashedPassword,
       isVerified: false,
-      role: 'user'
+      role: "user",
     });
     const otp = this.generateOTP();
     const now = new Date();
@@ -106,19 +131,26 @@ export class AuthService {
       otp,
       expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
       retryAttempts: 0,
-      type: 'verification'
+      type: "verification",
     });
 
     await this.mailService.sendOTP(user.email, otp);
 
     const userWithoutPassword = this.createUserWithoutPassword(user);
-    return userWithoutPassword;
+    return {
+      user: userWithoutPassword,
+      csrfToken: this.generateCsrfToken()
+    };
   }
 
   async verifyOTP(email: string, otp: string) {
     const storedOTP = await this.otpRepository.findByEmail(email);
 
-    if (!storedOTP || storedOTP.otp !== otp || storedOTP.type !== 'verification') {
+    if (
+      !storedOTP ||
+      storedOTP.otp !== otp ||
+      storedOTP.type !== "verification"
+    ) {
       if (storedOTP) {
         if (storedOTP.retryAttempts >= 4) {
           await this.userRepository.deleteByEmail(email);
@@ -131,7 +163,7 @@ export class AuthService {
     }
 
     const user = await this.userRepository.findByEmail(email);
-    if(user?.isBlocked) {
+    if (user?.isBlocked) {
       throw new UserBlockedError();
     }
     if (!user) {
@@ -145,7 +177,8 @@ export class AuthService {
     return {
       user: userWithoutPassword,
       accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
-      refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword)
+      refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword),
+      csrfToken: this.generateCsrfToken()
     };
   }
 
@@ -153,20 +186,23 @@ export class AuthService {
     const validatedData = this.validationService.validateLoginData(credentials);
 
     const user = await this.userRepository.findByEmail(validatedData.email);
-    if(!user){
-      throw new UserNotFoundError()
+    if (!user) {
+      throw new UserNotFoundError();
     }
-    if(!user?.password && user?.googleId) {
+    if (!user?.password && user?.googleId) {
       throw new EmailAlreadyWithGoogleIdError();
     }
-    if(user?.isBlocked) {
+    if (user?.isBlocked) {
       throw new UserBlockedError();
     }
     if (!user || !user.isVerified || !user.password) {
       throw new InvalidCredentialsError();
     }
 
-    const isValidPassword = await bcrypt.compare(validatedData.password, user.password);
+    const isValidPassword = await bcrypt.compare(
+      validatedData.password,
+      user.password
+    );
     if (!isValidPassword) {
       throw new InvalidCredentialsError();
     }
@@ -175,7 +211,8 @@ export class AuthService {
     return {
       user: userWithoutPassword,
       accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
-      refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword)
+      refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword),
+      csrfToken: this.generateCsrfToken()
     };
   }
 
@@ -183,7 +220,7 @@ export class AuthService {
     try {
       const decoded = this.tokenService.verifyRefreshToken(token);
       const user = await this.userRepository.findById(decoded.id);
-      
+
       if (!user) {
         throw new UserNotFoundError();
       }
@@ -192,7 +229,8 @@ export class AuthService {
       return {
         user: userWithoutPassword,
         accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
-        refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword)
+        refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword),
+        csrfToken: this.generateCsrfToken()
       };
     } catch {
       throw new InvalidTokenError();
@@ -218,13 +256,13 @@ export class AuthService {
 
     const otp = this.generateOTP();
     const now = new Date();
-    
+
     if (storedOTP) {
       await this.otpRepository.update(email, {
         otp,
         expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
         retryAttempts: (storedOTP.retryAttempts || 0) + 1,
-        type: 'verification'
+        type: "verification",
       });
     } else {
       await this.otpRepository.create({
@@ -232,7 +270,7 @@ export class AuthService {
         otp,
         expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
         retryAttempts: 0,
-        type: 'verification'
+        type: "verification",
       });
     }
 
@@ -249,14 +287,13 @@ export class AuthService {
         sub: string;
       } | null;
 
-
       if (!decoded) {
         throw new InvalidCredentialsError();
       }
 
       let user = await this.userRepository.findByEmail(decoded.email);
-      
-      if(user?.isBlocked) {
+
+      if (user?.isBlocked) {
         throw new UserBlockedError();
       }
 
@@ -267,16 +304,16 @@ export class AuthService {
           isVerified: true,
           googleId: decoded.sub,
           profileImage: decoded.picture,
-          provider: 'google',
-          role: 'user'
+          provider: "google",
+          role: "user",
         });
       } else if (!user.googleId) {
         const updatedUser = await this.userRepository.update(user.id, {
           googleId: decoded.sub,
           profileImage: decoded.picture,
-          provider: 'google',
+          provider: "google",
           isVerified: true,
-          role: user.role || 'user'
+          role: user.role || "user",
         });
         if (!updatedUser) {
           throw new InvalidCredentialsError();
@@ -288,7 +325,8 @@ export class AuthService {
       return {
         user: userWithoutPassword,
         accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
-        refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword)
+        refreshToken:
+          this.tokenService.generateRefreshToken(userWithoutPassword),
       };
     } catch {
       throw new InvalidCredentialsError();
@@ -297,11 +335,11 @@ export class AuthService {
 
   async initiatePasswordReset(email: string) {
     const user = await this.userRepository.findByEmail(email);
-    
-    if(user?.isBlocked) {
+
+    if (user?.isBlocked) {
       throw new UserBlockedError();
     }
-    if (!user || user.role === 'admin'|| user.role === 'superadmin') {
+    if (!user || user.role === "admin" || user.role === "superadmin") {
       throw new UserNotFoundError();
     }
 
@@ -311,24 +349,24 @@ export class AuthService {
 
     const otp = this.generateOTP();
     const now = new Date();
-    
+
     await this.otpRepository.deleteByEmail(email); // Clear any existing OTP
     await this.otpRepository.create({
       email,
       otp,
       expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
       retryAttempts: 0,
-      type: 'reset'
+      type: "reset",
     });
 
     await this.mailService.sendPasswordResetOTP(email, otp);
-    return { message: HttpResponse.SEND_PASSWORD_RESET_OTP  };
+    return { message: HttpResponse.SEND_PASSWORD_RESET_OTP };
   }
 
   async verifyResetOTP(email: string, otp: string) {
     const storedOTP = await this.otpRepository.findByEmail(email);
-    
-    if (!storedOTP || storedOTP.otp !== otp || storedOTP.type !== 'reset') {
+
+    if (!storedOTP || storedOTP.otp !== otp || storedOTP.type !== "reset") {
       if (storedOTP) {
         if (storedOTP.retryAttempts >= 4) {
           await this.otpRepository.deleteByEmail(email);
@@ -344,14 +382,17 @@ export class AuthService {
       throw new InvalidResetOTPError();
     }
 
-    return { message:  HttpResponse.OTP_RESEND};
+    return { message: HttpResponse.OTP_RESEND };
   }
 
   async updatePassword(email: string, newPassword: string) {
-    const validatedData = this.validationService.validateResetPasswordData({ email, newPassword });
+    const validatedData = this.validationService.validateResetPasswordData({
+      email,
+      newPassword,
+    });
     const user = await this.userRepository.findByEmail(validatedData.email);
-    
-    if(user?.isBlocked) {
+
+    if (user?.isBlocked) {
       throw new UserBlockedError();
     }
     if (!user) {
@@ -359,12 +400,14 @@ export class AuthService {
     }
 
     const storedOTP = await this.otpRepository.findByEmail(validatedData.email);
-    if (!storedOTP || storedOTP.type !== 'reset') {
+    if (!storedOTP || storedOTP.type !== "reset") {
       throw new InvalidResetOTPError();
     }
 
     const hashedPassword = await bcrypt.hash(validatedData.newPassword, 10);
-    const updatedUser = await this.userRepository.update(user.id, { password: hashedPassword });
+    const updatedUser = await this.userRepository.update(user.id, {
+      password: hashedPassword,
+    });
     if (!updatedUser) {
       throw new UserNotFoundError();
     }
@@ -372,4 +415,4 @@ export class AuthService {
 
     return { message: HttpResponse.PASSWORD_UPDATED };
   }
-} 
+}

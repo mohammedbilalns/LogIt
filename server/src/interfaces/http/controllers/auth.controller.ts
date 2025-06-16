@@ -36,6 +36,7 @@ export class AuthController {
 
   signup = async (req: Request, res: Response): Promise<void> => {
     const user = await this.authService.signup(req.body);
+    this.setCsrfToken(res);
     res.status(HttpStatus.CREATED).json({
       message: HttpResponse.SIGNUP_SUCCESS,
       user,
@@ -56,6 +57,8 @@ export class AuthController {
       ...COOKIE_OPTIONS,
       maxAge: REFRESH_COOKIE_EXPIRY,
     });
+
+    this.setCsrfToken(res);
 
     res.status(HttpStatus.OK).json({
       message: HttpResponse.VERIFIED_EMAIL,
@@ -78,6 +81,8 @@ export class AuthController {
       maxAge: REFRESH_COOKIE_EXPIRY,
     });
 
+    this.setCsrfToken(res);
+
     res.status(HttpStatus.OK).json({
       message: HttpResponse.LOGIN_SUCCESSFUL,
       user,
@@ -88,6 +93,7 @@ export class AuthController {
     const accessToken = req.cookies.accessToken;
     if (accessToken) {
       const user = await this.authService.validateAccessToken(accessToken);
+      this.setCsrfToken(res);
       res.status(HttpStatus.OK).json({
         message: HttpResponse.VALID_TOKEN,
         user,
@@ -119,6 +125,8 @@ export class AuthController {
         ...COOKIE_OPTIONS,
         maxAge: REFRESH_COOKIE_EXPIRY,
       });
+
+      this.setCsrfToken(res);
 
       res.status(HttpStatus.OK).json({
         message: HttpResponse.TOKEN_REFRESH_SUCCESS,

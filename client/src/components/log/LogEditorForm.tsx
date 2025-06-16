@@ -79,6 +79,9 @@ export default function LogEditorForm({
     },
     validate: {
       title:(value)=>{
+        if(!value){
+          console.log("Title not found")
+        }
         if(!value.trim()){
           return "Title cannot be empty"
         }
@@ -114,7 +117,7 @@ export default function LogEditorForm({
       form.setValues({
         title: currentLog.title,
         content: currentLog.content,
-        tags: currentLog.tags.map(tag => tag._id),
+        tags: currentLog.tags.map(tag => tag.id),
         mediaUrls: currentLog.mediaUrls,
         createdAt: new Date(currentLog.createdAt),
       });

@@ -1,16 +1,16 @@
-import nodemailer from 'nodemailer';
-import env from '../../config/env';
+import nodemailer from "nodemailer";
+import env from "../../config/env";
 
 export class MailService {
   private transporter: nodemailer.Transporter;
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: "gmail",
       auth: {
         user: env.EMAIL_USER,
-        pass: env.EMAIL_PASS
-      }
+        pass: env.EMAIL_PASS,
+      },
     });
   }
 
@@ -38,9 +38,9 @@ export class MailService {
     await this.transporter.sendMail({
       from: `"LogIt" <${env.EMAIL_USER}>`,
       to: email,
-      subject: 'Verify your email address',
+      subject: "Verify your email address",
       text: `Your OTP is: ${otp}. It will expire in 5 minutes.`,
-      html: htmlContent
+      html: htmlContent,
     });
   }
 
@@ -68,9 +68,9 @@ export class MailService {
     await this.transporter.sendMail({
       from: `"LogIt" <${env.EMAIL_USER}>`,
       to: email,
-      subject: 'Password Reset Request',
+      subject: "Password Reset Request",
       text: `Your password reset OTP is: ${otp}. It will expire in 5 minutes.`,
-      html: htmlContent
+      html: htmlContent,
     });
   }
 }

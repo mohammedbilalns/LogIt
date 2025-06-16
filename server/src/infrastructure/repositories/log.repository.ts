@@ -1,4 +1,4 @@
-import { Log } from '../../domain/entities/log.entitty';
+import { Log } from '../../domain/entities/log.entity';
 import { LogRepository } from '../../domain/repositories/log.repository';
 import LogModel,{  LogDocument } from '../mongodb/log.schema';
 import { BaseRepository } from './base.repository';

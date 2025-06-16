@@ -1,4 +1,4 @@
-import { Log } from '../entities/log.entitty';
+import { Log } from '../entities/log.entity';
 import { IBaseRepository } from './base.repository.interface';
 
 export interface LogRepository extends IBaseRepository<Log> {

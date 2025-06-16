@@ -1,6 +1,6 @@
 export interface ReportDocument {
   id?: string;
-  reportedBy: string; // This is the ObjectId reference
+  reportedBy: string;
   targetType: 'article' | 'user';
   targetId: string;
   reason: string;

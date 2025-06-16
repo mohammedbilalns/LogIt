@@ -1,12 +1,11 @@
-export interface User {
-  id: string;
+import { BaseEntity } from "./base.entity";
+
+export interface User extends BaseEntity {
   name: string;
   email: string;
   password?: string;
   isVerified: boolean;
   isBlocked?: boolean;
-  createdAt: Date;
-  updatedAt: Date;
   googleId?: string;
   profileImage?: string;
   profession?: string;

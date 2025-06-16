@@ -1,4 +1,4 @@
-import { Log } from "../../../domain/entities/log.entitty";
+import { Log } from "../../../domain/entities/log.entity";
 import { LogRepository } from "../../../domain/repositories/log.repository";
 import { LogTagRepository } from "../../../domain/repositories/logTag.repository";
 import { LogMediaRepository } from "../../../domain/repositories/logMedia.repository";
@@ -178,14 +178,15 @@ export class LogService {
     logId: string
   ): Promise<LogWithRelations | null> {
     try {
+      console.log("User id ", userId)
       if (!userId) {
         throw new UnauthorizedError();
       }
+
       const log = await this.logRepository.findById(logId);
       if (!log || log.userId !== userId) {
         return null;
       }
-
       if (!log.id) {
         throw new InternalServerError(HttpResponse.LOG_ID_NOT_FOUND);
       }
@@ -194,6 +195,7 @@ export class LogService {
         this.logTagRepository.findByLogId(logId),
         this.logMediaRepository.findByLogId(logId),
       ]);
+      console.log(tags, media)
 
       // Get tag details
       const tagIds = tags.map((tag) => tag.tagId);
@@ -301,12 +303,11 @@ export class LogService {
       if (!log || log.userId !== userId) {
         return false;
       }
-
+      
       const logTags = await this.logTagRepository.findByLogId(logId);
       for (const tag of logTags) {
         await this.tagRepository.decrementUsageCount(tag.tagId);
       }
-
       await Promise.all([
         this.logRepository.delete(logId),
         this.logTagRepository.deleteByLogId(logId),
