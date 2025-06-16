@@ -1,7 +1,7 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '@axios';
-import { AuthResponse, LoginRequest, SignupRequest } from '@type/user.types';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { AuthState } from '@type/auth.types';
+import { AuthResponse, LoginRequest, SignupRequest } from '@type/user.types';
 import { AxiosError } from 'axios';
 import { API_ROUTES } from '@/constants/routes';
 
@@ -32,7 +32,7 @@ export const signup = createAsyncThunk(
       return response.data;
     } catch (error) {
       const apiError = error as ApiError;
-      const message = apiError.response?.data?.message || 'Signup failed. Please try again.';
+      const message = apiError.response?.data?.message;
       return rejectWithValue(message);
     }
   }
@@ -46,7 +46,7 @@ export const verifyEmail = createAsyncThunk(
       return response.data;
     } catch (error) {
       const apiError = error as ApiError;
-      const message = apiError.response?.data?.message || 'Email verification failed. Please try again.';
+      const message = apiError.response?.data?.message;
       return rejectWithValue(message);
     }
   }
@@ -60,8 +60,8 @@ export const login = createAsyncThunk(
       return response.data;
     } catch (error) {
       const apiError = error as ApiError;
-      console.log("Error loging in:  ", apiError)
-      const message = apiError.response?.data?.message || 'Login failed. Please try again.';
+      console.log('Error loging in:  ', apiError);
+      const message = apiError.response?.data?.message;
       return rejectWithValue(message);
     }
   }
@@ -73,7 +73,7 @@ export const logout = createAsyncThunk('auth/logout', async (_, { rejectWithValu
     return null;
   } catch (error) {
     const apiError = error as ApiError;
-    const message = apiError.response?.data?.message || 'Logout failed. Please try again.';
+    const message = apiError.response?.data?.message;
     return rejectWithValue(message);
   }
 });
@@ -81,7 +81,6 @@ export const logout = createAsyncThunk('auth/logout', async (_, { rejectWithValu
 export const checkAuth = createAsyncThunk('auth/check', async (_, { rejectWithValue }) => {
   try {
     const response = await api.post<AuthResponse>(API_ROUTES.AUTH.REFRESH);
-    console.log("Refresh response in the frontend ", response)
     return response.data;
   } catch {
     return rejectWithValue(null);
@@ -110,8 +109,8 @@ export const googleAuth = createAsyncThunk(
       return response.data;
     } catch (error) {
       const apiError = error as ApiError;
-      
-      const message = apiError.response?.data?.message || 'Google authentication failed. Please try again.';
+
+      const message = apiError.response?.data?.message;
       return rejectWithValue(message);
     }
   }
@@ -125,7 +124,7 @@ export const initiatePasswordReset = createAsyncThunk(
       return { email, message: response.data.message };
     } catch (error) {
       const apiError = error as ApiError;
-      const message = apiError.response?.data?.message || 'Failed to initiate password reset. Please try again.';
+      const message = apiError.response?.data?.message;
       return rejectWithValue(message);
     }
   }
@@ -139,7 +138,7 @@ export const verifyResetOTP = createAsyncThunk(
       return { email, message: response.data.message };
     } catch (error) {
       const apiError = error as ApiError;
-      const message = apiError.response?.data?.message || 'Failed to verify OTP. Please try again.';
+      const message = apiError.response?.data?.message;
       return rejectWithValue(message);
     }
   }
@@ -147,13 +146,16 @@ export const verifyResetOTP = createAsyncThunk(
 
 export const updatePassword = createAsyncThunk(
   'auth/updatePassword',
-  async ({ email, otp, newPassword }: { email: string; otp: string; newPassword: string }, { rejectWithValue }) => {
+  async (
+    { email, otp, newPassword }: { email: string; otp: string; newPassword: string },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await api.post(API_ROUTES.AUTH.UPDATE_PASSWORD, { email, otp, newPassword });
       return response.data;
     } catch (error) {
       const apiError = error as ApiError;
-      const message = apiError.response?.data?.message || 'Failed to update password. Please try again.';
+      const message = apiError.response?.data?.message;
       return rejectWithValue(message);
     }
   }
@@ -161,13 +163,19 @@ export const updatePassword = createAsyncThunk(
 
 export const changePassword = createAsyncThunk(
   'auth/changePassword',
-  async ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }, { rejectWithValue }) => {
+  async (
+    { currentPassword, newPassword }: { currentPassword: string; newPassword: string },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await api.put(API_ROUTES.AUTH.CHANGE_PASSWORD, { currentPassword, newPassword });
+      const response = await api.put(API_ROUTES.AUTH.CHANGE_PASSWORD, {
+        currentPassword,
+        newPassword,
+      });
       return response.data;
     } catch (error) {
       const apiError = error as ApiError;
-      const message = apiError.response?.data?.message || 'Failed to change password. Please try again.';
+      const message = apiError.response?.data?.message;
       return rejectWithValue(message);
     }
   }
@@ -353,5 +361,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError, setVerificationEmail, resetAuthState, clearResetPasswordState } = authSlice.actions;
-export default authSlice.reducer; 
+export const { clearError, setVerificationEmail, resetAuthState, clearResetPasswordState } =
+  authSlice.actions;
+export default authSlice.reducer;

@@ -72,9 +72,6 @@ export class ArticleService {
     tagIds?: string[]
   ): Promise<ArticleWithTags | null> {
 
-    if (!article.title || !article.content) {
-      throw new MissingFieldsError();
-    }
     const updatedArticle = await this.articleRepository.update(id, article);
     if (!updatedArticle) return null;
 

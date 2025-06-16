@@ -1,14 +1,14 @@
-import { Box, Group, Stack, Text, Title, Select, Chip, Center, Paper } from '@mantine/core';
-import  { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '@/store';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import ArticleRow from '@components/article/ArticleRow';
 import { fetchArticles } from '@slices/articleSlice';
 import { fetchPromotedAndUserTags } from '@slices/tagSlice';
-import CreateButton from '@/components/user/CreateButton';
-import ArticleRow from '@components/article/ArticleRow';
-import ArticleRowSkeleton from '@/components/skeletons/ArticleRowSkeleton';
+import { useDispatch, useSelector } from 'react-redux';
+import { Box, Center, Chip, Group, Paper, Select, Stack, Text, Title } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
+import ArticleRowSkeleton from '@/components/skeletons/ArticleRowSkeleton';
 import TagFilterSection from '@/components/tags/TagFilterSection';
+import CreateButton from '@/components/user/CreateButton';
+import { AppDispatch, RootState } from '@/store';
 
 interface ArticleFilters {
   tagIds: string[];
@@ -29,21 +29,29 @@ export default function ArticlesPage() {
   const [searchTags, setSearchTags] = useState<string[]>([]);
   const userId = useSelector((state: RootState) => state.auth.user?._id);
 
-  const filters = useMemo(() => ({
-    tagIds: [...selectedTags, ...searchTags],
-    isActive: true
-  }), [selectedTags, searchTags]);
+  const filters = useMemo(
+    () => ({
+      tagIds: [...selectedTags, ...searchTags],
+      isActive: true,
+    }),
+    [selectedTags, searchTags]
+  );
 
-  const sortOptions = useMemo(() => [
-    { value: 'new', label: 'New To Old' },
-    { value: 'old', label: 'Old To New' },
-  ], []);
+  const sortOptions = useMemo(
+    () => [
+      { value: 'new', label: 'New To Old' },
+      { value: 'old', label: 'Old To New' },
+    ],
+    []
+  );
 
-  const skeletons = useMemo(() => 
-    Array(2).fill(0).map((_, index) => (
-      <ArticleRowSkeleton key={`skeleton-${index}`} />
-    )), 
-  []);
+  const skeletons = useMemo(
+    () =>
+      Array(2)
+        .fill(0)
+        .map((_, index) => <ArticleRowSkeleton key={`skeleton-${index}`} />),
+    []
+  );
 
   useEffect(() => {
     dispatch(fetchPromotedAndUserTags({ limit: 5 }));
@@ -53,22 +61,15 @@ export default function ArticlesPage() {
     const currentObserver = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        console.log('Intersection observer:', {
-          isIntersecting: entry.isIntersecting,
-          hasMore,
-          loading,
-          currentPage: page
-        });
-
+    
         if (entry.isIntersecting && hasMore && !loading) {
-          console.log('Loading more articles, current page:', page);
-          setPage(prev => prev + 1);
+          setPage((prev) => prev + 1);
         }
       },
       {
         root: null,
         rootMargin: '100px',
-        threshold: 0.1
+        threshold: 0.1,
       }
     );
 
@@ -85,14 +86,15 @@ export default function ArticlesPage() {
   }, [hasMore, loading, page]);
 
   useEffect(() => {
-    console.log('Fetching articles:', { page, pageSize, sortBy });
-    dispatch(fetchArticles({
-      page,
-      limit: pageSize,
-      sortBy: sortBy === 'new' ? 'createdAt' : 'createdAt',
-      sortOrder: sortBy === 'old' ? 'asc' : 'desc',
-      filters: JSON.stringify(filters)
-    }));
+    dispatch(
+      fetchArticles({
+        page,
+        limit: pageSize,
+        sortBy: sortBy === 'new' ? 'createdAt' : 'createdAt',
+        sortOrder: sortBy === 'old' ? 'asc' : 'desc',
+        filters: JSON.stringify(filters),
+      })
+    );
   }, [dispatch, page, pageSize, sortBy, filters]);
 
   const handleSortChange = useCallback((value: string | null) => {
@@ -104,16 +106,14 @@ export default function ArticlesPage() {
 
   const handleTagChange = useCallback((tagId: string, checked: boolean) => {
     if (checked) {
-      setSelectedTags(prev => [...prev, tagId]);
+      setSelectedTags((prev) => [...prev, tagId]);
     } else {
-      setSelectedTags(prev => prev.filter(id => id !== tagId));
+      setSelectedTags((prev) => prev.filter((id) => id !== tagId));
     }
   }, []);
 
   return (
-    <Box 
-      className={`page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`}
-    >
+    <Box className={`page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`}>
       <Stack gap="md">
         <Group justify="space-between" wrap="wrap" gap="md">
           <Title order={2}>Articles</Title>
@@ -152,7 +152,9 @@ export default function ArticlesPage() {
             skeletons
           ) : (
             <Center py="xl">
-              <Text c="dimmed" size="sm">No articles found</Text>
+              <Text c="dimmed" size="sm">
+                No articles found
+              </Text>
             </Center>
           )}
         </Stack>

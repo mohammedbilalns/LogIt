@@ -3,30 +3,9 @@ import axiosInstance from '@axios';
 import { RootState } from '@/store';
 import axios from 'axios';
 import { API_ROUTES } from '@/constants/routes';
+import {Log, LogState} from '@/types/log.types'
 
-interface Tag {
-    id: string;
-    name: string;
-}
 
-export interface Log {
-    _id: string;
-    title: string;
-    content: string;
-    tags: Tag[];
-    createdAt: string;
-    mediaUrls: string[];
-}
-
-interface LogState {
-    logs: Log[];
-    loading: boolean;
-    error: string | null;
-    total: number;
-    searchQuery: string;
-    currentLog: Log | null;
-    hasMore: boolean;
-}
 
 const initialState: LogState = {
     logs: [],

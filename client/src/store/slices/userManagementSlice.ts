@@ -1,18 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { RootState } from '@/store';
 import axiosInstance from '@axios';
-import { User } from '@type/user.types';
 import { API_ROUTES } from '@/constants/routes';
+import { UserManagementState } from '@/types/user-management.types';
 
-export interface UserManagementState {
-  users: User[];
-  total: number;
-  loading: boolean;
-  error: string | null;
-  searchQuery: string;
-  totalPages: number;
-  success: boolean;
-}
+
 
 const initialState: UserManagementState = {
   users: [],

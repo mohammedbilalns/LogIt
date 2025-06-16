@@ -40,7 +40,7 @@ export const fetchHomeData = createAsyncThunk(
       const response = await axiosInstance.get(API_ROUTES.HOME.BASE);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch home data');
+      return rejectWithValue(error.response?.data?.message );
     }
   }
 );

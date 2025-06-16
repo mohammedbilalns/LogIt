@@ -18,12 +18,12 @@ export class MongoReportRepository extends BaseRepository<ReportDocument, Report
     try {
       const report = doc.toObject();
       console.log("Report doc: " ,doc)
-      // Handle case where reportedBy might be null
       if (!report.reportedBy) {
         logger.yellow('REPORT_MAPPING_WARNING', `Report ${report._id} has no reporter information`);
         throw new Error('Report has no reporter information');
       }
 
+      
       return {
         id: report._id.toString(),
         reportedBy: {
@@ -46,13 +46,13 @@ export class MongoReportRepository extends BaseRepository<ReportDocument, Report
 
   async create(data: Omit<Report, 'id' | 'createdAt' | 'updatedAt'>): Promise<Report> {
     try {
-      // Extract the reporter ID from the reporter object
-      const reporterId = data.reportedBy.id;
-
-      // Create the document with just the reporter ID
       const doc = await ReportModel.create({
-        ...data,
-        reportedBy: reporterId
+        targetType: data.targetType,
+        targetId: data.targetId,
+        reason: data.reason,
+        status: data.status,
+        actionTaken: data.actionTaken,
+        reportedBy: data.reportedBy.id 
       });
 
       // Fetch the created document with populated reporter

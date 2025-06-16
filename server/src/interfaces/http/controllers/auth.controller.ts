@@ -7,7 +7,6 @@ import {
 } from "../../../config/constants";
 import { HttpStatus } from "../../../config/statusCodes";
 import { HttpResponse } from "../../../config/responseMessages";
-import { logger } from "../../../utils/logger";
 
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -86,7 +85,6 @@ export class AuthController {
   };
 
   refresh = async (req: Request, res: Response): Promise<void> => {
-    logger.magenta("Referesh route called", "referesh");
     const accessToken = req.cookies.accessToken;
     if (accessToken) {
       const user = await this.authService.validateAccessToken(accessToken);

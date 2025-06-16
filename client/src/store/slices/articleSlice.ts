@@ -108,7 +108,7 @@ export const fetchUserArticles = createAsyncThunk(
       return response.data;
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        return rejectWithValue(error.response?.data?.message || 'Failed to fetch user articles');
+        return rejectWithValue(error.response?.data?.message );
       } else if (error instanceof Error) {
         return rejectWithValue(error.message);
       } else {

@@ -17,7 +17,6 @@ import {
   Box,
   rem,
   Portal,
-  Tooltip,
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -106,27 +105,21 @@ export default function Navbar() {
             {isAuthenticated ? (
               <>
                 {isMobile && (
-                  <Tooltip label="Search">
-                    <ActionIcon variant="light" size="md" color="blue" radius="xl">
-                      <IconSearch size={20} />
-                    </ActionIcon>
-                  </Tooltip>
+                  <ActionIcon variant="light" size="md" color="blue" radius="xl">
+                    <IconSearch size={20} />
+                  </ActionIcon>
                 )}
-                <Tooltip label="Notifications">
-                  <ActionIcon variant="light" size="md" radius="xl">
-                    <IconBell size={20} />
-                  </ActionIcon>
-                </Tooltip>
-                <Tooltip label="Logout">
-                  <ActionIcon
-                    variant="light"
-                    size="md"
-                    radius="xl"
-                    onClick={handleLogout}
-                  >
-                    <IconLogout size={20} />
-                  </ActionIcon>
-                </Tooltip>
+                <ActionIcon variant="light" size="md" radius="xl">
+                  <IconBell size={20} />
+                </ActionIcon>
+                <ActionIcon
+                  variant="light"
+                  size="md"
+                  radius="xl"
+                  onClick={handleLogout}
+                >
+                  <IconLogout size={20} />
+                </ActionIcon>
               </>
             ) : (
               !isMobile && (

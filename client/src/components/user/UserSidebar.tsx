@@ -25,7 +25,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store';
 import { toggleSidebar } from '@/store/slices/uiSlice';
-import React from 'react';
 
 interface UserSidebarProps {
   isModalOpen?: boolean;

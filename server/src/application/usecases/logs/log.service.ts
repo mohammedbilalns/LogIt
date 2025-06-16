@@ -174,10 +174,13 @@ export class LogService {
   }
 
   async getLog(
-    userId: string,
+    userId: string | undefined,
     logId: string
   ): Promise<LogWithRelations | null> {
     try {
+      if (!userId) {
+        throw new UnauthorizedError();
+      }
       const log = await this.logRepository.findById(logId);
       if (!log || log.userId !== userId) {
         return null;
@@ -221,11 +224,14 @@ export class LogService {
   }
 
   async updateLog(
-    userId: string,
+    userId: string | undefined,
     logId: string,
     data: UpdateLogData
   ): Promise<LogWithRelations | null> {
     try {
+      if (!userId) {
+        throw new UnauthorizedError();
+      }
       const log = await this.logRepository.findById(logId);
       if (!log || log.userId !== userId) {
         return null;
@@ -277,13 +283,20 @@ export class LogService {
 
       return this.getLogWithRelations(logId);
     } catch (error) {
-      const message = error instanceof Error ? error.message :HttpResponse.FAILED_TO_FETCH_LOG
+      const message =
+        error instanceof Error
+          ? error.message
+          : HttpResponse.FAILED_TO_FETCH_LOG;
       throw new InternalServerError(message);
     }
   }
 
-  async deleteLog(userId: string, logId: string): Promise<boolean> {
+  async deleteLog(userId: string | undefined, logId: string): Promise<boolean> {
     try {
+      if (!userId) {
+        throw new UnauthorizedError();
+      }
+
       const log = await this.logRepository.findById(logId);
       if (!log || log.userId !== userId) {
         return false;
@@ -302,7 +315,10 @@ export class LogService {
 
       return true;
     } catch (error) {
-      const message = error instanceof Error ? error.message :HttpResponse.FAILED_TO_DELETE_LOG
+      const message =
+        error instanceof Error
+          ? error.message
+          : HttpResponse.FAILED_TO_DELETE_LOG;
       throw new InternalServerError(message);
     }
   }

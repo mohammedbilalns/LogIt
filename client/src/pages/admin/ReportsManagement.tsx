@@ -25,7 +25,8 @@ import {
 } from '@mantine/core';
 import { IconSearch, IconArticle } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '@/store';
-import { fetchReports, updateReportStatus, blockArticle, Report } from '@/store/slices/reportSlice';
+import { fetchReports, updateReportStatus, blockArticle } from '@/store/slices/reportSlice';
+import { Report } from '@/types/report.types';
 import { useDebouncedValue, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';

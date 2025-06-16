@@ -180,7 +180,6 @@ export class ReportService {
 
   async blockArticle(articleId: string): Promise<void> {
     try {
-      // Update all reports for this article to blocked
       const reports = await this.reportRepository.findByTarget(
         "article",
         articleId

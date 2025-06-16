@@ -23,7 +23,8 @@ import {
 } from '@mantine/core';
 import { IconSearch, IconLock, IconLockOpen } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '@/store';
-import { fetchUsers, setSearchQuery, blockUser, unblockUser, UserManagementState } from '@slices/userManagementSlice';
+import { fetchUsers, setSearchQuery, blockUser, unblockUser } from '@slices/userManagementSlice';
+import { UserManagementState } from '@/types/user-management.types';
 import { useDebouncedValue, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { ConfirmModal } from '@/components/confirm';
