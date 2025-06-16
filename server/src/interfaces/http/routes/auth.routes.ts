@@ -8,7 +8,7 @@ import { TokenService } from "../../../application/providers/token.provider";
 import { BcryptCryptoProvider } from "../../../application/providers/crypto.provider";
 import { ValidationService } from "../../../application/providers/validation.provider";
 import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
-// import { csrfMiddleware } from "../middlewares/csrf.middleware";
+import { csrfMiddleware } from "../middlewares/csrf.middleware";
 import { validate } from "../middlewares/validation.middleware";
 import { asyncHandler } from "../../../utils/asyncHandler";
 import env from "../../../config/env";
@@ -57,7 +57,7 @@ router.post(
   asyncHandler((req, res) => authController.googleAuth(req, res))
 );
 
-// router.use(asyncHandler((req, res, next) => csrfMiddleware()(req, res, next)));
+router.use(asyncHandler((req, res, next) => csrfMiddleware()(req, res, next)));
 
 // Public routes
 router.post(

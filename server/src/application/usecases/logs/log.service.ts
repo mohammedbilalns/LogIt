@@ -57,6 +57,7 @@ export class LogService {
     data: CreateLogData
   ): Promise<LogWithRelations> {
     try {
+    
       if (!userId) {
         throw new UnauthorizedError();
       }

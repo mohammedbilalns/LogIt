@@ -61,11 +61,12 @@ export default function LogEditorForm({
   const navigate = useNavigate();
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
-  const { loading: logLoading, currentLog } = useSelector((state: RootState) => state.logs);
+  const { loading: logLoading, currentLog, error: logError } = useSelector((state: RootState) => state.logs);
   const { loading: tagsLoading } = useSelector((state: RootState) => state.tags);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [cropperOpen, setCropperOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState<File | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const cropperRef = useRef<ReactCropperElement | null>(null);
 
   const form = useForm({
@@ -123,6 +124,18 @@ export default function LogEditorForm({
       });
     }
   }, [currentLog, mode]);
+
+  // Clear form error when form values change
+  useEffect(() => {
+    setFormError(null);
+  }, [form.values]);
+
+  // Clear form error when component unmounts
+  useEffect(() => {
+    return () => {
+      setFormError(null);
+    };
+  }, []);
 
   const handleImageUpload = async (files: File[]) => {
     if (files.length === 0) {
@@ -259,7 +272,7 @@ export default function LogEditorForm({
   const handleSubmit = async (values: typeof form.values) => {
     try {
       if (mode === 'create') {
-        await dispatch(createLog({
+        const result = await dispatch(createLog({
           ...values,
         })).unwrap();
         notifications.show({
@@ -267,8 +280,10 @@ export default function LogEditorForm({
           message: 'Log created successfully',
           color: 'green',
         });
+        onClose();
+        navigate('/logs');
       } else if (mode === 'edit' && logId) {
-        await dispatch(updateLog({
+        const result = await dispatch(updateLog({
           id: logId,
           ...values,
         })).unwrap();
@@ -277,29 +292,20 @@ export default function LogEditorForm({
           message: 'Log updated successfully',
           color: 'green',
         });
+        onClose();
+        navigate('/logs');
       }
-      onClose();
-      navigate('/logs');
     } catch (error: unknown) {
-       if (axios.isAxiosError(error)) {
-            notifications.show({
-              title: 'Error',
-              message: error.response?.data?.message || error.message,
-              color: 'red',
-            });
-          } else if (error instanceof Error) {
-            notifications.show({
-              title: 'Error',
-              message: error.message,
-              color: 'red',
-            });
-          } else {
-             notifications.show({
-              title: 'Error',
-              message: 'Failed to save log. Please try again.',
-              color: 'red',
-            });
-          }
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data?.message;
+        if (errorMessage) {
+          notifications.show({
+            title: 'Error',
+            message: errorMessage,
+            color: 'red',
+          });
+        }
+      }
     }
   };
 
@@ -326,6 +332,22 @@ export default function LogEditorForm({
             >
               {mode === 'create' ? 'Create New Log' : 'Edit Log'}
             </Title>
+
+            {logError && (
+              <Text 
+                c="red" 
+                size="sm" 
+                ta="center" 
+                style={{ 
+                  padding: '0.5rem',
+                  backgroundColor: isDark ? 'rgba(255,0,0,0.1)' : 'rgba(255,0,0,0.05)',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(255,0,0,0.2)'
+                }}
+              >
+                {logError}
+              </Text>
+            )}
 
             <TextInput
               label="Title"

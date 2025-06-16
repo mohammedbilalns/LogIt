@@ -8,6 +8,8 @@ import { MongoTagRepository } from "../../../infrastructure/repositories/tag.rep
 import { asyncHandler } from "../../../utils/asyncHandler";
 import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
+import { validate } from "../middlewares/validation.middleware";
+import { createLogSchema, updateLogSchema } from "../../../application/validations/log.validation";
 
 const router = Router();
 
@@ -43,6 +45,7 @@ router.get(
 // Create a new log
 router.post(
   "/",
+  validate(createLogSchema),
   asyncHandler((req, res, next) => authorizeRoles("user")(req, res, next)),
   asyncHandler((req, res) => logController.createLog(req, res))
 );
@@ -50,6 +53,7 @@ router.post(
 // Update a log
 router.put(
   "/:id",
+  validate(updateLogSchema),
   asyncHandler((req, res, next) => authorizeRoles("user")(req, res, next)),
   asyncHandler((req, res) => logController.updateLog(req, res))
 );
