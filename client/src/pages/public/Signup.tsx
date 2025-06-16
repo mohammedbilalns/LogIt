@@ -63,15 +63,15 @@ export default function Signup() {
 
   useEffect(() => {
     if (verificationEmail) {
-      navigate('/verify-email');
+      navigate('/verify-email', { state: { email: verificationEmail } });
     }
     return () => {
       dispatch(clearError());
     };
-  }, [verificationEmail, navigate, dispatch]);
+  }, [verificationEmail, loading, error, navigate, dispatch]);
 
   const handleSubmit = async (values: typeof form.values) => {
-    await dispatch(signup(values));
+    const result = await dispatch(signup(values));
   };
 
   return (

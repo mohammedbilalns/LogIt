@@ -1,20 +1,18 @@
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { IUserRepository } from "../../../domain/repositories/user.repository.interface";
 import { IOTPRepository } from "../../../domain/repositories/otp.repository.interface";
 import {
   User,
   UserWithoutPassword,
 } from "../../../domain/entities/user.entity";
-import env from "../../../config/env";
 import { OTP_EXPIRY } from "../../../config/constants";
-import { MailService } from "../../services/mail.service";
-import { TokenService } from "../../services/token.service";
+import { MailService } from "../../providers/mail.provider";
+import { TokenService } from "../../providers/token.provider";
+import { ICryptoProvider } from "../../../domain/providers/crypto.provider.interface";
 import {
   ValidationService,
   SignupData,
   LoginData,
-} from "../../services/validation.service";
+} from "../../providers/validation.provider";
 import {
   EmailAlreadyRegisteredError,
   InvalidCredentialsError,
@@ -30,19 +28,14 @@ import {
 import { HttpResponse } from "../../../config/responseMessages";
 
 export class AuthService {
-  private mailService: MailService;
-  private tokenService: TokenService;
-  private validationService: ValidationService;
-
   constructor(
     private userRepository: IUserRepository,
     private otpRepository: IOTPRepository,
-    jwtSecret: string = env.JWT_SECRET
-  ) {
-    this.mailService = new MailService();
-    this.tokenService = new TokenService(jwtSecret);
-    this.validationService = new ValidationService();
-  }
+    private mailService: MailService,
+    private tokenService: TokenService,
+    private cryptoProvider: ICryptoProvider,
+    private validationService: ValidationService
+  ) {}
 
   private validateUserFields(
     user: User
@@ -84,7 +77,7 @@ export class AuthService {
 
       return {
         user: this.createUserWithoutPassword(user),
-        csrfToken: this.generateCsrfToken()
+        csrfToken: this.tokenService.generateCsrfToken()
       };
     } catch {
       throw new InvalidTokenError();
@@ -117,7 +110,7 @@ export class AuthService {
       await this.otpRepository.deleteByEmail(validatedData.email);
     }
 
-    const hashedPassword = await bcrypt.hash(validatedData.password, 10);
+    const hashedPassword = await this.cryptoProvider.hash(validatedData.password, 10);
     const user = await this.userRepository.create({
       ...validatedData,
       password: hashedPassword,
@@ -139,7 +132,7 @@ export class AuthService {
     const userWithoutPassword = this.createUserWithoutPassword(user);
     return {
       user: userWithoutPassword,
-      csrfToken: this.generateCsrfToken()
+      csrfToken: this.tokenService.generateCsrfToken()
     };
   }
 
@@ -178,7 +171,7 @@ export class AuthService {
       user: userWithoutPassword,
       accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
       refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword),
-      csrfToken: this.generateCsrfToken()
+      csrfToken: this.tokenService.generateCsrfToken()
     };
   }
 
@@ -199,7 +192,7 @@ export class AuthService {
       throw new InvalidCredentialsError();
     }
 
-    const isValidPassword = await bcrypt.compare(
+    const isValidPassword = await this.cryptoProvider.compare(
       validatedData.password,
       user.password
     );
@@ -212,7 +205,7 @@ export class AuthService {
       user: userWithoutPassword,
       accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
       refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword),
-      csrfToken: this.generateCsrfToken()
+      csrfToken: this.tokenService.generateCsrfToken()
     };
   }
 
@@ -230,7 +223,7 @@ export class AuthService {
         user: userWithoutPassword,
         accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
         refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword),
-        csrfToken: this.generateCsrfToken()
+        csrfToken: this.tokenService.generateCsrfToken()
       };
     } catch {
       throw new InvalidTokenError();
@@ -280,12 +273,7 @@ export class AuthService {
 
   async googleAuth(token: string) {
     try {
-      const decoded = jwt.decode(token) as {
-        email: string;
-        name: string;
-        picture: string;
-        sub: string;
-      } | null;
+      const decoded = this.tokenService.decodeGoogleToken(token);
 
       if (!decoded) {
         throw new InvalidCredentialsError();
@@ -325,8 +313,8 @@ export class AuthService {
       return {
         user: userWithoutPassword,
         accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
-        refreshToken:
-          this.tokenService.generateRefreshToken(userWithoutPassword),
+        refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword),
+        csrfToken: this.tokenService.generateCsrfToken()
       };
     } catch {
       throw new InvalidCredentialsError();
@@ -404,7 +392,7 @@ export class AuthService {
       throw new InvalidResetOTPError();
     }
 
-    const hashedPassword = await bcrypt.hash(validatedData.newPassword, 10);
+    const hashedPassword = await this.cryptoProvider.hash(validatedData.newPassword, 10);
     const updatedUser = await this.userRepository.update(user.id, {
       password: hashedPassword,
     });

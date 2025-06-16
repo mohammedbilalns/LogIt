@@ -35,11 +35,14 @@ export class AuthController {
   };
 
   signup = async (req: Request, res: Response): Promise<void> => {
-    const user = await this.authService.signup(req.body);
+    const { user } = await this.authService.signup(req.body);
     this.setCsrfToken(res);
     res.status(HttpStatus.CREATED).json({
       message: HttpResponse.SIGNUP_SUCCESS,
-      user,
+      user: {
+        ...user,
+        email: req.body.email
+      }
     });
   };
 

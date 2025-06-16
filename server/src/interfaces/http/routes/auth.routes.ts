@@ -3,14 +3,31 @@ import { AuthController } from "../controllers/auth.controller";
 import { AuthService } from "../../../application/usecases/auth/auth.service";
 import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
 import { MongoOTPRepository } from "../../../infrastructure/repositories/otp.repository";
+import { MailService } from "../../../application/providers/mail.provider";
+import { TokenService } from "../../../application/providers/token.provider";
+import { BcryptCryptoProvider } from "../../../application/providers/crypto.provider";
+import { ValidationService } from "../../../application/providers/validation.provider";
 import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
 import { asyncHandler } from "../../../utils/asyncHandler";
+import env from "../../../config/env";
 
 const router = Router();
 const userRepository = new MongoUserRepository();
 const otpRepository = new MongoOTPRepository();
-const authService = new AuthService(userRepository, otpRepository);
+const mailService = new MailService();
+const tokenService = new TokenService(env.JWT_SECRET);
+const cryptoProvider = new BcryptCryptoProvider();
+const validationService = new ValidationService();
+
+const authService = new AuthService(
+  userRepository,
+  otpRepository,
+  mailService,
+  tokenService,
+  cryptoProvider,
+  validationService
+);
 const authController = new AuthController(authService);
 
 // CSRF token route

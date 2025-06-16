@@ -8,6 +8,13 @@ import {
 import { InvalidTokenTypeError } from "../errors/auth.errors";
 import { InternalServerError } from "../errors/internal.errors";
 
+export interface GoogleTokenPayload {
+  email: string;
+  name: string;
+  picture: string;
+  sub: string;
+}
+
 export class TokenService {
   constructor(private jwtSecret: string) {}
 
@@ -72,5 +79,13 @@ export class TokenService {
       throw new InvalidTokenTypeError();
     }
     return decoded;
+  }
+
+  decodeGoogleToken(token: string): GoogleTokenPayload | null {
+    try {
+      return jwt.decode(token) as GoogleTokenPayload | null;
+    } catch (error) {
+      throw new InternalServerError(error?.message)
+    }
   }
 }
