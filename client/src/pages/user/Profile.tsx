@@ -109,7 +109,7 @@ export default function ProfilePage() {
 
   const handleUpdateProfile = async (values: UpdateProfileForm) => {
     try {
-      await dispatch(
+      const result = await dispatch(
         updateProfile({
           name: values.name,
           profession: values.profession,
@@ -118,13 +118,13 @@ export default function ProfilePage() {
         })
       ).unwrap();
 
-      await dispatch(checkAuth());
-
       notifications.show({
         title: 'Success',
         message: 'Profile updated successfully',
         color: 'green',
       });
+      
+      closeProfile();
     } catch (error: any) {
       notifications.show({
         title: 'Error',

@@ -57,15 +57,27 @@ import {
         profileImage: initialValues?.profileImage || null,
       },
       validate: {
-        name: (value) => (!value.trim() ? 'Name is required' : null),
-        profession: (value) => {
-          if (!value.trim()) return 'Profession is required';
-          if (value.trim().length > 50 || value.trim().length < 10)
-            return 'Profession must be between 10 - 50 characters';
+        name: (value) => {
+          if (!value.trim()) return 'Name is required';
+          if (value.trim().length < 2) return 'Name must be at least 2 characters';
+          if (value.trim().length > 50) return 'Name must not exceed 50 characters';
+          if (!/^[a-zA-Z\s]*$/.test(value)) return 'Name can only contain letters and spaces';
           return null;
         },
-        bio: (value) =>
-          value && value.length > 500 ? 'Bio must be less than 500 characters' : null,
+        profession: (value) => {
+          if (value && value.trim().length > 100) return 'Profession must not exceed 100 characters';
+          return null;
+        },
+        bio: (value) => {
+          if (value && value.length > 500) return 'Bio must not exceed 500 characters';
+          return null;
+        },
+        profileImage: (value) => {
+          if (value && typeof value === 'string' && !value.startsWith('http')) {
+            return 'Profile image must be a valid URL';
+          }
+          return null;
+        },
       },
     });
   
@@ -150,13 +162,22 @@ import {
     const handleSubmit = async (values: UpdateProfileForm) => {
       try {
         await onSubmit(values);
+        form.reset();
         onClose();
-      } catch (error: unknown) {
-        notifications.show({
-          title: 'Error',
-          message: error instanceof Error ? error.message : 'Failed to update profile',
-          color: 'red',
-        });
+      } catch (error: any) {
+        // Handle backend validation errors
+        if (error?.response?.data?.errors) {
+          const backendErrors = error.response.data.errors;
+          Object.keys(backendErrors).forEach((key) => {
+            form.setFieldError(key, backendErrors[key]);
+          });
+        } else {
+          notifications.show({
+            title: 'Error',
+            message: error?.response?.data?.message || 'Failed to update profile',
+            color: 'red',
+          });
+        }
       }
     };
   

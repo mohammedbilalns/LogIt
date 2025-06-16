@@ -3,6 +3,8 @@ import { UserController } from "../controllers/user.controller";
 import { UserService } from "../../../application/usecases/usermanagement/user.service";
 import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
+import { validate } from "../middlewares/validation.middleware";
+import { updateProfileSchema, changePasswordSchema } from "../../../application/validations/user.validation";
 import { asyncHandler } from "../../../utils/asyncHandler";
 
 const router = Router();
@@ -19,12 +21,14 @@ router.use(
 // Update profile route
 router.put(
   "/update-profile",
+  validate(updateProfileSchema),
   asyncHandler((req, res) => userController.updateProfile(req, res))
 );
 
 // Change password route
 router.put(
   "/change-password",
+  validate(changePasswordSchema),
   asyncHandler((req, res) => userController.changePassword(req, res))
 );
 

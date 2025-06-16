@@ -64,9 +64,14 @@ export const updateProfile = createAsyncThunk(
     profession: string;
     bio: string;
     profileImage: string | null;
-  }) => {
-    const response = await axiosInstance.put(API_ROUTES.USER_MANAGEMENT.UPDATE_PROFILE, profileData);
-    return response.data;
+  }, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.put(API_ROUTES.USER_MANAGEMENT.UPDATE_PROFILE, profileData);
+      dispatch({ type: 'auth/updateUser', payload: response.data });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update profile');
+    }
   }
 );
 
@@ -159,13 +164,13 @@ const userManagementSlice = createSlice({
         state.error = null;
         state.success = false;
       })
-      .addCase(updateProfile.fulfilled, (state) => {
+      .addCase(updateProfile.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
       })
       .addCase(updateProfile.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to update profile';
+        state.error = action.payload as string;
         state.success = false;
       })
       .addCase(changePassword.pending, (state) => {
