@@ -333,22 +333,6 @@ export default function LogEditorForm({
               {mode === 'create' ? 'Create New Log' : 'Edit Log'}
             </Title>
 
-            {(logError || tagError || formError) && (
-              <Text 
-                c="red" 
-                size="sm" 
-                ta="center" 
-                style={{ 
-                  padding: '0.5rem',
-                  backgroundColor: isDark ? 'rgba(255,0,0,0.1)' : 'rgba(255,0,0,0.05)',
-                  borderRadius: '4px',
-                  border: '1px solid rgba(255,0,0,0.2)'
-                }}
-              >
-                {logError || tagError || formError}
-              </Text>
-            )}
-
             <TextInput
               label="Title"
               placeholder="Log Title"
@@ -494,6 +478,22 @@ export default function LogEditorForm({
                   ))}
                 </SimpleGrid>
               </Stack>
+            )}
+
+            {(logError || tagError || formError) && (
+              <Text 
+                c="red" 
+                size="sm" 
+                ta="center" 
+                style={{ 
+                  padding: '0.5rem',
+                  backgroundColor: isDark ? 'rgba(255,0,0,0.1)' : 'rgba(255,0,0,0.05)',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(255,0,0,0.2)'
+                }}
+              >
+                {logError || tagError || formError}
+              </Text>
             )}
 
             <Group justify="flex-end" mt="xl">

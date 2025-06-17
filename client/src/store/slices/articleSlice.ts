@@ -26,9 +26,19 @@ export const createArticle = createAsyncThunk(
     content: string; 
     tagIds: string[]; 
     featured_image?: string;
-  }) => {
-    const response = await axiosInstance.post(API_ROUTES.ARTICLES.BASE, articleData);
-    return response.data;
+  }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post(API_ROUTES.ARTICLES.BASE, articleData);
+      return response.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        return rejectWithValue(error.response?.data?.message || error.message);
+      } else if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      } else {
+        return rejectWithValue('An unknown error occurred');
+      }
+    }
   }
 );
 
@@ -42,10 +52,19 @@ export const updateArticle = createAsyncThunk(
       tagIds: string[]; 
       featured_image?: string;
     }
-  }) => {
-  
-    const response = await axiosInstance.put(API_ROUTES.ARTICLES.BY_ID(id), articleData);
-    return response.data;
+  }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.put(API_ROUTES.ARTICLES.BY_ID(id), articleData);
+      return response.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        return rejectWithValue(error.response?.data?.message || error.message);
+      } else if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      } else {
+        return rejectWithValue('An unknown error occurred');
+      }
+    }
   }
 );
 
@@ -170,7 +189,7 @@ const articleSlice = createSlice({
       })
       .addCase(createArticle.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to create article';
+        state.error = action.payload as string || action.error.message || 'Failed to create article';
       })
       // Update Article
       .addCase(updateArticle.pending, (state) => {
@@ -189,7 +208,7 @@ const articleSlice = createSlice({
       })
       .addCase(updateArticle.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to update article';
+        state.error = action.payload as string || action.error.message || 'Failed to update article';
       })
       // Fetch All Articles
       .addCase(fetchArticles.pending, (state, action) => {

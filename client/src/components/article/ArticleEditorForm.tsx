@@ -52,8 +52,8 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
   const isMobile = useMediaQuery('(max-width: 768px)');
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
-  const { currentArticle, loading: articleLoading } = useSelector((state: RootState) => state.articles);
-  const { loading: tagsLoading } = useSelector((state: RootState) => state.tags);
+  const { currentArticle, loading: articleLoading, error: articleError } = useSelector((state: RootState) => state.articles);
+  const { loading: tagsLoading, error: tagError } = useSelector((state: RootState) => state.tags);
   const { loading: isUploading, error: uploadError } = useSelector((state: RootState) => state.upload);
   const [title, setTitle] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -223,12 +223,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
       navigate('/articles');
     } catch (error: any) {
       console.error('Failed to save article:', error);
-
-      notifications.show({
-        title: 'Error',
-        message: error.message || 'Failed to save article. Please try again.',
-        color: 'red',
-      });
+      // Error will be displayed in the form via Redux state
     }
   };
 
@@ -457,6 +452,23 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
           onChange={setSelectedTags}
         />
       </Box>
+
+      {(articleError || tagError || uploadError) && (
+        <Text 
+          c="red" 
+          size="sm" 
+          ta="center" 
+          style={{ 
+            padding: '0.5rem',
+            backgroundColor: isDark ? 'rgba(255,0,0,0.1)' : 'rgba(255,0,0,0.05)',
+            borderRadius: '4px',
+            border: '1px solid rgba(255,0,0,0.2)',
+            marginBottom: '1rem'
+          }}
+        >
+          {articleError || tagError || uploadError}
+        </Text>
+      )}
 
       <Group justify="flex-end" gap="md" wrap="wrap" mt="xl" mb="xl">
         <Button 
