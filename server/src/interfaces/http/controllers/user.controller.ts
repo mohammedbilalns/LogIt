@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { UserService } from "../../../application/usecases/usermanagement/user.service";
+import { IUserService } from "../../../domain/services/user.service.interface";
 import { HttpStatus } from "../../../config/statusCodes";
 import { HttpResponse } from "../../../config/responseMessages";
 
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(private userService: IUserService) {}
 
   async updateProfile(req: Request, res: Response) {
     const userId = req.user?.id;

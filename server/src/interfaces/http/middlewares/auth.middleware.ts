@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import env from "../../../config/env";
+import { IUserService } from "../../../domain/services/user.service.interface";
 import { UserService } from "../../../application/usecases/usermanagement/user.service";
 import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
 import { MongoArticleRepository } from "../../../infrastructure/repositories/article.repository";
@@ -19,19 +20,7 @@ declare module "express" {
   }
 }
 
-export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
-  const userRepository = new MongoUserRepository();
-  const articleRepository = new MongoArticleRepository();
-  const logRepository = new MongoLogRepository();
-  const cryptoProvider = new BcryptCryptoProvider();
-  
-  const userService = new UserService(
-    userRepository,
-    articleRepository,
-    logRepository,
-    cryptoProvider
-  );
-
+export const createAuthMiddleware = (userService: IUserService, jwtSecret: string = env.JWT_SECRET) => {
   return async (
     req: Request,
     res: Response,
@@ -91,6 +80,22 @@ export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
       return;
     }
   };
+};
+
+export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
+  const userRepository = new MongoUserRepository();
+  const articleRepository = new MongoArticleRepository();
+  const logRepository = new MongoLogRepository();
+  const cryptoProvider = new BcryptCryptoProvider();
+  
+  const userService: IUserService = new UserService(
+    userRepository,
+    articleRepository,
+    logRepository,
+    cryptoProvider
+  );
+
+  return createAuthMiddleware(userService, jwtSecret);
 };
 
 export const authorizeRoles = (

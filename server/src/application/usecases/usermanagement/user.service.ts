@@ -5,6 +5,7 @@ import { ILogRepository } from "../../../domain/repositories/log.repository";
 import { Article } from "../../../domain/entities/article.entity";
 import { Log } from "../../../domain/entities/log.entity";
 import { ICryptoProvider } from "../../../domain/providers/crypto.provider.interface";
+import { IUserService } from "../../../domain/services/user.service.interface";
 import {
   UserNotFoundError,
   InvalidPasswordError,
@@ -23,7 +24,7 @@ import {
   ChartDataPoint,
 } from "../../dtos";
 
-export class UserService {
+export class UserService implements IUserService {
   constructor(
     private userRepository: IUserRepository,
     private articleRepository: IArticleRepository,

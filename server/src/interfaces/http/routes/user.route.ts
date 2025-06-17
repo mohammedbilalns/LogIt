@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { UserController } from "../controllers/user.controller";
+import { IUserService } from "../../../domain/services/user.service.interface";
 import { UserService } from "../../../application/usecases/usermanagement/user.service";
 import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
 import { MongoArticleRepository } from "../../../infrastructure/repositories/article.repository";
@@ -16,12 +17,14 @@ import { asyncHandler } from "../../../utils/asyncHandler";
 
 const router = Router();
 
+// Dependency injection setup
 const userRepository = new MongoUserRepository();
 const articleRepository = new MongoArticleRepository();
 const logRepository = new MongoLogRepository();
 const cryptoProvider = new BcryptCryptoProvider();
 
-const userService = new UserService(
+// Inject concrete implementation into the interface
+const userService: IUserService = new UserService(
   userRepository,
   articleRepository,
   logRepository,
