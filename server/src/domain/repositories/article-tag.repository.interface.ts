@@ -6,5 +6,4 @@ export interface IArticleTagRepository extends IBaseRepository<ArticleTag> {
   findByTagId(tagId: string): Promise<ArticleTag[]>;
   deleteByArticleAndTag(articleId: string, tagId: string): Promise<void>;
   deleteByArticleId(articleId: string): Promise<void>;
-  deleteByTagId(tagId: string): Promise<void>;
 }

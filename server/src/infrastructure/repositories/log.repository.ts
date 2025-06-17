@@ -74,7 +74,6 @@ export class MongoLogRepository
     return logs.map((log) => this.mapToEntity(log));
   }
 
-  //  count method for logs
   async countLogs(
     userId: string,
     options: {

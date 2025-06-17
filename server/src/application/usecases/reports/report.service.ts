@@ -30,7 +30,6 @@ export class ReportService implements IReportService {
       throw new Error(HttpResponse.REPORT_EXISTS);
     }
 
-    // Try to get reporter details, but don't fail if user doesn't exist
     let reporterInfo = {
       id: data.reportedBy,
       name: "Unknown User",
@@ -63,9 +62,8 @@ export class ReportService implements IReportService {
   async getReports(
     params: GetReportsDto
   ): Promise<{ reports: Report[]; totalPages: number }> {
-    const skip = (params.page - 1) * params.limit;
-    const { reports, total } = await this.reportRepository.findWithPagination({
-      skip,
+    const { reports, total } = await this.reportRepository.findReports({
+      page: params.page,
       limit: params.limit,
       search: params.search,
       status: params.status,
@@ -121,7 +119,6 @@ export class ReportService implements IReportService {
       })
     );
 
-    // Block article by setting isActive to false
     await this.articleRepository.update(articleId, { isActive: false });
   }
 }

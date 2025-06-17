@@ -42,13 +42,4 @@ export class MongoArticleTagRepository
   async deleteByArticleId(articleId: string): Promise<void> {
     await ArticleTagModel.deleteMany({ articleId });
   }
-
-  async deleteByTagId(tagId: string): Promise<void> {
-    await ArticleTagModel.deleteMany({ tagId });
-  }
-
-  async delete(id: string): Promise<boolean> {
-    const result = await ArticleTagModel.deleteOne({ _id: id });
-    return result.deletedCount > 0;
-  }
 }

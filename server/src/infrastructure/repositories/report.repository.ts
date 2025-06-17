@@ -3,6 +3,8 @@ import { Report } from "../../domain/entities/report.entity";
 import ReportModel, { ReportDocument } from "../mongodb/report.schema";
 import { BaseRepository } from "./base.repository";
 import { FilterQuery } from "mongoose";
+import { InternalServerError } from "../../application/errors/internal.errors";
+import { HttpResponse } from "../../config/responseMessages";
 
 export class MongoReportRepository
   extends BaseRepository<ReportDocument, Report>
@@ -72,7 +74,7 @@ export class MongoReportRepository
       "name email"
     );
     if (!populatedDoc) {
-      throw new Error("Failed to create report");
+      throw new InternalServerError(HttpResponse.FAILED_TO_CREATE_LOG);
     }
 
     return this.mapToEntity(populatedDoc);
@@ -115,16 +117,16 @@ export class MongoReportRepository
     return count > 0;
   }
 
-  async findWithPagination({
-    skip,
+  async findReports({
+    page,
     limit,
     search,
     status,
   }: {
-    skip: number;
+    page: number;
     limit: number;
     search?: string;
-    status?: "pending" | "reviewed" | "resolved";
+    status?: "pending" | "reviewed" | "resolved" | "blocked";
   }): Promise<{ reports: Report[]; total: number }> {
     const query: FilterQuery<ReportDocument> = {};
 
@@ -139,6 +141,7 @@ export class MongoReportRepository
       }));
     }
 
+    const skip = (page - 1) * limit;
     const total = await ReportModel.countDocuments(query);
 
     const reports = await ReportModel.find(query)

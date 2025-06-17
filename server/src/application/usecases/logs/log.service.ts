@@ -27,7 +27,6 @@ export class LogService implements ILogService {
     userId: string | undefined,
     data: CreateLogData
   ): Promise<LogWithRelations> {
-
     try {
       if (!userId) {
         throw new UnauthorizedError();
@@ -150,7 +149,7 @@ export class LogService implements ILogService {
     logId: string
   ): Promise<LogWithRelations | null> {
     try {
-      console.log("User id ", userId)
+      console.log("User id ", userId);
       if (!userId) {
         throw new UnauthorizedError();
       }
@@ -167,7 +166,7 @@ export class LogService implements ILogService {
         this.logTagRepository.findByLogId(logId),
         this.logMediaRepository.findByLogId(logId),
       ]);
-      console.log(tags, media)
+      console.log(tags, media);
 
       // Get tag details
       const tagIds = tags.map((tag) => tag.tagId);
@@ -275,7 +274,7 @@ export class LogService implements ILogService {
       if (!log || log.userId !== userId) {
         return false;
       }
-      
+
       const logTags = await this.logTagRepository.findByLogId(logId);
       for (const tag of logTags) {
         await this.tagRepository.decrementUsageCount(tag.tagId);

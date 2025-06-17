@@ -1,15 +1,15 @@
 import { Report } from "../entities/report.entity";
 import { IBaseRepository } from "./base.repository.interface";
 
-interface PaginationParams {
-  skip: number;
+interface FindReportsParams {
+  page: number;
   limit: number;
   search?: string;
   status?: "pending" | "reviewed" | "resolved" | "blocked";
 }
 
-interface PaginationResult<T> {
-  reports: T[];
+interface ReportsResult {
+  reports: Report[];
   total: number;
 }
 
@@ -28,7 +28,7 @@ export interface IReportRepository extends IBaseRepository<Report> {
     targetId: string;
     reporterId: string;
   }): Promise<boolean>;
-  findWithPagination(
-    params: PaginationParams
-  ): Promise<PaginationResult<Report>>;
+  findReports(
+    params: FindReportsParams
+  ): Promise<ReportsResult>;
 }
