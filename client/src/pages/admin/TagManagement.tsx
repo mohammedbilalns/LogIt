@@ -27,7 +27,14 @@ import {
 import { useDebouncedValue, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { AppDispatch, RootState } from '@/store';
-import { demoteTag, fetchTags, promoteTag } from '@/store/slices/tagSlice';
+import { 
+  fetchTagsForManagement, 
+  promoteTagInManagement, 
+  demoteTagInManagement,
+  setSearchQuery,
+  setPage,
+  setPageSize
+} from '@/store/slices/tagManagementSlice';
 
 export default function TagManagement() {
   const dispatch = useDispatch<AppDispatch>();
@@ -37,8 +44,6 @@ export default function TagManagement() {
   const isOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch] = useDebouncedValue(searchInput, 500);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
   const isTablet = useMediaQuery(`(max-width: ${theme.breakpoints.md})`);
 
@@ -50,7 +55,10 @@ export default function TagManagement() {
     errorAllTags,
     loadingPromotedTags,
     errorPromotedTags,
-  } = useSelector((state: RootState) => state.tags);
+    currentPage,
+    pageSize,
+    searchQuery,
+  } = useSelector((state: RootState) => state.tagManagement);
 
   const containerStyle = useMemo(() => ({
     marginLeft: isOpen && !isMobile ? '200px' : '0px',
@@ -68,14 +76,14 @@ export default function TagManagement() {
   const handlePromoteUnpromote = useCallback(async (tagId: string, promote: boolean) => {
     try {
       if (promote) {
-        await dispatch(promoteTag(tagId)).unwrap();
+        await dispatch(promoteTagInManagement(tagId)).unwrap();
         notifications.show({
           title: 'Success',
           message: 'Tag promoted successfully',
           color: 'green',
         });
       } else {
-        await dispatch(demoteTag(tagId)).unwrap();
+        await dispatch(demoteTagInManagement(tagId)).unwrap();
         notifications.show({
           title: 'Success',
           message: 'Tag unpromoted successfully',
@@ -83,8 +91,17 @@ export default function TagManagement() {
         });
       }
       // Re-fetch both sets of tags
-      dispatch(fetchTags({ page, limit: pageSize, search: debouncedSearch, promoted: false }));
-      dispatch(fetchTags({ promoted: true, limit: 100, search: debouncedSearch }));
+      dispatch(fetchTagsForManagement({ 
+        page: currentPage, 
+        limit: pageSize, 
+        search: searchQuery, 
+        promoted: false 
+      }));
+      dispatch(fetchTagsForManagement({ 
+        promoted: true, 
+        limit: 100, 
+        search: searchQuery 
+      }));
     } catch (err: any) {
       notifications.show({
         title: 'Error',
@@ -92,32 +109,30 @@ export default function TagManagement() {
         color: 'red',
       });
     }
-  }, [dispatch, page, pageSize, debouncedSearch]);
+  }, [dispatch, currentPage, pageSize, searchQuery]);
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.currentTarget.value);
-    setPage(1);
   }, []);
 
   const handlePageSizeChange = useCallback((value: string | null) => {
     if (value) {
-      setPageSize(Number(value));
-      setPage(1);
+      dispatch(setPageSize(Number(value)));
     }
-  }, []);
+  }, [dispatch]);
 
   const handlePageChange = useCallback((value: number) => {
-    setPage(value);
-  }, []);
+    dispatch(setPage(value));
+  }, [dispatch]);
 
   const allTagsParams = useMemo(() => ({
-    page,
+    page: currentPage,
     limit: pageSize,
     search: debouncedSearch,
     promoted: false,
     sortBy: 'createdAt',
     sortOrder: 'desc' as const,
-  }), [page, pageSize, debouncedSearch]);
+  }), [currentPage, pageSize, debouncedSearch]);
 
   const promotedTagsParams = useMemo(() => ({
     promoted: true,
@@ -125,14 +140,19 @@ export default function TagManagement() {
     search: debouncedSearch,
   }), [debouncedSearch]);
 
+  // Update search query when debounced search changes
+  useEffect(() => {
+    dispatch(setSearchQuery(debouncedSearch));
+  }, [dispatch, debouncedSearch]);
+
   // Fetch all tags
   useEffect(() => {
-    dispatch(fetchTags(allTagsParams));
+    dispatch(fetchTagsForManagement(allTagsParams));
   }, [dispatch, allTagsParams]);
 
   // Fetch promoted tags
   useEffect(() => {
-    dispatch(fetchTags(promotedTagsParams));
+    dispatch(fetchTagsForManagement(promotedTagsParams));
   }, [dispatch, promotedTagsParams]);
 
   const containerPadding = isMobile ? 'md' : 'xl';
@@ -353,7 +373,7 @@ export default function TagManagement() {
                   />
                   <Pagination
                     total={Math.ceil(total / pageSize)}
-                    value={page}
+                    value={currentPage}
                     onChange={handlePageChange}
                     withEdges
                     size={isMobile ? 'sm' : 'md'}

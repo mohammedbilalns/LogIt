@@ -3,6 +3,7 @@ import authReducer from '@slices/authSlice';
 import userManagementReducer from '@slices/userManagementSlice';
 import articleReducer from '@slices/articleSlice';
 import tagReducer from '@slices/tagSlice';
+import tagManagementReducer from '@slices/tagManagementSlice';
 import uploadReducer from '@slices/uploadSlice';
 import uiReducer from '@slices/uiSlice';
 import initReducer from '@slices/initSlice';
@@ -16,6 +17,7 @@ export const store = configureStore({
     userManagement: userManagementReducer,
     articles: articleReducer,
     tags: tagReducer,
+    tagManagement: tagManagementReducer,
     upload: uploadReducer,
     ui: uiReducer,
     init: initReducer,
