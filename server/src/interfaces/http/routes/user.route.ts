@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { UserController } from "../controllers/user.controller";
 import { UserService } from "../../../application/usecases/usermanagement/user.service";
+import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
+import { MongoArticleRepository } from "../../../infrastructure/repositories/article.repository";
+import { MongoLogRepository } from "../../../infrastructure/repositories/log.repository";
+import { BcryptCryptoProvider } from "../../../application/providers/crypto.provider";
 import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
 import { validate } from "../middlewares/validation.middleware";
@@ -11,7 +15,18 @@ import {
 import { asyncHandler } from "../../../utils/asyncHandler";
 
 const router = Router();
-const userService = new UserService();
+
+const userRepository = new MongoUserRepository();
+const articleRepository = new MongoArticleRepository();
+const logRepository = new MongoLogRepository();
+const cryptoProvider = new BcryptCryptoProvider();
+
+const userService = new UserService(
+  userRepository,
+  articleRepository,
+  logRepository,
+  cryptoProvider
+);
 const userController = new UserController(userService);
 
 router.use(

@@ -22,7 +22,7 @@ export class UserController {
   async changePassword(req: Request, res: Response) {
     const userId = req.user?.id;
     const { currentPassword, newPassword } = req.body;
-    await this.userService.changePassword(userId, currentPassword, newPassword);
+    await this.userService.changePassword(userId, { oldPassword: currentPassword, newPassword });
     return res.json({ message: HttpResponse.PASSWORD_UPDATED });
   }
 

@@ -2,6 +2,10 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import env from "../../../config/env";
 import { UserService } from "../../../application/usecases/usermanagement/user.service";
+import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
+import { MongoArticleRepository } from "../../../infrastructure/repositories/article.repository";
+import { MongoLogRepository } from "../../../infrastructure/repositories/log.repository";
+import { BcryptCryptoProvider } from "../../../application/providers/crypto.provider";
 import { HttpStatus } from "../../../config/statusCodes";
 import { HttpResponse } from "../../../config/responseMessages";
 
@@ -16,7 +20,17 @@ declare module "express" {
 }
 
 export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
-  const userService = new UserService();
+  const userRepository = new MongoUserRepository();
+  const articleRepository = new MongoArticleRepository();
+  const logRepository = new MongoLogRepository();
+  const cryptoProvider = new BcryptCryptoProvider();
+  
+  const userService = new UserService(
+    userRepository,
+    articleRepository,
+    logRepository,
+    cryptoProvider
+  );
 
   return async (
     req: Request,

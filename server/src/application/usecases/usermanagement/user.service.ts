@@ -4,6 +4,7 @@ import { IArticleRepository } from "../../../domain/repositories/article.reposit
 import { ILogRepository } from "../../../domain/repositories/log.repository";
 import { Article } from "../../../domain/entities/article.entity";
 import { Log } from "../../../domain/entities/log.entity";
+import { ICryptoProvider } from "../../../domain/providers/crypto.provider.interface";
 import {
   UserNotFoundError,
   InvalidPasswordError,
@@ -11,25 +12,24 @@ import {
   UserBlockedError,
   UnauthorizedError,
 } from "../../errors/auth.errors";
-import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
-import { MongoArticleRepository } from "../../../infrastructure/repositories/article.repository";
-import { MongoLogRepository } from "../../../infrastructure/repositories/log.repository";
-
-import bcrypt from "bcryptjs";
 import { MissingFieldsError } from "../../errors/form.errors";
 import { HttpResponse } from "../../../config/responseMessages";
 import { InternalServerError } from "../../errors/internal.errors";
+import {
+  UpdateProfileData,
+  ChangePasswordData,
+  HomeData,
+  RecentActivity,
+  ChartDataPoint,
+} from "../../dtos";
 
 export class UserService {
-  private userRepository: IUserRepository;
-  private articleRepository: IArticleRepository;
-  private logsRepository: ILogRepository;
-
-  constructor() {
-    this.userRepository = new MongoUserRepository();
-    this.articleRepository = new MongoArticleRepository();
-    this.logsRepository = new MongoLogRepository();
-  }
+  constructor(
+    private userRepository: IUserRepository,
+    private articleRepository: IArticleRepository,
+    private logsRepository: ILogRepository,
+    private cryptoProvider: ICryptoProvider
+  ) {}
 
   async checkUserBlocked(userId: string): Promise<void> {
     const isBlocked = await this.userRepository.isUserBlocked(userId);
@@ -40,12 +40,7 @@ export class UserService {
 
   async updateProfile(
     userId: string | undefined,
-    profileData: {
-      name?: string;
-      profileImage?: string;
-      profession?: string;
-      bio?: string;
-    }
+    profileData: UpdateProfileData
   ): Promise<User> {
     if (!userId) {
       throw new UnauthorizedError();
@@ -68,13 +63,12 @@ export class UserService {
 
   async changePassword(
     userId: string | undefined,
-    oldPassword: string,
-    newPassword: string
+    passwordData: ChangePasswordData
   ): Promise<User> {
     if (!userId) {
       throw new UnauthorizedError();
     }
-    if (!oldPassword || !newPassword) {
+    if (!passwordData.oldPassword || !passwordData.newPassword) {
       throw new MissingFieldsError();
     }
     const user = await this.userRepository.findById(userId);
@@ -82,10 +76,9 @@ export class UserService {
       throw new UserNotFoundError();
     }
 
-    // Verify old password
     const isPasswordValid = await this.userRepository.verifyPassword(
       userId,
-      oldPassword
+      passwordData.oldPassword
     );
     if (!isPasswordValid) {
       throw new InvalidPasswordError();
@@ -94,15 +87,17 @@ export class UserService {
     // Check if new password is same as old password
     const isSamePassword = await this.userRepository.verifyPassword(
       userId,
-      newPassword
+      passwordData.newPassword
     );
     if (isSamePassword) {
       throw new PasswordMismatchError();
     }
 
     // Hash new password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    const hashedPassword = await this.cryptoProvider.hash(
+      passwordData.newPassword,
+      10
+    );
 
     // Update password
     const updatedUser = await this.userRepository.updatePassword(
@@ -116,7 +111,7 @@ export class UserService {
     return updatedUser;
   }
 
-  async getHomeData(userId: string | undefined) {
+  async getHomeData(userId: string | undefined): Promise<HomeData> {
     try {
       if (!userId) {
         throw new UnauthorizedError();
@@ -127,7 +122,6 @@ export class UserService {
         throw new UserNotFoundError();
       }
 
-      // Check if user is blocked
       await this.checkUserBlocked(userId);
 
       // Get counts
@@ -136,7 +130,6 @@ export class UserService {
         this.logsRepository.count({ userId }),
       ]);
 
-      // Static values f
       const messagesCount = 434;
       const followersCount = 534;
 
@@ -155,7 +148,7 @@ export class UserService {
       ]);
 
       // Combine and sort recent activities
-      const recentActivities = [
+      const recentActivities: RecentActivity[] = [
         ...recentLogs.map((log: Log) => ({
           type: "log" as const,
           id: log.id,
@@ -179,7 +172,6 @@ export class UserService {
       // Get chart data for past week
       const today = new Date();
 
-      // Get all logs and articles for the past week
       const [logsByDay, articlesByDay] = await Promise.all([
         this.logsRepository.findMany(userId, {
           sortBy: "createdAt",
@@ -193,7 +185,7 @@ export class UserService {
       ]);
 
       // Process chart data
-      const chartData = Array.from({ length: 7 }, (_, i) => {
+      const chartData: ChartDataPoint[] = Array.from({ length: 7 }, (_, i) => {
         const date = new Date(today);
         date.setDate(date.getDate() - i);
         const dateStr = date.toISOString().split("T")[0];
