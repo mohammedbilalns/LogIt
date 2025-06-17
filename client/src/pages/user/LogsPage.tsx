@@ -2,7 +2,7 @@ import { Box, Group, Stack, Text, Title, Select, Chip, Center, Modal, Button, Pa
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
-import { fetchLogs, deleteLog, Log } from '@slices/logSlice';
+import { fetchLogs, deleteLog } from '@slices/logSlice';
 import { fetchPromotedAndUserTags } from '@slices/tagSlice';
 import LogRow from '@components/log/LogRow';
 import LogRowSkeleton from '@/components/skeletons/LogRowSkeleton';
@@ -13,6 +13,7 @@ import UserSidebar from '@components/user/UserSidebar';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import TagFilterSection from '@/components/tags/TagFilterSection';
+import SortBy from '@/components/common/SortBy';
 import { ConfirmModal } from '@/components/confirm';
 
 interface LogFilters {
@@ -52,11 +53,6 @@ export default function LogsPage() {
     })),
     [logs]
   );
-
-  const sortOptions = useMemo(() => [
-    { value: 'new', label: 'New To Old' },
-    { value: 'old', label: 'Old To New' },
-  ], []);
 
   const skeletons = useMemo(() => 
     Array(3).fill(0).map((_, index) => (
@@ -157,7 +153,7 @@ export default function LogsPage() {
     }
   }, [dispatch, logToDelete]);
 
-  const handleEditLog = useCallback((log: Log) => {
+  const handleEditLog = useCallback((log: any) => {
     navigate(`/logs/edit/${log._id}`);
   }, [navigate]);
 
@@ -178,18 +174,7 @@ export default function LogsPage() {
         <Stack gap="md">
           <Group justify="space-between" wrap="wrap" gap="md">
             <Title order={2}>Your Logs</Title>
-
-            <Group>
-              <Text fw={500}>Sort By:</Text>
-              <Select
-                data={sortOptions}
-                value={sortBy}
-                onChange={handleSortChange}
-                size="xs"
-                radius="md"
-                checkIconPosition="right"
-              />
-            </Group>
+            <SortBy value={sortBy} onChange={handleSortChange} />
           </Group>
 
           <TagFilterSection

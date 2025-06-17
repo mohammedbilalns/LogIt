@@ -85,7 +85,7 @@ export class TokenService {
     try {
       return jwt.decode(token) as GoogleTokenPayload | null;
     } catch (error) {
-      throw new InternalServerError(error?.message)
+      throw new InternalServerError(error?.message);
     }
   }
 }

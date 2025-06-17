@@ -206,12 +206,6 @@ export default function ProfilePage() {
           opened={profileOpened}
           onClose={closeProfile}
           onSubmit={handleUpdateProfile}
-          initialValues={{
-            name: user?.name || '',
-            profession: user?.profession || '',
-            bio: user?.bio || '',
-            profileImage: user?.profileImage || null,
-          }}
         />
       </Box>
     </>

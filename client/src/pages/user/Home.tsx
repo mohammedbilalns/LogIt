@@ -231,8 +231,8 @@ export default function Home() {
                 </ResponsiveContainer>
               </Box>
               <Group mt="md" justify="space-between">
-                <Button variant="default" leftSection={<IconFileText size={18} />} onClick={() => navigate('/logs/new')}>New Log</Button>
-                <Button variant="default" leftSection={<IconFileText size={18} />} onClick={() => navigate('/articles/new')}>Write Article</Button>
+                <Button variant="default" leftSection={<IconFileText size={18} />} onClick={() => navigate('/logs/create')}>New Log</Button>
+                <Button variant="default" leftSection={<IconFileText size={18} />} onClick={() => navigate('/articles/create')}>Write Article</Button>
               </Group>
             </Paper>
           </Grid.Col>

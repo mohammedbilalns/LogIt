@@ -338,6 +338,10 @@ const authSlice = createSlice({
       .addCase(verifyResetOTP.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+        if (action.payload === 'Maximum OTP retry attempts exceeded') {
+          state.resetPasswordEmail = null;
+          state.resetPasswordVerified = false;
+        }
       })
       // Update Password
       .addCase(updatePassword.pending, (state) => {

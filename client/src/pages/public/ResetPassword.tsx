@@ -111,6 +111,17 @@ export default function ResetPassword() {
     }
   }, [otpExpiryTime, resetPasswordEmail, resetPasswordVerified, navigate]);
 
+  useEffect(() => {
+    if (error === 'Maximum OTP retry attempts exceeded') {
+      notifications.show({
+        title: 'Maximum OTP Attempts Exceeded',
+        message: 'Please try again later.',
+        color: 'red',
+      });
+      navigate('/login');
+    }
+  }, [error, navigate]);
+
   const handleEmailSubmit = async (values: typeof emailForm.values) => {
     const result = await dispatch(initiatePasswordReset(values.email));
     if (result.meta.requestStatus === 'fulfilled') {
@@ -153,6 +164,13 @@ export default function ResetPassword() {
         resetOtpExpiry();
         startResendCooldown();
         setOtp('');
+      } else if (result.meta.requestStatus === 'rejected' && result.payload === 'Maximum OTP retry attempts exceeded') {
+        notifications.show({
+          title: 'Maximum OTP Attempts Exceeded',
+          message: 'Please try again later.',
+          color: 'red',
+        });
+        navigate('/login');
       }
     }
   };
@@ -300,8 +318,8 @@ export default function ResetPassword() {
           {!resetPasswordEmail
             ? 'Reset Password'
             : !resetPasswordVerified
-            ? 'Verify OTP'
-            : 'Create New Password'}
+              ? 'Verify OTP'
+              : 'Create New Password'}
         </Title>
 
         <Text c="dimmed" size="sm" ta="center" mb="lg">

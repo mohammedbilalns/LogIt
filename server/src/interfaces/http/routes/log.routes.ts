@@ -9,7 +9,10 @@ import { asyncHandler } from "../../../utils/asyncHandler";
 import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
 import { validate } from "../middlewares/validation.middleware";
-import { createLogSchema, updateLogSchema } from "../../../application/validations/log.validation";
+import {
+  createLogSchema,
+  updateLogSchema,
+} from "../../../application/validations/log.validation";
 
 const router = Router();
 
@@ -29,6 +32,9 @@ const logController = new LogController(logService);
 
 router.use(asyncHandler((req, res, next) => authMiddleware()(req, res, next)));
 router.use(asyncHandler((req, res, next) => csrfMiddleware()(req, res, next)));
+router.use(
+  asyncHandler((req, res, next) => authorizeRoles("user")(req, res, next))
+);
 
 // Get all logs
 router.get(
@@ -46,7 +52,6 @@ router.get(
 router.post(
   "/",
   validate(createLogSchema),
-  asyncHandler((req, res, next) => authorizeRoles("user")(req, res, next)),
   asyncHandler((req, res) => logController.createLog(req, res))
 );
 
@@ -54,14 +59,12 @@ router.post(
 router.put(
   "/:id",
   validate(updateLogSchema),
-  asyncHandler((req, res, next) => authorizeRoles("user")(req, res, next)),
   asyncHandler((req, res) => logController.updateLog(req, res))
 );
 
 // Delete a log
 router.delete(
   "/:id",
-  asyncHandler((req, res, next) => authorizeRoles("user")(req, res, next)),
   asyncHandler((req, res) => logController.deleteLog(req, res))
 );
 

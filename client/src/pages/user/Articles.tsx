@@ -8,6 +8,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import ArticleRowSkeleton from '@/components/skeletons/ArticleRowSkeleton';
 import TagFilterSection from '@/components/tags/TagFilterSection';
 import CreateButton from '@/components/user/CreateButton';
+import SortBy from '@/components/common/SortBy';
 import { AppDispatch, RootState } from '@/store';
 
 interface ArticleFilters {
@@ -35,14 +36,6 @@ export default function ArticlesPage() {
       isActive: true,
     }),
     [selectedTags, searchTags]
-  );
-
-  const sortOptions = useMemo(
-    () => [
-      { value: 'new', label: 'New To Old' },
-      { value: 'old', label: 'Old To New' },
-    ],
-    []
   );
 
   const skeletons = useMemo(
@@ -117,18 +110,7 @@ export default function ArticlesPage() {
       <Stack gap="md">
         <Group justify="space-between" wrap="wrap" gap="md">
           <Title order={2}>Articles</Title>
-
-          <Group>
-            <Text fw={500}>Sort By:</Text>
-            <Select
-              data={sortOptions}
-              value={sortBy}
-              onChange={handleSortChange}
-              size="xs"
-              radius="md"
-              checkIconPosition="right"
-            />
-          </Group>
+          <SortBy value={sortBy} onChange={handleSortChange} />
         </Group>
 
         <TagFilterSection

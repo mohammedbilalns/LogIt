@@ -1,67 +1,46 @@
 import { IUserRepository } from "../../../domain/repositories/user.repository.interface";
-import { IOTPRepository } from "../../../domain/repositories/otp.repository.interface";
 import {
   User,
   UserWithoutPassword,
 } from "../../../domain/entities/user.entity";
-import { OTP_EXPIRY } from "../../../config/constants";
 import { MailService } from "../../providers/mail.provider";
 import { TokenService } from "../../providers/token.provider";
+import { OTPService } from "../../providers/otp.provider";
 import { ICryptoProvider } from "../../../domain/providers/crypto.provider.interface";
-import {
-  ValidationService,
-  SignupData,
-  LoginData,
-} from "../../providers/validation.provider";
 import {
   EmailAlreadyRegisteredError,
   InvalidCredentialsError,
-  InvalidOTPError,
   UserNotFoundError,
   InvalidTokenError,
-  MaxRetryAttemptsExceededError,
   EmailAlreadyWithGoogleIdError,
   PasswordResetNotAllowedError,
-  InvalidResetOTPError,
   UserBlockedError,
 } from "../../errors/auth.errors";
 import { HttpResponse } from "../../../config/responseMessages";
+import { ResourceNotFoundError } from "../../errors/resource.errors";
+
+interface SignupData {
+  name: string;
+  email: string;
+  password: string;
+}
+
+interface LoginData {
+  email: string;
+  password: string;
+}
 
 export class AuthService {
   constructor(
     private userRepository: IUserRepository,
-    private otpRepository: IOTPRepository,
+    private otpService: OTPService,
     private mailService: MailService,
     private tokenService: TokenService,
-    private cryptoProvider: ICryptoProvider,
-    private validationService: ValidationService
+    private cryptoProvider: ICryptoProvider
   ) {}
 
-  private validateUserFields(
-    user: User
-  ): asserts user is User & {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-    createdAt: Date;
-    updatedAt: Date;
-  } {
-    if (
-      !user.id ||
-      !user.name ||
-      !user.email ||
-      !user.role ||
-      !user.createdAt ||
-      !user.updatedAt
-    ) {
-      throw new Error(HttpResponse.MISSING_USER_DATA);
-    }
-  }
-
   private createUserWithoutPassword(user: User): UserWithoutPassword {
-    this.validateUserFields(user);
-    const { ...userWithoutPassword } = user;
+    const userWithoutPassword = { ...user };
     delete userWithoutPassword.password;
     return userWithoutPassword;
   }
@@ -78,23 +57,15 @@ export class AuthService {
 
       return {
         user: this.createUserWithoutPassword(user),
-        csrfToken: this.tokenService.generateCsrfToken()
+        csrfToken: this.tokenService.generateCsrfToken(),
       };
     } catch {
       throw new InvalidTokenError();
     }
   }
 
-  private generateOTP(): string {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-  }
-
   async signup(userData: SignupData) {
-    const validatedData = this.validationService.validateSignupData(userData);
-
-    const existingUser = await this.userRepository.findByEmail(
-      validatedData.email
-    );
+    const existingUser = await this.userRepository.findByEmail(userData.email);
 
     if (existingUser?.isBlocked) {
       throw new UserBlockedError();
@@ -107,54 +78,33 @@ export class AuthService {
     }
 
     if (existingUser) {
-      await this.userRepository.deleteByEmail(validatedData.email);
-      await this.otpRepository.deleteByEmail(validatedData.email);
+      await this.userRepository.deleteByEmail(userData.email);
+      await this.otpService.deleteOTP(userData.email);
     }
 
-    const hashedPassword = await this.cryptoProvider.hash(validatedData.password, 10);
+    const hashedPassword = await this.cryptoProvider.hash(
+      userData.password,
+      10
+    );
     const user = await this.userRepository.create({
-      ...validatedData,
+      ...userData,
       password: hashedPassword,
       isVerified: false,
       role: "user",
     });
-    const otp = this.generateOTP();
-    const now = new Date();
-    await this.otpRepository.create({
-      email: user.email,
-      otp,
-      expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
-      retryAttempts: 0,
-      type: "verification",
-    });
 
-    await this.mailService.sendOTP(user.email, otp);
+    const otpData = await this.otpService.createOTP(user.email, "verification");
+    await this.mailService.sendOTP(user.email, otpData.otp);
 
     const userWithoutPassword = this.createUserWithoutPassword(user);
     return {
       user: userWithoutPassword,
-      csrfToken: this.tokenService.generateCsrfToken()
+      csrfToken: this.tokenService.generateCsrfToken(),
     };
   }
 
   async verifyOTP(email: string, otp: string) {
-    const storedOTP = await this.otpRepository.findByEmail(email);
-
-    if (
-      !storedOTP ||
-      storedOTP.otp !== otp ||
-      storedOTP.type !== "verification"
-    ) {
-      if (storedOTP) {
-        if (storedOTP.retryAttempts >= 4) {
-          await this.userRepository.deleteByEmail(email);
-          await this.otpRepository.deleteByEmail(email);
-          throw new MaxRetryAttemptsExceededError();
-        }
-        await this.otpRepository.incrementRetryAttempts(email);
-      }
-      throw new InvalidOTPError();
-    }
+    await this.otpService.verifyOTP(email, otp, "verification");
 
     const user = await this.userRepository.findByEmail(email);
     if (user?.isBlocked) {
@@ -166,21 +116,19 @@ export class AuthService {
 
     const { id: userId } = user;
     await this.userRepository.updateVerificationStatus(userId, true);
-    await this.otpRepository.deleteByEmail(email);
+    await this.otpService.deleteOTP(email);
 
     const userWithoutPassword = this.createUserWithoutPassword(user);
     return {
       user: userWithoutPassword,
       accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
       refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword),
-      csrfToken: this.tokenService.generateCsrfToken()
+      csrfToken: this.tokenService.generateCsrfToken(),
     };
   }
 
   async login(credentials: LoginData) {
-    const validatedData = this.validationService.validateLoginData(credentials);
-
-    const user = await this.userRepository.findByEmail(validatedData.email);
+    const user = await this.userRepository.findByEmail(credentials.email);
     if (!user) {
       throw new UserNotFoundError();
     }
@@ -195,7 +143,7 @@ export class AuthService {
     }
 
     const isValidPassword = await this.cryptoProvider.compare(
-      validatedData.password,
+      credentials.password,
       user.password
     );
     if (!isValidPassword) {
@@ -207,7 +155,7 @@ export class AuthService {
       user: userWithoutPassword,
       accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
       refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword),
-      csrfToken: this.tokenService.generateCsrfToken()
+      csrfToken: this.tokenService.generateCsrfToken(),
     };
   }
 
@@ -225,8 +173,9 @@ export class AuthService {
       return {
         user: userWithoutPassword,
         accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
-        refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword),
-        csrfToken: this.tokenService.generateCsrfToken()
+        refreshToken:
+          this.tokenService.generateRefreshToken(userWithoutPassword),
+        csrfToken: this.tokenService.generateCsrfToken(),
       };
     } catch {
       throw new InvalidTokenError();
@@ -243,34 +192,8 @@ export class AuthService {
       throw new UserNotFoundError();
     }
 
-    const storedOTP = await this.otpRepository.findByEmail(email);
-    if (storedOTP && storedOTP.retryAttempts >= 4) {
-      await this.userRepository.deleteByEmail(email);
-      await this.otpRepository.deleteByEmail(email);
-      throw new MaxRetryAttemptsExceededError();
-    }
-
-    const otp = this.generateOTP();
-    const now = new Date();
-
-    if (storedOTP) {
-      await this.otpRepository.update(email, {
-        otp,
-        expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
-        retryAttempts: (storedOTP.retryAttempts || 0) + 1,
-        type: "verification",
-      });
-    } else {
-      await this.otpRepository.create({
-        email,
-        otp,
-        expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
-        retryAttempts: 0,
-        type: "verification",
-      });
-    }
-
-    await this.mailService.sendOTP(email, otp);
+    const otpData = await this.otpService.resendOTP(email, "verification");
+    await this.mailService.sendOTP(email, otpData.otp);
     return { message: HttpResponse.OTP_RESEND };
   }
 
@@ -317,8 +240,9 @@ export class AuthService {
       return {
         user: userWithoutPassword,
         accessToken: this.tokenService.generateAccessToken(userWithoutPassword),
-        refreshToken: this.tokenService.generateRefreshToken(userWithoutPassword),
-        csrfToken: this.tokenService.generateCsrfToken()
+        refreshToken:
+          this.tokenService.generateRefreshToken(userWithoutPassword),
+        csrfToken: this.tokenService.generateCsrfToken(),
       };
     } catch {
       throw new InvalidCredentialsError();
@@ -339,50 +263,19 @@ export class AuthService {
       throw new PasswordResetNotAllowedError();
     }
 
-    const otp = this.generateOTP();
-    const now = new Date();
-
-    await this.otpRepository.deleteByEmail(email); // Clear any existing OTP
-    await this.otpRepository.create({
-      email,
-      otp,
-      expiresAt: new Date(now.getTime() + OTP_EXPIRY * 1000),
-      retryAttempts: 0,
-      type: "reset",
-    });
-
-    await this.mailService.sendPasswordResetOTP(email, otp);
+    await this.otpService.deleteOTP(email);
+    const otpData = await this.otpService.createOTP(email, "reset");
+    await this.mailService.sendPasswordResetOTP(email, otpData.otp);
     return { message: HttpResponse.SEND_PASSWORD_RESET_OTP };
   }
 
   async verifyResetOTP(email: string, otp: string) {
-    const storedOTP = await this.otpRepository.findByEmail(email);
-
-    if (!storedOTP || storedOTP.otp !== otp || storedOTP.type !== "reset") {
-      if (storedOTP) {
-        if (storedOTP.retryAttempts >= 4) {
-          await this.otpRepository.deleteByEmail(email);
-          throw new MaxRetryAttemptsExceededError();
-        }
-        await this.otpRepository.incrementRetryAttempts(email);
-      }
-      throw new InvalidResetOTPError();
-    }
-
-    if (new Date() > storedOTP.expiresAt) {
-      await this.otpRepository.deleteByEmail(email);
-      throw new InvalidResetOTPError();
-    }
-
+    await this.otpService.verifyOTP(email, otp, "reset");
     return { message: HttpResponse.OTP_RESEND };
   }
 
   async updatePassword(email: string, newPassword: string) {
-    const validatedData = this.validationService.validateResetPasswordData({
-      email,
-      newPassword,
-    });
-    const user = await this.userRepository.findByEmail(validatedData.email);
+    const user = await this.userRepository.findByEmail(email);
 
     if (user?.isBlocked) {
       throw new UserBlockedError();
@@ -391,12 +284,13 @@ export class AuthService {
       throw new UserNotFoundError();
     }
 
-    const storedOTP = await this.otpRepository.findByEmail(validatedData.email);
-    if (!storedOTP || storedOTP.type !== "reset") {
-      throw new InvalidResetOTPError();
+    // Check that a valid reset OTP exists for this email
+    const hasValidResetOTP = await this.otpService.hasValidOTP(email, "reset");
+    if (!hasValidResetOTP) {
+      throw new ResourceNotFoundError(HttpResponse.OTP_NOT_FOUND);
     }
 
-    const hashedPassword = await this.cryptoProvider.hash(validatedData.newPassword, 10);
+    const hashedPassword = await this.cryptoProvider.hash(newPassword, 10);
     const { id: userId } = user;
     const updatedUser = await this.userRepository.update(userId, {
       password: hashedPassword,
@@ -404,7 +298,7 @@ export class AuthService {
     if (!updatedUser) {
       throw new UserNotFoundError();
     }
-    await this.otpRepository.deleteByEmail(validatedData.email);
+    await this.otpService.deleteOTP(email);
 
     return { message: HttpResponse.PASSWORD_UPDATED };
   }

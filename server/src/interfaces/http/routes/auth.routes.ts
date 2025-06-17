@@ -5,8 +5,8 @@ import { MongoUserRepository } from "../../../infrastructure/repositories/user.r
 import { MongoOTPRepository } from "../../../infrastructure/repositories/otp.repository";
 import { MailService } from "../../../application/providers/mail.provider";
 import { TokenService } from "../../../application/providers/token.provider";
+import { OTPService } from "../../../application/providers/otp.provider";
 import { BcryptCryptoProvider } from "../../../application/providers/crypto.provider";
-import { ValidationService } from "../../../application/providers/validation.provider";
 import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
 import { validate } from "../middlewares/validation.middleware";
@@ -25,18 +25,17 @@ import {
 const router = Router();
 const userRepository = new MongoUserRepository();
 const otpRepository = new MongoOTPRepository();
+const otpService = new OTPService(otpRepository);
 const mailService = new MailService();
 const tokenService = new TokenService(env.JWT_SECRET);
 const cryptoProvider = new BcryptCryptoProvider();
-const validationService = new ValidationService();
 
 const authService = new AuthService(
   userRepository,
-  otpRepository,
+  otpService,
   mailService,
   tokenService,
   cryptoProvider,
-  validationService
 );
 const authController = new AuthController(authService);
 
