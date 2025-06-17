@@ -3,10 +3,13 @@ import { Report } from "../../../domain/entities/report.entity";
 import { IArticleRepository } from "../../../domain/repositories/article.repository.interface";
 import { IUserManagementService } from "../../../domain/services/usermanagement.service.interface";
 import { IReportService } from "../../../domain/services/report.service.interface";
-import { logger } from "../../../utils/logger";
 import { ResourceNotFoundError } from "../../errors/resource.errors";
 import { HttpResponse } from "../../../config/responseMessages";
-import { CreateReportDto, GetReportsDto, UpdateReportStatusDto } from "../../dtos";
+import {
+  CreateReportDto,
+  GetReportsDto,
+  UpdateReportStatusDto,
+} from "../../dtos";
 
 export class ReportService implements IReportService {
   constructor(
@@ -27,18 +30,26 @@ export class ReportService implements IReportService {
       throw new Error(HttpResponse.REPORT_EXISTS);
     }
 
-    // Verify that the reporter exists and get details
-    const reporter = await this.userManagementService.getUserById(data.reportedBy);
-    if (!reporter || !reporter.id) {
-      throw new ResourceNotFoundError(HttpResponse.REPORTER_NOT_FOUND);
-    }
+    // Try to get reporter details, but don't fail if user doesn't exist
+    let reporterInfo = {
+      id: data.reportedBy,
+      name: "Unknown User",
+      email: "unknown@email.com",
+    };
 
-    const reportData = {
-      reportedBy: {
+    const reporter = await this.userManagementService.getUserById(
+      data.reportedBy
+    );
+    if (reporter && reporter.id) {
+      reporterInfo = {
         id: reporter.id,
         name: reporter.name,
         email: reporter.email,
-      },
+      };
+    }
+
+    const reportData = {
+      reportedBy: reporterInfo,
       targetType: data.targetType,
       targetId: data.targetId,
       reason: data.reason,
@@ -49,7 +60,9 @@ export class ReportService implements IReportService {
     return await this.reportRepository.create(reportData);
   }
 
-  async getReports(params: GetReportsDto): Promise<{ reports: Report[]; totalPages: number }> {
+  async getReports(
+    params: GetReportsDto
+  ): Promise<{ reports: Report[]; totalPages: number }> {
     const skip = (params.page - 1) * params.limit;
     const { reports, total } = await this.reportRepository.findWithPagination({
       skip,
@@ -73,7 +86,9 @@ export class ReportService implements IReportService {
     return this.reportRepository.findByTarget(targetType, targetId);
   }
 
-  async updateReportStatus(params: UpdateReportStatusDto): Promise<Report | null> {
+  async updateReportStatus(
+    params: UpdateReportStatusDto
+  ): Promise<Report | null> {
     const report = await this.reportRepository.findById(params.reportId);
     if (!report) {
       throw new ResourceNotFoundError(HttpResponse.REPORT_NOT_FOUND);
@@ -83,18 +98,16 @@ export class ReportService implements IReportService {
       params.reportId,
       params.status
     );
-    
-    logger.green(
-      "REPORT_STATUS_UPDATED",
-      `Report ${params.reportId} status updated to ${params.status}`
-    );
-    
+
     return updatedReport;
   }
 
   async blockArticle(articleId: string): Promise<void> {
-    const reports = await this.reportRepository.findByTarget("article", articleId);
-    
+    const reports = await this.reportRepository.findByTarget(
+      "article",
+      articleId
+    );
+
     await Promise.all(
       reports.map((report) => {
         if (!report.id) {

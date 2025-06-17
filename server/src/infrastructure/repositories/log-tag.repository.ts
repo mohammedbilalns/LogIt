@@ -1,15 +1,18 @@
-import { LogTag } from '../../domain/entities/log-tag.entity';
-import { ILogTagRepository } from '../../domain/repositories/logTag.repository';
-import LogTagModel, {  LogTagDocument } from '../mongodb/log-tag.schema';
-import { BaseRepository } from './base.repository';
+import { LogTag } from "../../domain/entities/log-tag.entity";
+import { ILogTagRepository } from "../../domain/repositories/logTag.repository";
+import LogTagModel, { LogTagDocument } from "../mongodb/log-tag.schema";
+import { BaseRepository } from "./base.repository";
 
-export class MongoLogTagRepository extends BaseRepository<LogTagDocument, LogTag> implements ILogTagRepository {
+export class MongoLogTagRepository
+  extends BaseRepository<LogTagDocument, LogTag>
+  implements ILogTagRepository
+{
   constructor() {
     super(LogTagModel);
   }
 
   protected getSearchFields(): string[] {
-    return ['logId', 'tagId', 'userId'];
+    return ["logId", "tagId", "userId"];
   }
 
   protected mapToEntity(doc: LogTagDocument): LogTag {
@@ -20,23 +23,22 @@ export class MongoLogTagRepository extends BaseRepository<LogTagDocument, LogTag
     };
   }
 
-  async createMany(data: Omit<LogTag, 'id'>[]): Promise<LogTag[]> {
+  async createMany(data: Omit<LogTag, "id">[]): Promise<LogTag[]> {
     const createdLogTags = await LogTagModel.insertMany(data);
-    return createdLogTags.map(tag => this.mapToEntity(tag));
+    return createdLogTags.map((tag) => this.mapToEntity(tag));
   }
 
   async findByLogId(logId: string): Promise<LogTag[]> {
     const logTags = await LogTagModel.find({ logId });
-    return logTags.map(tag => this.mapToEntity(tag));
+    return logTags.map((tag) => this.mapToEntity(tag));
   }
 
   async findByLogIds(logIds: string[]): Promise<LogTag[]> {
     const logTags = await LogTagModel.find({ logId: { $in: logIds } });
-    return logTags.map(tag => this.mapToEntity(tag));
+    return logTags.map((tag) => this.mapToEntity(tag));
   }
 
   async deleteByLogId(logId: string): Promise<void> {
     await LogTagModel.deleteMany({ logId });
   }
-
-} 
+}

@@ -68,7 +68,7 @@ export class OTPService implements IOTPService {
     const expiresAt = new Date(now.getTime() + OTP_EXPIRY * 1000);
 
     if (storedOTP) {
-      const updatedOTP = await this.otpRepository.update(email, {
+      const updatedOTP = await this.otpRepository.updateByEmail(email, {
         otp,
         expiresAt,
         retryAttempts: (storedOTP.retryAttempts || 0) + 1,

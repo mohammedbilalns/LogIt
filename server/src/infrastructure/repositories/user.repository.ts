@@ -1,17 +1,19 @@
-import { User } from '../../domain/entities/user.entity';
-import { IUserRepository } from '../../domain/repositories/user.repository.interface';
-import UserModel, { UserDocument } from '../mongodb/user.schema';
-import bcrypt from 'bcryptjs';
-import { BaseRepository } from './base.repository';
-// import { UpdateQuery } from 'mongoose';
+import { User } from "../../domain/entities/user.entity";
+import { IUserRepository } from "../../domain/repositories/user.repository.interface";
+import UserModel, { UserDocument } from "../mongodb/user.schema";
+import bcrypt from "bcryptjs";
+import { BaseRepository } from "./base.repository";
 
-export class MongoUserRepository extends BaseRepository<UserDocument, User> implements IUserRepository {
+export class MongoUserRepository
+  extends BaseRepository<UserDocument, User>
+  implements IUserRepository
+{
   constructor() {
     super(UserModel);
   }
 
   protected getSearchFields(): string[] {
-    return ['name', 'email'];
+    return ["name", "email"];
   }
 
   protected mapToEntity(doc: UserDocument): User {
@@ -22,13 +24,15 @@ export class MongoUserRepository extends BaseRepository<UserDocument, User> impl
     };
   }
 
-  // Implement IUserRepository methods
   async findByEmail(email: string): Promise<User | null> {
     const user = await UserModel.findOne({ email });
     return user ? this.mapToEntity(user) : null;
   }
 
-  async updateVerificationStatus(userId: string, isVerified: boolean): Promise<User | null> {
+  async updateVerificationStatus(
+    userId: string,
+    isVerified: boolean
+  ): Promise<User | null> {
     const user = await UserModel.findByIdAndUpdate(
       userId,
       { isVerified, updatedAt: new Date() },
@@ -37,12 +41,15 @@ export class MongoUserRepository extends BaseRepository<UserDocument, User> impl
     return user ? this.mapToEntity(user) : null;
   }
 
-  async updatePassword(userId: string, hashedPassword: string): Promise<User | null> {
+  async updatePassword(
+    userId: string,
+    hashedPassword: string
+  ): Promise<User | null> {
     const user = await UserModel.findByIdAndUpdate(
       userId,
-      { 
+      {
         password: hashedPassword,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       { new: true }
     );
@@ -63,6 +70,4 @@ export class MongoUserRepository extends BaseRepository<UserDocument, User> impl
     const user = await UserModel.findById(userId);
     return user?.isBlocked || false;
   }
-
-
-} 
+}

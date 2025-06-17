@@ -1,15 +1,20 @@
-import { ArticleTag } from '../../domain/entities/article-tag.entity';
-import { IArticleTagRepository } from '../../domain/repositories/article-tag.repository.interface';
-import ArticleTagModel, {  ArticleTagDocument } from '../mongodb/article-tag.schema';
-import { BaseRepository } from './base.repository';
+import { ArticleTag } from "../../domain/entities/article-tag.entity";
+import { IArticleTagRepository } from "../../domain/repositories/article-tag.repository.interface";
+import ArticleTagModel, {
+  ArticleTagDocument,
+} from "../mongodb/article-tag.schema";
+import { BaseRepository } from "./base.repository";
 
-export class MongoArticleTagRepository extends BaseRepository<ArticleTagDocument, ArticleTag> implements IArticleTagRepository {
+export class MongoArticleTagRepository
+  extends BaseRepository<ArticleTagDocument, ArticleTag>
+  implements IArticleTagRepository
+{
   constructor() {
     super(ArticleTagModel);
   }
 
   protected getSearchFields(): string[] {
-    return ['articleId', 'tagId'];
+    return ["articleId", "tagId"];
   }
 
   protected mapToEntity(doc: ArticleTagDocument): ArticleTag {
@@ -46,4 +51,4 @@ export class MongoArticleTagRepository extends BaseRepository<ArticleTagDocument
     const result = await ArticleTagModel.deleteOne({ _id: id });
     return result.deletedCount > 0;
   }
-} 
+}
