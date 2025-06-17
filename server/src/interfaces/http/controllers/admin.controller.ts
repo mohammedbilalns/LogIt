@@ -10,11 +10,11 @@ export class AdminController {
     const limit = parseInt(req.query.limit as string) || 10;
     const search = (req.query.search as string) || "";
 
-    const result = await this.userManagementService.fetchUsers(
+    const result = await this.userManagementService.fetchUsers({
       page,
       limit,
       search
-    );
+    });
     res.status(HttpStatus.OK).json(result);
   };
 

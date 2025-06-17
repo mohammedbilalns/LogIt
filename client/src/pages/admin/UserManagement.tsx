@@ -128,8 +128,12 @@ export default function UserManagement() {
 
   useEffect(() => {
     dispatch(setSearchQuery(debouncedSearch));
+    setPage(1);
+  }, [dispatch, debouncedSearch]);
+
+  useEffect(() => {
     dispatch(fetchUsers(fetchParams));
-  }, [dispatch, debouncedSearch, fetchParams]);
+  }, [dispatch, fetchParams]);
 
   const containerPadding = isMobile ? "md" : "xl";
 

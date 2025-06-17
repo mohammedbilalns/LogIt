@@ -13,7 +13,7 @@ interface PaginationResult<T> {
   total: number;
 }
 
-export interface ReportRepository extends IBaseRepository<Report> {
+export interface IReportRepository extends IBaseRepository<Report> {
   findByTarget(targetType: 'article' | 'user', targetId: string): Promise<Report[]>;
   updateStatus(id: string, status: 'pending' | 'reviewed' | 'resolved' | 'blocked', actionTaken?: string | null): Promise<Report | null>;
   existsByTarget(params: { targetType: 'article' | 'user'; targetId: string; reporterId: string }): Promise<boolean>;

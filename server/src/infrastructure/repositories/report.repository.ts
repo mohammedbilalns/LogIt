@@ -1,11 +1,11 @@
-import { ReportRepository } from '../../domain/repositories/report.repository.interface';
+import { IReportRepository } from '../../domain/repositories/report.repository.interface';
 import { Report } from '../../domain/entities/report.entity';
 import ReportModel, { ReportDocument } from '../mongodb/report.schema';
 import { BaseRepository } from './base.repository';
 import { FilterQuery } from 'mongoose';
 import { logger } from '../../utils/logger';
 
-export class MongoReportRepository extends BaseRepository<ReportDocument, Report> implements ReportRepository {
+export class MongoReportRepository extends BaseRepository<ReportDocument, Report> implements IReportRepository {
   constructor() {
     super(ReportModel);
   }

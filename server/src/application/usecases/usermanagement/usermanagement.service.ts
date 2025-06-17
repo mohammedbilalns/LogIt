@@ -1,52 +1,61 @@
 import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
 import { User } from '../../../domain/entities/user.entity';
 import { UserNotFoundError } from '../../errors/auth.errors';
-import { MongoUserRepository } from '../../../infrastructure/repositories/user.repository';
+import {
+  FetchUsersOptions,
+  UserResponse,
+  UpdateUserData,
+  UsersListResponse,
+} from '../../dtos';
 
 export class UserManagementService {
-  private userRepository: IUserRepository;
+  constructor(private userRepository: IUserRepository) {}
 
-  constructor() {
-    this.userRepository = new MongoUserRepository();
-  }
-
-  async fetchUsers(page: number = 1, limit: number = 10, search: string = '') {
+  async fetchUsers(options: FetchUsersOptions = {}): Promise<UsersListResponse> {
+    const { page = 1, limit = 10, search = '', sortBy = 'createdAt', sortOrder = 'desc' } = options;
+    
     const result = await this.userRepository.findAll({
       page,
       limit,
       search,
-      sortBy: 'createdAt',
-      sortOrder: 'desc'
+      sortBy,
+      sortOrder
     });
 
+    const userResponses: UserResponse[] = result.data.map((user: User) => {
+      const userCopy = { ...user };
+      delete userCopy.password;
+      return userCopy as UserResponse;
+    });
+
+    const totalPages = Math.ceil(result.total / limit);
+
     return {
-      ...result,
-      data: result.data.map(user => ({
-        ...user,
-        password: undefined
-      }))
+      data: userResponses,
+      total: result.total,
+      page,
+      limit,
+      totalPages,
     };
   }
 
-  async getUserById(userId: string) {
+  async getUserById(userId: string): Promise<UserResponse> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new UserNotFoundError();
     }
-    return {
-      ...user,
-      password: undefined
-    };
+    const userCopy = { ...user };
+    delete userCopy.password;
+    return userCopy as UserResponse;
   }
 
-  async updateUser(userId: string, updateData: Partial<User>) {
-    const user = await this.userRepository.update( userId, updateData);
+  async updateUser(userId: string, updateData: UpdateUserData): Promise<UserResponse> {
+    const user = await this.userRepository.update(userId, updateData);
     if (!user) {
       throw new UserNotFoundError();
     }
-    return {
-      ...user,
-      password: undefined
-    };
+    const userCopy = { ...user };
+    delete userCopy.password;
+    return userCopy as UserResponse;
   }
 }

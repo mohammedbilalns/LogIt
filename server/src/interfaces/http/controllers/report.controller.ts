@@ -10,6 +10,11 @@ export class ReportController {
     const { targetType, targetId, reason } = req.body;
     const reportedBy = req.user?.id;
 
+    if (!reportedBy) {
+      res.status(HttpStatus.UNAUTHORIZED).json({ message: HttpResponse.AUTHENTICATION_REQUIRED  });
+      return;
+    }
+
     const report = await this.reportService.createReport({
       reportedBy,
       targetType,
@@ -43,10 +48,10 @@ export class ReportController {
     const { id } = req.params;
     const { status } = req.body;
 
-    const updatedReport = await this.reportService.updateReportStatus(
-      id,
-      status as "pending" | "reviewed" | "resolved"
-    );
+    const updatedReport = await this.reportService.updateReportStatus({
+      reportId: id,
+      status: status as "pending" | "reviewed" | "resolved"
+    });
 
     res.status(HttpStatus.OK).json(updatedReport);
   };

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { AdminController } from "../controllers/admin.controller";
 import { UserManagementService } from "../../../application/usecases/usermanagement/usermanagement.service";
+import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
 import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
 import { asyncHandler } from "../../../utils/asyncHandler";
@@ -8,7 +9,9 @@ import { validate } from "../middlewares/validation.middleware";
 import { updateUserSchema } from "../../../application/validations/admin.validation";
 
 const router = Router();
-const userManagementService = new UserManagementService();
+
+const userRepository = new MongoUserRepository();
+const userManagementService = new UserManagementService(userRepository);
 const adminController = new AdminController(userManagementService);
 
 router.use(

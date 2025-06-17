@@ -6,7 +6,7 @@ import { IArticleRepository } from "../../../domain/repositories/article.reposit
 import { ITagRepository } from "../../../domain/repositories/tag.repository.interface";
 import { IArticleTagRepository } from "../../../domain/repositories/article-tag.repository.interface";
 import { IUserRepository } from "../../../domain/repositories/user.repository.interface";
-import { ReportRepository } from "../../../domain/repositories/report.repository.interface";
+import { IReportRepository } from "../../../domain/repositories/report.repository.interface";
 
 import { MissingFieldsError } from "../../errors/form.errors";
 import { ResourceNotFoundError } from "../../errors/resource.errors";
@@ -17,7 +17,7 @@ export class ArticleService {
     private tagRepository: ITagRepository,
     private articleTagRepository: IArticleTagRepository,
     private userRepository: IUserRepository,
-    private reportRepository: ReportRepository
+    private reportRepository: IReportRepository
   ) {}
 
   async createArticle(
