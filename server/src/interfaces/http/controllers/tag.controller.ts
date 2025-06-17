@@ -1,24 +1,27 @@
 import { Request, Response } from "express";
-import { TagService } from "../../../application/usecases/tag/tag.service";
+import { ITagService } from "../../../domain/services/tag.service.interface";
+import { CreateTagData, UpdateTagData, TagsByIdsResponse } from "../../../application/dtos";
 import { HttpStatus } from "../../../config/statusCodes";
 
 export class TagController {
-  constructor(private tagService: TagService) {}
+  constructor(private tagService: ITagService) {}
 
   async createTag(req: Request, res: Response) {
     const { name } = req.body;
-    const tag = await this.tagService.createTag({
+    const tagData: CreateTagData = {
       name,
       usageCount: 0,
       promoted: false,
-    });
+    };
+    const tag = await this.tagService.createTag(tagData);
     return res.status(HttpStatus.CREATED).json(tag);
   }
 
   async updateTag(req: Request, res: Response) {
     const { id: tagId } = req.params;
     const { name, promoted } = req.body;
-    const tag = await this.tagService.updateTag(tagId, { name, promoted });
+    const updateData: UpdateTagData = { name, promoted };
+    const tag = await this.tagService.updateTag(tagId, updateData);
     res.status(HttpStatus.OK).json(tag);
   }
 
@@ -59,7 +62,8 @@ export class TagController {
     const tagIds = ids.split(',').filter(id => id.trim());
     const tags = await this.tagService.getTagsByIds(tagIds);
 
-    return res.status(HttpStatus.OK).json({ tags });
+    const response: TagsByIdsResponse = { tags };
+    return res.status(HttpStatus.OK).json(response);
   }
 
   async deleteTag(req: Request, res: Response) {

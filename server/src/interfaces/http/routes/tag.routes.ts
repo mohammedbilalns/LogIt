@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { TagController } from "../controllers/tag.controller";
+import { ITagService } from "../../../domain/services/tag.service.interface";
 import { TagService } from "../../../application/usecases/tag/tag.service";
 import { MongoTagRepository } from "../../../infrastructure/repositories/tag.repository";
 import { authorizeRoles, authMiddleware } from "../middlewares/auth.middleware";
@@ -9,8 +10,10 @@ import { validate } from "../middlewares/validation.middleware";
 import { createTagSchema } from "../../../application/validations/tag.validation";
 
 const router = Router();
+
 const tagRepository = new MongoTagRepository();
-const tagService = new TagService(tagRepository);
+
+const tagService: ITagService = new TagService(tagRepository);
 const tagController = new TagController(tagService);
 
 router.get(

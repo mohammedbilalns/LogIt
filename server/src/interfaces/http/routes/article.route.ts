@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { ArticleController } from "../controllers/article.controller";
+import { IArticleService } from "../../../domain/services/article.service.interface";
 import { ArticleService } from "../../../application/usecases/articles/article.service";
 import { MongoArticleRepository } from "../../../infrastructure/repositories/article.repository";
 import { MongoTagRepository } from "../../../infrastructure/repositories/tag.repository";
@@ -17,14 +18,13 @@ import {
 
 const router = Router();
 
-// Repositories
 const articleRepository = new MongoArticleRepository();
 const tagRepository = new MongoTagRepository();
 const articleTagRepository = new MongoArticleTagRepository();
 const userRepository = new MongoUserRepository();
 const reportRepository = new MongoReportRepository();
 
-const articleService = new ArticleService(
+const articleService: IArticleService = new ArticleService(
   articleRepository,
   tagRepository,
   articleTagRepository,

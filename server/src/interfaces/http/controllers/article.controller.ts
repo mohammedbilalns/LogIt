@@ -1,16 +1,25 @@
 import { Request, Response } from "express";
-import { ArticleService } from "../../../application/usecases/articles/article.service";
+import { IArticleService } from "../../../domain/services/article.service.interface";
+import { CreateArticleData, UpdateArticleData } from "../../../application/dtos";
 import { HttpStatus } from "../../../config/statusCodes";
 
 export class ArticleController {
-  constructor(private articleService: ArticleService) {}
+  constructor(private articleService: IArticleService) {}
 
   async createArticle(req: Request, res: Response) {
     const { title, content, tagIds, featured_image } = req.body;
     const authorId = req.user?.id || "";
 
+    const articleData: CreateArticleData = {
+      authorId,
+      title,
+      content,
+      isActive: true,
+      featured_image,
+    };
+
     const article = await this.articleService.createArticle(
-      { authorId, title, content, isActive: true, featured_image },
+      articleData,
       tagIds || []
     );
 
@@ -21,9 +30,15 @@ export class ArticleController {
     const { id: articleId } = req.params;
     const { title, content, tagIds, featured_image } = req.body;
 
+    const updateData: UpdateArticleData = {
+      title,
+      content,
+      featured_image,
+    };
+
     const article = await this.articleService.updateArticle(
       articleId,
-      { title, content, featured_image },
+      updateData,
       tagIds
     );
 

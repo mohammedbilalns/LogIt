@@ -1,17 +1,22 @@
-import {
-  Article,
-  ArticleWithTags,
-} from "../../../domain/entities/article.entity";
 import { IArticleRepository } from "../../../domain/repositories/article.repository.interface";
 import { ITagRepository } from "../../../domain/repositories/tag.repository.interface";
 import { IArticleTagRepository } from "../../../domain/repositories/article-tag.repository.interface";
 import { IUserRepository } from "../../../domain/repositories/user.repository.interface";
 import { IReportRepository } from "../../../domain/repositories/report.repository.interface";
+import { IArticleService } from "../../../domain/services/article.service.interface";
+import {
+  CreateArticleData,
+  UpdateArticleData,
+  GetArticlesParams,
+  ArticlesResponse,
+  ArticleResponse,
+} from "../../dtos";
 
 import { MissingFieldsError } from "../../errors/form.errors";
 import { ResourceNotFoundError } from "../../errors/resource.errors";
 import { HttpResponse } from "../../../config/responseMessages";
-export class ArticleService {
+
+export class ArticleService implements IArticleService {
   constructor(
     private articleRepository: IArticleRepository,
     private tagRepository: ITagRepository,
@@ -21,13 +26,9 @@ export class ArticleService {
   ) {}
 
   async createArticle(
-    article: Omit<Article, "id" | "createdAt" | "updatedAt"> & {
-  authorId?: string;},
+    article: CreateArticleData,
     tagIds: string[]
-  ): Promise<ArticleWithTags | string> {
-
-   
-
+  ): Promise<ArticleResponse | string> {
     if (!article.authorId || !article.title || !article.content) {
       throw new MissingFieldsError();
     }
@@ -50,7 +51,7 @@ export class ArticleService {
   async getArticle(
     id: string,
     userId?: string
-  ): Promise<ArticleWithTags | null> {
+  ): Promise<ArticleResponse | null> {
     const article = await this.articleRepository.findById(id);
     if (!article) return null;
 
@@ -70,10 +71,9 @@ export class ArticleService {
 
   async updateArticle(
     id: string,
-    article: Partial<Article>,
+    article: UpdateArticleData,
     tagIds?: string[]
-  ): Promise<ArticleWithTags | null> {
-
+  ): Promise<ArticleResponse | null> {
     const updatedArticle = await this.articleRepository.update(id, article);
     if (!updatedArticle) return null;
 
@@ -110,19 +110,7 @@ export class ArticleService {
     await this.articleRepository.delete(id);
   }
 
-  async getArticles(params: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    sortBy?: string;
-    sortOrder?: "asc" | "desc";
-    filters?: {
-      authorId?: string;
-      isActive?: boolean;
-      tags?: string[];
-      tagIds?: string[];
-    };
-  }): Promise<{ articles: ArticleWithTags[]; total: number }> {
+  async getArticles(params: GetArticlesParams): Promise<ArticlesResponse> {
     const normalizedParams = {
       ...params,
       filters: params.filters
@@ -156,7 +144,7 @@ export class ArticleService {
 
   private async getArticleWithTags(
     articleId: string
-  ): Promise<ArticleWithTags> {
+  ): Promise<ArticleResponse> {
     const article = await this.articleRepository.findById(articleId);
     if (!article) throw new ResourceNotFoundError(HttpResponse.ARTICLE_NOT_FOUND);
 
@@ -191,3 +179,4 @@ export class ArticleService {
     await this.articleRepository.update(articleId, { isActive: false });
   }
 }
+ 

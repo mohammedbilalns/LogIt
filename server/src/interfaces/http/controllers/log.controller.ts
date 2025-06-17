@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { LogService } from "../../../application/usecases/logs/log.service";
+import { ILogService } from "../../../domain/services/log.service.interface";
 import { HttpStatus } from "../../../config/statusCodes";
 import { HttpResponse } from "../../../config/responseMessages";
 
 export class LogController {
-  constructor(private logService: LogService) {}
+  constructor(private logService: ILogService) {}
 
   createLog = async (req: Request, res: Response): Promise<void> => {
     const { title, content, tags, mediaUrls, createdAt } = req.body;

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { LogController } from "../controllers/log.controller";
+import { ILogService } from "../../../domain/services/log.service.interface";
 import { LogService } from "../../../application/usecases/logs/log.service";
 import { MongoLogRepository } from "../../../infrastructure/repositories/log.repository";
 import { MongoLogTagRepository } from "../../../infrastructure/repositories/log-tag.repository";
@@ -21,7 +22,7 @@ const logTagRepository = new MongoLogTagRepository();
 const logMediaRepository = new MongoLogMediaRepository();
 const tagRepository = new MongoTagRepository();
 
-const logService = new LogService(
+const logService: ILogService = new LogService(
   logRepository,
   logTagRepository,
   logMediaRepository,

@@ -4,6 +4,7 @@ import { ILogMediaRepository } from "../../../domain/repositories/logMedia.repos
 import { ITagRepository } from "../../../domain/repositories/tag.repository.interface";
 import { Tag } from "../../../domain/entities/tag.entity";
 import { LogTag } from "../../../domain/entities/log-tag.entity";
+import { ILogService } from "../../../domain/services/log.service.interface";
 import { UnauthorizedError } from "../../errors/auth.errors";
 import { InternalServerError } from "../../errors/internal.errors";
 import { HttpResponse } from "../../../config/responseMessages";
@@ -14,7 +15,7 @@ import {
   LogWithRelations,
 } from "../../dtos";
 
-export class LogService {
+export class LogService implements ILogService {
   constructor(
     private logRepository: ILogRepository,
     private logTagRepository: ILogTagRepository,

@@ -1,17 +1,9 @@
 import { Tag } from "../../../domain/entities/tag.entity";
 import { ITagRepository } from "../../../domain/repositories/tag.repository.interface";
+import { ITagService } from "../../../domain/services/tag.service.interface";
+import { GetTagsParams, TagsResponse } from "../../dtos";
 
-interface GetTagsParams {
-  page?: number;
-  limit?: number;
-  search?: string;
-  promoted?: boolean;
-  userId?: string;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
-
-export class TagService {
+export class TagService implements ITagService {
   constructor(private tagRepository: ITagRepository) {}
 
   async createTag(tag: Omit<Tag, "id">): Promise<Tag> {
@@ -24,7 +16,7 @@ export class TagService {
 
   async getTags(
     params: GetTagsParams
-  ): Promise<{ tags: Tag[]; total: number }> {
+  ): Promise<TagsResponse> {
     const { limit = 5, promoted, search } = params;
 
     if (search) {
