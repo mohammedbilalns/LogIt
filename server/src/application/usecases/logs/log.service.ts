@@ -1,54 +1,24 @@
-import { Log } from "../../../domain/entities/log.entity";
-import { LogRepository } from "../../../domain/repositories/log.repository";
-import { LogTagRepository } from "../../../domain/repositories/logTag.repository";
-import { LogMediaRepository } from "../../../domain/repositories/logMedia.repository";
+import { ILogRepository } from "../../../domain/repositories/log.repository";
+import { ILogTagRepository } from "../../../domain/repositories/logTag.repository";
+import { ILogMediaRepository } from "../../../domain/repositories/logMedia.repository";
 import { ITagRepository } from "../../../domain/repositories/tag.repository.interface";
 import { Tag } from "../../../domain/entities/tag.entity";
 import { LogTag } from "../../../domain/entities/log-tag.entity";
 import { UnauthorizedError } from "../../errors/auth.errors";
 import { InternalServerError } from "../../errors/internal.errors";
 import { HttpResponse } from "../../../config/responseMessages";
-
-interface CreateLogData {
-  title: string;
-  content: string;
-  tags?: string[];
-  mediaUrls?: string[];
-  createdAt?: Date;
-}
-
-interface UpdateLogData {
-  title: string;
-  content: string;
-  tags?: string[];
-  mediaUrls?: string[];
-  createdAt?: Date;
-}
-
-interface GetLogsOptions {
-  page?: number;
-  limit?: number;
-  search?: string;
-  tags?: string[];
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-}
-
-interface TagWithName {
-  id: string;
-  name: string;
-}
-
-interface LogWithRelations extends Log {
-  tags: TagWithName[];
-  mediaUrls: string[];
-}
+import {
+  CreateLogData,
+  UpdateLogData,
+  GetLogsOptions,
+  LogWithRelations,
+} from "../../dtos";
 
 export class LogService {
   constructor(
-    private logRepository: LogRepository,
-    private logTagRepository: LogTagRepository,
-    private logMediaRepository: LogMediaRepository,
+    private logRepository: ILogRepository,
+    private logTagRepository: ILogTagRepository,
+    private logMediaRepository: ILogMediaRepository,
     private tagRepository: ITagRepository
   ) {}
 

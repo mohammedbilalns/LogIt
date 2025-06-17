@@ -18,17 +18,7 @@ import {
 } from "../../errors/auth.errors";
 import { HttpResponse } from "../../../config/responseMessages";
 import { ResourceNotFoundError } from "../../errors/resource.errors";
-
-interface SignupData {
-  name: string;
-  email: string;
-  password: string;
-}
-
-interface LoginData {
-  email: string;
-  password: string;
-}
+import { SignupData, LoginData } from "../../dtos";
 
 export class AuthService {
   constructor(

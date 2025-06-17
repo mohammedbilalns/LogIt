@@ -1,9 +1,9 @@
 import { LogMedia } from '../../domain/entities/log-media.entity';
-import { LogMediaRepository } from '../../domain/repositories/logMedia.repository';
+import { ILogMediaRepository } from '../../domain/repositories/logMedia.repository';
 import LogMediaModel, {  LogMediaDocument } from '../mongodb/log-media.schema';
 import { BaseRepository } from './base.repository';
 
-export class MongoLogMediaRepository extends BaseRepository<LogMediaDocument, LogMedia> implements LogMediaRepository {
+export class MongoLogMediaRepository extends BaseRepository<LogMediaDocument, LogMedia> implements ILogMediaRepository {
   constructor() {
     super(LogMediaModel);
   }

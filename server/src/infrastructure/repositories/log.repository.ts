@@ -1,10 +1,10 @@
 import { Log } from '../../domain/entities/log.entity';
-import { LogRepository } from '../../domain/repositories/log.repository';
+import { ILogRepository } from '../../domain/repositories/log.repository';
 import LogModel,{  LogDocument } from '../mongodb/log.schema';
 import { BaseRepository } from './base.repository';
 import mongoose from 'mongoose';
 
-export class MongoLogRepository extends BaseRepository<LogDocument, Log> implements LogRepository {
+export class MongoLogRepository extends BaseRepository<LogDocument, Log> implements ILogRepository {
   constructor() {
     super(LogModel);
   }

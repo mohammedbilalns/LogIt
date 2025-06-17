@@ -32,14 +32,12 @@ import {
     opened: boolean;
     onClose: () => void;
     onSubmit: (values: UpdateProfileForm) => void;
-    initialValues?: Partial<UpdateProfileForm>;
   }
   
   export default function UpdateProfileModal({
     opened,
     onClose,
     onSubmit,
-    initialValues,
   }: UpdateProfileModalProps) {
     const dispatch = useDispatch<AppDispatch>();
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -51,10 +49,10 @@ import {
   
     const form = useForm<UpdateProfileForm>({
       initialValues: {
-        name: initialValues?.name || '',
-        profession: initialValues?.profession || '',
-        bio: initialValues?.bio || '',
-        profileImage: initialValues?.profileImage || null,
+        name: user?.name || '',
+        profession: user?.profession || '',
+        bio: user?.bio || '',
+        profileImage: user?.profileImage || null,
       },
       validate: {
         name: (value) => {
@@ -82,7 +80,7 @@ import {
     });
   
     useEffect(() => {
-      if (user) {
+      if (user && opened) {
         form.setValues({
           name: user.name || '',
           profession: user.profession || '',
@@ -91,7 +89,14 @@ import {
         });
         setPreviewUrl(user.profileImage || null);
       }
-    }, [user]);
+    }, [user, opened]);
+  
+    useEffect(() => {
+      if (!opened) {
+        setPreviewUrl(null);
+        setShowCropper(false);
+      }
+    }, [opened]);
   
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
@@ -162,19 +167,33 @@ import {
     const handleSubmit = async (values: UpdateProfileForm) => {
       try {
         await onSubmit(values);
-        form.reset();
         onClose();
       } catch (error: any) {
-        // Handle backend validation errors
+        // Handle backend validation errors (if they come as field errors)
         if (error?.response?.data?.errors) {
           const backendErrors = error.response.data.errors;
           Object.keys(backendErrors).forEach((key) => {
             form.setFieldError(key, backendErrors[key]);
           });
-        } else {
+        } else if (typeof error === 'string') {
+          // Handle string error messages from rejectWithValue
           notifications.show({
             title: 'Error',
-            message: error?.response?.data?.message || 'Failed to update profile',
+            message: error,
+            color: 'red',
+          });
+        } else if (error?.response?.data?.message) {
+          // Handle Axios error objects (fallback)
+          notifications.show({
+            title: 'Error',
+            message: error.response.data.message,
+            color: 'red',
+          });
+        } else {
+          // Fallback to generic error
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to update profile',
             color: 'red',
           });
         }

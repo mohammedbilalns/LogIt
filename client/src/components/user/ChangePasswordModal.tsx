@@ -58,16 +58,28 @@ export default function ChangePasswordModal({
       form.reset();
       onClose();
     } catch (error: any) {
-      // Handle backend validation errors
       if (error?.response?.data?.errors) {
         const backendErrors = error.response.data.errors;
         Object.keys(backendErrors).forEach((key) => {
           form.setFieldError(key, backendErrors[key]);
         });
-      } else {
+      } else if (typeof error === 'string') {
         notifications.show({
           title: 'Error',
-          message: error?.response?.data?.message || 'Failed to change password',
+          message: error,
+          color: 'red',
+        });
+      } else if (error?.response?.data?.message) {
+        notifications.show({
+          title: 'Error',
+          message: error.response.data.message,
+          color: 'red',
+        });
+      } else {
+        // Fallback to generic error
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to change password',
           color: 'red',
         });
       }

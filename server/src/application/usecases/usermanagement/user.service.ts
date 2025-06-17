@@ -1,7 +1,9 @@
 import { User } from "../../../domain/entities/user.entity";
 import { IUserRepository } from "../../../domain/repositories/user.repository.interface";
 import { IArticleRepository } from "../../../domain/repositories/article.repository.interface";
-import { LogRepository } from "../../../domain/repositories/log.repository";
+import { ILogRepository } from "../../../domain/repositories/log.repository";
+import { Article } from "../../../domain/entities/article.entity";
+import { Log } from "../../../domain/entities/log.entity";
 import {
   UserNotFoundError,
   InvalidPasswordError,
@@ -21,7 +23,7 @@ import { InternalServerError } from "../../errors/internal.errors";
 export class UserService {
   private userRepository: IUserRepository;
   private articleRepository: IArticleRepository;
-  private logsRepository: LogRepository;
+  private logsRepository: ILogRepository;
 
   constructor() {
     this.userRepository = new MongoUserRepository();
@@ -154,13 +156,13 @@ export class UserService {
 
       // Combine and sort recent activities
       const recentActivities = [
-        ...recentLogs.map((log) => ({
+        ...recentLogs.map((log: Log) => ({
           type: "log" as const,
           id: log.id,
           title: log.title,
           createdAt: log.createdAt,
         })),
-        ...recentArticles.data.map((article) => ({
+        ...recentArticles.data.map((article: Article) => ({
           type: "article" as const,
           id: article.id,
           title: article.title,
@@ -197,11 +199,11 @@ export class UserService {
         const dateStr = date.toISOString().split("T")[0];
 
         const logsForDay = logsByDay.filter(
-          (log) => log.createdAt.toISOString().split("T")[0] === dateStr
+          (log: Log) => log.createdAt.toISOString().split("T")[0] === dateStr
         ).length;
 
         const articlesForDay = articlesByDay.data.filter(
-          (article) =>
+          (article: Article) =>
             (article.createdAt || new Date()).toISOString().split("T")[0] ===
             dateStr
         ).length;

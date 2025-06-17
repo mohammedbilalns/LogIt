@@ -99,7 +99,7 @@ export default function ProfilePage() {
     } catch (error: any) {
       notifications.show({
         title: 'Error',
-        message: error?.message || 'Failed to change password',
+        message: error || 'Failed to change password',
         color: 'red',
       });
     } finally {
@@ -128,7 +128,7 @@ export default function ProfilePage() {
     } catch (error: any) {
       notifications.show({
         title: 'Error',
-        message: error?.message || 'Failed to update profile',
+        message: error || 'Failed to update profile',
         color: 'red',
       });
     }

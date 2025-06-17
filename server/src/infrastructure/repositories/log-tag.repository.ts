@@ -1,9 +1,9 @@
 import { LogTag } from '../../domain/entities/log-tag.entity';
-import { LogTagRepository } from '../../domain/repositories/logTag.repository';
+import { ILogTagRepository } from '../../domain/repositories/logTag.repository';
 import LogTagModel, {  LogTagDocument } from '../mongodb/log-tag.schema';
 import { BaseRepository } from './base.repository';
 
-export class MongoLogTagRepository extends BaseRepository<LogTagDocument, LogTag> implements LogTagRepository {
+export class MongoLogTagRepository extends BaseRepository<LogTagDocument, LogTag> implements ILogTagRepository {
   constructor() {
     super(LogTagModel);
   }
