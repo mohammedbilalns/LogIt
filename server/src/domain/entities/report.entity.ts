@@ -9,7 +9,6 @@ export interface ReportDocument {
   createdAt: Date;
 }
 
-// Domain model
 export interface Report {
   id?: string;
   reportedBy: {
@@ -25,5 +24,4 @@ export interface Report {
   createdAt: Date;
 }
 
-// Type for creating a new report
 export type CreateReportData = Omit<ReportDocument, 'id' | 'createdAt'>;

@@ -10,4 +10,4 @@ export interface ITagService {
   deleteTag(id: string): Promise<void>;
   promoteTag(id: string): Promise<Tag | null>;
   demoteTag(id: string): Promise<Tag | null>;
-} 
+}

@@ -12,10 +12,7 @@ export interface IArticleService {
     tagIds: string[]
   ): Promise<ArticleResponse | string>;
 
-  getArticle(
-    id: string,
-    userId?: string
-  ): Promise<ArticleResponse | null>;
+  getArticle(id: string, userId?: string): Promise<ArticleResponse | null>;
 
   updateArticle(
     id: string,

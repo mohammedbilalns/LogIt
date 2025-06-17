@@ -12,7 +12,10 @@ export interface IAuthService {
     csrfToken: string;
   }>;
 
-  verifyOTP(email: string, otp: string): Promise<{
+  verifyOTP(
+    email: string,
+    otp: string
+  ): Promise<{
     user: UserWithoutPassword;
     accessToken: string;
     refreshToken: string;
@@ -48,5 +51,8 @@ export interface IAuthService {
 
   verifyResetOTP(email: string, otp: string): Promise<{ message: string }>;
 
-  updatePassword(email: string, newPassword: string): Promise<{ message: string }>;
+  updatePassword(
+    email: string,
+    newPassword: string
+  ): Promise<{ message: string }>;
 }
