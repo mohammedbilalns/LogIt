@@ -7,6 +7,7 @@ import { IMailService } from "../../../domain/providers/mail.provider.interface"
 import { ITokenService } from "../../../domain/providers/token.provider.interface";
 import { IOTPService } from "../../../domain/providers/otp.provider.interface";
 import { ICryptoProvider } from "../../../domain/providers/crypto.provider.interface";
+import { IAuthService } from "../../../domain/services/auth.service.interface";
 import {
   EmailAlreadyRegisteredError,
   InvalidCredentialsError,
@@ -20,7 +21,7 @@ import { HttpResponse } from "../../../config/responseMessages";
 import { ResourceNotFoundError } from "../../errors/resource.errors";
 import { SignupData, LoginData } from "../../dtos";
 
-export class AuthService {
+export class AuthService implements IAuthService {
   constructor(
     private userRepository: IUserRepository,
     private otpService: IOTPService,

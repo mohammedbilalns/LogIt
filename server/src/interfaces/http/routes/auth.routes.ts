@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { AuthController } from "../controllers/auth.controller";
+import { IAuthService } from "../../../domain/services/auth.service.interface";
 import { AuthService } from "../../../application/usecases/auth/auth.service";
 import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
 import { MongoOTPRepository } from "../../../infrastructure/repositories/otp.repository";
@@ -24,6 +25,7 @@ import {
 
 const router = Router();
 
+// Dependency injection setup
 const userRepository = new MongoUserRepository();
 const otpRepository = new MongoOTPRepository();
 const otpService = new OTPService(otpRepository);
@@ -31,12 +33,13 @@ const mailService = new MailService();
 const tokenService = new TokenService(env.JWT_SECRET);
 const cryptoProvider = new BcryptCryptoProvider();
 
-const authService = new AuthService(
+// Inject concrete implementation into the interface
+const authService: IAuthService = new AuthService(
   userRepository,
   otpService,
   mailService,
   tokenService,
-  cryptoProvider,
+  cryptoProvider
 );
 const authController = new AuthController(authService);
 

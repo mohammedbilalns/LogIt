@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { AuthService } from "../../../application/usecases/auth/auth.service";
+import { IAuthService } from "../../../domain/services/auth.service.interface";
 import {
   COOKIE_OPTIONS,
   ACCESS_COOKIE_EXPIRY,
@@ -9,7 +9,7 @@ import { HttpStatus } from "../../../config/statusCodes";
 import { HttpResponse } from "../../../config/responseMessages";
 
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: IAuthService) {}
 
   private setCsrfToken(res: Response): void {
     const csrfToken = this.authService.generateCsrfToken();
