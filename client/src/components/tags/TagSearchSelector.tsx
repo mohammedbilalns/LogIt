@@ -40,7 +40,6 @@ export default function TagSearchSelector({
 
   useEffect(() => {
     if (value.length > 0) {
-      // Get IDs that don't have names in tagNames yet
       const existingIds = new Set(tagNames.map(tag => tag._id));
       const missingIds = value.filter(id => !existingIds.has(id));
       
@@ -50,12 +49,10 @@ export default function TagSearchSelector({
     }
   }, [value, tagNames, dispatch]);
 
-  // Update selected tag names 
   useEffect(() => {
     const newSelectedTagNames = new Map<string, string>();
     
     value.forEach(tagId => {
-      // First check searchResults, then tagNames
       const tag = searchResults.find(t => t._id === tagId) || tagNames.find(t => t._id === tagId);
       if (tag) {
         newSelectedTagNames.set(tagId, tag.name);
@@ -66,7 +63,6 @@ export default function TagSearchSelector({
   }, [value, searchResults, tagNames]);
 
   const tagOptions = useMemo(() => {
-    //  map of all available tags
     const allTagsMap = new Map<string, Tag>();
     
     // Add search results first

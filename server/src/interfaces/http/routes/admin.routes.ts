@@ -11,11 +11,10 @@ import { updateUserSchema } from "../../../application/validations/admin.validat
 
 const router = Router();
 
-// Dependency injection setup
 const userRepository = new MongoUserRepository();
-
-// Inject concrete implementation into the interface
-const userManagementService: IUserManagementService = new UserManagementService(userRepository);
+const userManagementService: IUserManagementService = new UserManagementService(
+  userRepository
+);
 const adminController = new AdminController(userManagementService);
 
 router.use(

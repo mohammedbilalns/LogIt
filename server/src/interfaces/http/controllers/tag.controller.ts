@@ -1,7 +1,12 @@
 import { Request, Response } from "express";
 import { ITagService } from "../../../domain/services/tag.service.interface";
-import { CreateTagData, UpdateTagData, TagsByIdsResponse } from "../../../application/dtos";
+import {
+  CreateTagData,
+  UpdateTagData,
+  TagsByIdsResponse,
+} from "../../../application/dtos";
 import { HttpStatus } from "../../../config/statusCodes";
+import { HttpResponse } from "../../../config/responseMessages";
 
 export class TagController {
   constructor(private tagService: ITagService) {}
@@ -44,7 +49,7 @@ export class TagController {
       promoted: promoted === "true",
       userId: userId as string,
       sortBy: sortBy as string,
-      sortOrder: sortOrder as 'asc' | 'desc',
+      sortOrder: sortOrder as "asc" | "desc",
     });
 
     return res.status(HttpStatus.OK).json(tags);
@@ -52,14 +57,14 @@ export class TagController {
 
   async getTagsByIds(req: Request, res: Response) {
     const { ids } = req.query;
-    
-    if (!ids || typeof ids !== 'string') {
-      return res.status(HttpStatus.BAD_REQUEST).json({ 
-        message: 'Tag IDs are required' 
+
+    if (!ids || typeof ids !== "string") {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: HttpResponse.REQUIRED_TAG_IDS,
       });
     }
 
-    const tagIds = ids.split(',').filter(id => id.trim());
+    const tagIds = ids.split(",").filter((id) => id.trim());
     const tags = await this.tagService.getTagsByIds(tagIds);
 
     const response: TagsByIdsResponse = { tags };

@@ -13,7 +13,7 @@ export class AdminController {
     const result = await this.userManagementService.fetchUsers({
       page,
       limit,
-      search
+      search,
     });
     res.status(HttpStatus.OK).json(result);
   };

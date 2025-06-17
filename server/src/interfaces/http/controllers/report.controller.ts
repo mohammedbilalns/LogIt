@@ -11,7 +11,9 @@ export class ReportController {
     const reportedBy = req.user?.id;
 
     if (!reportedBy) {
-      res.status(HttpStatus.UNAUTHORIZED).json({ message: HttpResponse.AUTHENTICATION_REQUIRED  });
+      res
+        .status(HttpStatus.UNAUTHORIZED)
+        .json({ message: HttpResponse.AUTHENTICATION_REQUIRED });
       return;
     }
 
@@ -50,7 +52,7 @@ export class ReportController {
 
     const updatedReport = await this.reportService.updateReportStatus({
       reportId: id,
-      status: status as "pending" | "reviewed" | "resolved"
+      status: status as "pending" | "reviewed" | "resolved",
     });
 
     res.status(HttpStatus.OK).json(updatedReport);

@@ -38,5 +38,6 @@ export enum HttpResponse {
   FAILED_TO_UPDATE_REPORT = "Failed to update report",
   FAILED_TO_UPDATE_REPORT_STATUS = "Failed to udpate report status",
   FAILED_TO_FETCH_HOME = "Failed to fetch home ",
-  INTERNAL_ERROR = "Something went wrong "
+  INTERNAL_ERROR = "Something went wrong ", 
+  REQUIRED_TAG_IDS = 'Tag IDs are required'
 }

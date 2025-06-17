@@ -17,13 +17,11 @@ import { asyncHandler } from "../../../utils/asyncHandler";
 
 const router = Router();
 
-// Dependency injection setup
 const userRepository = new MongoUserRepository();
 const articleRepository = new MongoArticleRepository();
 const logRepository = new MongoLogRepository();
 const cryptoProvider = new BcryptCryptoProvider();
 
-// Inject concrete implementation into the interface
 const userService: IUserService = new UserService(
   userRepository,
   articleRepository,

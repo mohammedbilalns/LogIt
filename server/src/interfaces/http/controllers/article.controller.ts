@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import { IArticleService } from "../../../domain/services/article.service.interface";
-import { CreateArticleData, UpdateArticleData } from "../../../application/dtos";
+import {
+  CreateArticleData,
+  UpdateArticleData,
+} from "../../../application/dtos";
 import { HttpStatus } from "../../../config/statusCodes";
 
 export class ArticleController {

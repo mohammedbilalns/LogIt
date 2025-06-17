@@ -25,7 +25,6 @@ import {
 
 const router = Router();
 
-// Dependency injection setup
 const userRepository = new MongoUserRepository();
 const otpRepository = new MongoOTPRepository();
 const otpService = new OTPService(otpRepository);
@@ -33,7 +32,6 @@ const mailService = new MailService();
 const tokenService = new TokenService(env.JWT_SECRET);
 const cryptoProvider = new BcryptCryptoProvider();
 
-// Inject concrete implementation into the interface
 const authService: IAuthService = new AuthService(
   userRepository,
   otpService,
