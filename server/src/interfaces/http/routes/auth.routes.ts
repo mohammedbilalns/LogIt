@@ -23,6 +23,7 @@ import {
 } from "../../../application/validations/auth.validation";
 
 const router = Router();
+
 const userRepository = new MongoUserRepository();
 const otpRepository = new MongoOTPRepository();
 const otpService = new OTPService(otpRepository);

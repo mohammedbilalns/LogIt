@@ -3,9 +3,9 @@ import {
   User,
   UserWithoutPassword,
 } from "../../../domain/entities/user.entity";
-import { MailService } from "../../providers/mail.provider";
-import { TokenService } from "../../providers/token.provider";
-import { OTPService } from "../../providers/otp.provider";
+import { IMailService } from "../../../domain/providers/mail.provider.interface";
+import { ITokenService } from "../../../domain/providers/token.provider.interface";
+import { IOTPService } from "../../../domain/providers/otp.provider.interface";
 import { ICryptoProvider } from "../../../domain/providers/crypto.provider.interface";
 import {
   EmailAlreadyRegisteredError,
@@ -33,9 +33,9 @@ interface LoginData {
 export class AuthService {
   constructor(
     private userRepository: IUserRepository,
-    private otpService: OTPService,
-    private mailService: MailService,
-    private tokenService: TokenService,
+    private otpService: IOTPService,
+    private mailService: IMailService,
+    private tokenService: ITokenService,
     private cryptoProvider: ICryptoProvider
   ) {}
 
