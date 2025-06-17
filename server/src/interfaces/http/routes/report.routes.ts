@@ -11,18 +11,19 @@ import { asyncHandler } from "../../../utils/asyncHandler";
 import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
 import { validate } from "../middlewares/validation.middleware";
-import { createReportSchema, updateReportStatusSchema } from "../../../application/validations/report.validation";
+import {
+  createReportSchema,
+  updateReportStatusSchema,
+} from "../../../application/validations/report.validation";
 
 const router = Router();
 
-// Initialize repositories
 const reportRepository = new MongoReportRepository();
 const articleRepository = new MongoArticleRepository();
 const tagRepository = new MongoTagRepository();
 const articleTagRepository = new MongoArticleTagRepository();
 const userRepository = new MongoUserRepository();
 
-// Initialize services
 const articleService = new ArticleService(
   articleRepository,
   tagRepository,
@@ -36,7 +37,6 @@ const reportController = new ReportController(reportService);
 router.use(asyncHandler((req, res, next) => authMiddleware()(req, res, next)));
 router.use(asyncHandler((req, res, next) => csrfMiddleware()(req, res, next)));
 
-// Public routes (authenticated users)
 router.post(
   "/",
   validate(createReportSchema),

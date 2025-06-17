@@ -21,6 +21,32 @@ export class AuthController {
     res.setHeader("x-csrf-token", csrfToken);
   }
 
+  private setAuthCookies(
+    res: Response,
+    accessToken: string,
+    refreshToken: string
+  ) {
+    res.cookie("accessToken", accessToken, {
+      ...COOKIE_OPTIONS,
+      maxAge: ACCESS_COOKIE_EXPIRY,
+    });
+    res.cookie("refreshToken", refreshToken, {
+      ...COOKIE_OPTIONS,
+      maxAge: REFRESH_COOKIE_EXPIRY,
+    });
+  }
+
+  private clearAuthCookies(res: Response): void {
+    res.cookie("accessToken", "", {
+      ...COOKIE_OPTIONS,
+      maxAge: 0,
+    });
+    res.cookie("refreshToken", "", {
+      ...COOKIE_OPTIONS,
+      maxAge: 0,
+    });
+  }
+
   getCsrfToken = async (_req: Request, res: Response): Promise<void> => {
     this.setCsrfToken(res);
     res
@@ -41,8 +67,8 @@ export class AuthController {
       message: HttpResponse.SIGNUP_SUCCESS,
       user: {
         ...user,
-        email: req.body.email
-      }
+        email: req.body.email,
+      },
     });
   };
 
@@ -51,16 +77,7 @@ export class AuthController {
     const { user, accessToken, refreshToken } =
       await this.authService.verifyOTP(email, otp);
 
-    res.cookie("accessToken", accessToken, {
-      ...COOKIE_OPTIONS,
-      maxAge: ACCESS_COOKIE_EXPIRY,
-    });
-
-    res.cookie("refreshToken", refreshToken, {
-      ...COOKIE_OPTIONS,
-      maxAge: REFRESH_COOKIE_EXPIRY,
-    });
-
+    this.setAuthCookies(res, accessToken, refreshToken);
     this.setCsrfToken(res);
 
     res.status(HttpStatus.OK).json({
@@ -73,17 +90,7 @@ export class AuthController {
     const { user, accessToken, refreshToken } = await this.authService.login(
       req.body
     );
-
-    res.cookie("accessToken", accessToken, {
-      ...COOKIE_OPTIONS,
-      maxAge: ACCESS_COOKIE_EXPIRY,
-    });
-
-    res.cookie("refreshToken", refreshToken, {
-      ...COOKIE_OPTIONS,
-      maxAge: REFRESH_COOKIE_EXPIRY,
-    });
-
+    this.setAuthCookies(res, accessToken, refreshToken);
     this.setCsrfToken(res);
 
     res.status(HttpStatus.OK).json({
@@ -119,16 +126,7 @@ export class AuthController {
         refreshToken: newRefreshToken,
       } = await this.authService.refreshToken(refreshToken);
 
-      res.cookie("accessToken", newAccessToken, {
-        ...COOKIE_OPTIONS,
-        maxAge: ACCESS_COOKIE_EXPIRY,
-      });
-
-      res.cookie("refreshToken", newRefreshToken, {
-        ...COOKIE_OPTIONS,
-        maxAge: REFRESH_COOKIE_EXPIRY,
-      });
-
+      this.setAuthCookies(res, newAccessToken, newRefreshToken);
       this.setCsrfToken(res);
 
       res.status(HttpStatus.OK).json({
@@ -136,14 +134,7 @@ export class AuthController {
         user,
       });
     } catch {
-      res.cookie("accessToken", "", {
-        ...COOKIE_OPTIONS,
-        maxAge: 0,
-      });
-      res.cookie("refreshToken", "", {
-        ...COOKIE_OPTIONS,
-        maxAge: 0,
-      });
+      this.clearAuthCookies(res);
       res.status(HttpStatus.UNAUTHORIZED).json({
         message: HttpResponse.REQUIRED_TOKEN,
       });
@@ -151,16 +142,7 @@ export class AuthController {
   };
 
   logout = async (_req: Request, res: Response): Promise<void> => {
-    res.cookie("accessToken", "", {
-      ...COOKIE_OPTIONS,
-      maxAge: 0,
-    });
-
-    res.cookie("refreshToken", "", {
-      ...COOKIE_OPTIONS,
-      maxAge: 0,
-    });
-
+    this.clearAuthCookies(res);
     res.status(HttpStatus.OK).json({ message: HttpResponse.LOGOUT_SUCCESS });
   };
 
@@ -175,17 +157,7 @@ export class AuthController {
     const { user, accessToken, refreshToken } =
       await this.authService.googleAuth(credential);
 
-    res.cookie("accessToken", accessToken, {
-      ...COOKIE_OPTIONS,
-      maxAge: ACCESS_COOKIE_EXPIRY,
-    });
-
-    res.cookie("refreshToken", refreshToken, {
-      ...COOKIE_OPTIONS,
-      maxAge: REFRESH_COOKIE_EXPIRY,
-    });
-
-    // Set CSRF token
+    this.setAuthCookies(res, accessToken, refreshToken);
     this.setCsrfToken(res);
 
     res.status(HttpStatus.OK).json({

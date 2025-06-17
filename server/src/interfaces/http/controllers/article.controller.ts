@@ -18,11 +18,11 @@ export class ArticleController {
   }
 
   async updateArticle(req: Request, res: Response) {
-    const { id } = req.params;
+    const { id: articleId } = req.params;
     const { title, content, tagIds, featured_image } = req.body;
 
     const article = await this.articleService.updateArticle(
-      id,
+      articleId,
       { title, content, featured_image },
       tagIds
     );
@@ -31,9 +31,9 @@ export class ArticleController {
   }
 
   async getArticle(req: Request, res: Response) {
-    const { id } = req.params;
+    const { id: articleId } = req.params;
     const userId = req.user?.id;
-    const article = await this.articleService.getArticle(id, userId);
+    const article = await this.articleService.getArticle(articleId, userId);
 
     return res.status(HttpStatus.OK).json(article);
   }
@@ -59,8 +59,8 @@ export class ArticleController {
   }
 
   async deleteArticle(req: Request, res: Response) {
-    const { id } = req.params;
-    await this.articleService.deleteArticle(id);
+    const { id: articleId } = req.params;
+    await this.articleService.deleteArticle(articleId);
     return res.status(HttpStatus.NO_CONTENT).send();
   }
 }

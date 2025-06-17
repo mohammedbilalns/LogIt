@@ -62,7 +62,7 @@ export class ReportController {
     );
 
     res.status(HttpStatus.OK).json({
-      message:HttpResponse.BLOCKED_ARTICLE,
+      message: HttpResponse.BLOCKED_ARTICLE,
       reports: updatedReports,
     });
   };

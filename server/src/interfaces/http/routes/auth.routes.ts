@@ -40,7 +40,6 @@ const authService = new AuthService(
 );
 const authController = new AuthController(authService);
 
-// CSRF token route
 router.get(
   "/csrf",
   asyncHandler((req, res) => authController.getCsrfToken(req, res))
@@ -59,7 +58,6 @@ router.post(
 
 router.use(asyncHandler((req, res, next) => csrfMiddleware()(req, res, next)));
 
-// Public routes
 router.post(
   "/signup",
   validate(signupSchema),

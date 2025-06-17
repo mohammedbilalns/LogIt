@@ -28,8 +28,8 @@ export class UserManagementService {
     };
   }
 
-  async getUserById(id: string) {
-    const user = await this.userRepository.findById(id);
+  async getUserById(userId: string) {
+    const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new UserNotFoundError();
     }
@@ -39,8 +39,8 @@ export class UserManagementService {
     };
   }
 
-  async updateUser(id: string, updateData: Partial<User>) {
-    const user = await this.userRepository.update(id, updateData);
+  async updateUser(userId: string, updateData: Partial<User>) {
+    const user = await this.userRepository.update( userId, updateData);
     if (!user) {
       throw new UserNotFoundError();
     }

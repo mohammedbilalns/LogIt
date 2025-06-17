@@ -39,11 +39,10 @@ export class LogController {
   };
 
   getLog = async (req: Request, res: Response): Promise<void> => {
-    const { id } = req.params;
+    const { id: logId } = req.params;
     const userId = req.user?.id;
 
-
-    const log = await this.logService.getLog(userId, id);
+    const log = await this.logService.getLog(userId, logId);
 
     if (!log) {
       res
@@ -55,11 +54,11 @@ export class LogController {
   };
 
   updateLog = async (req: Request, res: Response): Promise<void> => {
-    const { id } = req.params;
+    const { id: logId } = req.params;
     const { title, content, tags, mediaUrls, createdAt } = req.body;
     const userId = req.user?.id;
 
-    const updatedLog = await this.logService.updateLog(userId, id, {
+    const updatedLog = await this.logService.updateLog(userId, logId, {
       title,
       content,
       tags,
@@ -77,11 +76,10 @@ export class LogController {
   };
 
   deleteLog = async (req: Request, res: Response): Promise<void> => {
-    const { id } = req.params;
+    const { id: logId } = req.params;
     const userId = req.user?.id;
 
-
-    const success = await this.logService.deleteLog(userId, id);
+    const success = await this.logService.deleteLog(userId, logId);
     if (!success) {
       res
         .status(HttpStatus.NOT_FOUND)

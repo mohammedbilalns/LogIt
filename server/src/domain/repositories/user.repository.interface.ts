@@ -3,9 +3,9 @@ import { User } from '../entities/user.entity';
 
 export interface IUserRepository extends IBaseRepository<User> {
   findByEmail(email: string): Promise<User | null>;
-  updateVerificationStatus(id: string, isVerified: boolean): Promise<User | null>;
-  updatePassword(id: string, hashedPassword: string): Promise<User | null>;
-  verifyPassword(id: string, password: string): Promise<boolean>;
+  updateVerificationStatus(userId: string, isVerified: boolean): Promise<User | null>;
+  updatePassword(userId: string, hashedPassword: string): Promise<User | null>;
+  verifyPassword(userId: string, password: string): Promise<boolean>;
   deleteByEmail(email: string): Promise<void>;
-  isUserBlocked(id: string): Promise<boolean>;
+  isUserBlocked(userId: string): Promise<boolean>;
 } 

@@ -19,8 +19,8 @@ export class AdminController {
   };
 
   updateUser = async (req: Request, res: Response): Promise<void> => {
-    const { id } = req.params;
-    const updatedUser = await this.userManagementService.updateUser(id, {
+    const { id: userId } = req.params;
+    const updatedUser = await this.userManagementService.updateUser(userId, {
       ...req.body,
     });
     res.status(HttpStatus.OK).json(updatedUser);

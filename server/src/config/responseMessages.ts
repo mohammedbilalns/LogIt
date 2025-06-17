@@ -7,11 +7,17 @@ export enum HttpResponse {
   VERIFIED_EMAIL = "Email verified successfully",
   REQUIRED_TOKEN = "Refresh token required",
   VALID_TOKEN = "Access token is valid",
+  INVALID_TOKEN = "Invalid or expired token ",
+  AUTHENTICATION_REQUIRED = "Authentication requiered",
   CSRF_GENERATED = "CSRF token generated successfully",
+  INVALID_CSRF_TOKEN = "Invalid CSRF token",
   FETCH_USER = "User Refreshed successfully",
   LOG_NOT_FOUND = "Log not found",
   BLOCKED_ARTICLE = "Article blocked successfully",
+  USER_BLOCKED = "User is blocked", 
   ARTICLE_NOT_FOUND = "Article not found",
+  USER_NOT_FOUND = "User not found",
+  FORBIDDEN_RESOURCE =  "Forbidden: You do not have permission to access this resource",
   PASSWORD_UPDATED = "Password updated successfully",
   MISSING_USER_DATA = "User object is missing required fields",
   OTP_RESEND = "OTP reset successfully",
@@ -31,4 +37,5 @@ export enum HttpResponse {
   FAILED_TO_UPDATE_REPORT = "Failed to update report",
   FAILED_TO_UPDATE_REPORT_STATUS = "Failed to udpate report status",
   FAILED_TO_FETCH_HOME = "Failed to fetch home ",
+  INTERNAL_ERROR = "Something went wrong "
 }

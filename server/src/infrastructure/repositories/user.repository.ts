@@ -28,18 +28,18 @@ export class MongoUserRepository extends BaseRepository<UserDocument, User> impl
     return user ? this.mapToEntity(user) : null;
   }
 
-  async updateVerificationStatus(id: string, isVerified: boolean): Promise<User | null> {
+  async updateVerificationStatus(userId: string, isVerified: boolean): Promise<User | null> {
     const user = await UserModel.findByIdAndUpdate(
-      id,
+      userId,
       { isVerified, updatedAt: new Date() },
       { new: true }
     );
     return user ? this.mapToEntity(user) : null;
   }
 
-  async updatePassword(id: string, hashedPassword: string): Promise<User | null> {
+  async updatePassword(userId: string, hashedPassword: string): Promise<User | null> {
     const user = await UserModel.findByIdAndUpdate(
-      id,
+      userId,
       { 
         password: hashedPassword,
         updatedAt: new Date()
@@ -49,8 +49,8 @@ export class MongoUserRepository extends BaseRepository<UserDocument, User> impl
     return user ? this.mapToEntity(user) : null;
   }
 
-  async verifyPassword(id: string, password: string): Promise<boolean> {
-    const user = await UserModel.findById(id);
+  async verifyPassword(userId: string, password: string): Promise<boolean> {
+    const user = await UserModel.findById(userId);
     if (!user || !user.password) return false;
     return bcrypt.compare(password, user.password);
   }
@@ -59,8 +59,8 @@ export class MongoUserRepository extends BaseRepository<UserDocument, User> impl
     await UserModel.deleteOne({ email });
   }
 
-  async isUserBlocked(id: string): Promise<boolean> {
-    const user = await UserModel.findById(id);
+  async isUserBlocked(userId: string): Promise<boolean> {
+    const user = await UserModel.findById(userId);
     return user?.isBlocked || false;
   }
 

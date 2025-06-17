@@ -10,7 +10,10 @@ import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
 import { asyncHandler } from "../../../utils/asyncHandler";
 import { validate } from "../middlewares/validation.middleware";
-import { createArticleSchema, updateArticleSchema } from "../../../application/validations/article.validation";
+import {
+  createArticleSchema,
+  updateArticleSchema,
+} from "../../../application/validations/article.validation";
 
 const router = Router();
 
@@ -31,13 +34,11 @@ const articleService = new ArticleService(
 
 const articleController = new ArticleController(articleService);
 
-// Public routes
 router.get(
   "/",
-  asyncHandler((req,res)=> articleController.getArticles(req,res))
+  asyncHandler((req, res) => articleController.getArticles(req, res))
 );
 
-// Protected routes
 router.use(
   asyncHandler((req, res, next) => authMiddleware()(req, res, next)),
   asyncHandler((req, res, next) => csrfMiddleware()(req, res, next))

@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import env from "../../../config/env";
 import { UserService } from "../../../application/usecases/usermanagement/user.service";
 import { HttpStatus } from "../../../config/statusCodes";
+import { HttpResponse } from "../../../config/responseMessages";
 
 declare module "express" {
   interface Request {
@@ -28,7 +29,7 @@ export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
       if (!token) {
         res
           .status(HttpStatus.UNAUTHORIZED)
-          .json({ message: "Authentication required" });
+          .json({ message: HttpResponse.AUTHENTICATION_REQUIRED });
         return;
       }
 
@@ -40,13 +41,12 @@ export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
       };
 
       try {
-        // Check if user is blocked
-        await userService.checkUserBlocked(decoded.id);
+        const { id: userId } = decoded;
+        await userService.checkUserBlocked(userId);
         req.user = decoded;
         next();
       } catch (error) {
         if (error instanceof Error) {
-          // Clear authentication cookies
           res.clearCookie("accessToken", {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -63,15 +63,17 @@ export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
             sameSite: "strict",
           });
 
-          res.status(HttpStatus.FORBIDDEN).json({ message: "User is blocked" });
+          res
+            .status(HttpStatus.FORBIDDEN)
+            .json({ message: HttpResponse.USER_BLOCKED });
           return;
         }
         throw error;
       }
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : "INvalid or expired token ";
-      res.status(HttpStatus.FORBIDDEN).json({ message });
+    } catch (error) {
+      res
+        .status(HttpStatus.FORBIDDEN)
+        .json({ message: error?.message || HttpResponse.INVALID_TOKEN });
       return;
     }
   };
@@ -84,16 +86,13 @@ export const authorizeRoles = (
     if (!req.user) {
       return res
         .status(HttpStatus.UNAUTHORIZED)
-        .json({ message: "Unauthorized: No user found" });
+        .json({ message: HttpResponse.USER_NOT_FOUND });
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      return res
-        .status(HttpStatus.FORBIDDEN)
-        .json({
-          message:
-            "Forbidden: You do not have permission to access this resource",
-        });
+      return res.status(HttpStatus.FORBIDDEN).json({
+        message: HttpResponse.FORBIDDEN_RESOURCE,
+      });
     }
 
     return next();

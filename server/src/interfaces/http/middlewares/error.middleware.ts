@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { HttpStatus } from "../../../config/statusCodes";
+import { HttpResponse } from "../../../config/responseMessages";
 
 export const errorMiddleware = () => {
   return (err: unknown, _req: Request, res: Response, next: NextFunction) => {
@@ -16,7 +17,7 @@ export const errorMiddleware = () => {
         ? err.statusCode
         : HttpStatus.INTERNAL_SERVER_ERROR;
       const message =
-        err instanceof Error ? err.message : "Something went wrong";
+        err instanceof Error ? err.message : HttpResponse.INTERNAL_ERROR;
 
       res.status(statusCode).json({ message });
     } else {

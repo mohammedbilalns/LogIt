@@ -16,15 +16,15 @@ export class TagController {
   }
 
   async updateTag(req: Request, res: Response) {
-    const { id } = req.params;
+    const { id: tagId } = req.params;
     const { name, promoted } = req.body;
-    const tag = await this.tagService.updateTag(id, { name, promoted });
+    const tag = await this.tagService.updateTag(tagId, { name, promoted });
     res.status(HttpStatus.OK).json(tag);
   }
 
   async getTag(req: Request, res: Response) {
-    const { id } = req.params;
-    const tag = await this.tagService.getTag(id);
+    const { id: tagId } = req.params;
+    const tag = await this.tagService.getTag(tagId);
 
     return res.status(HttpStatus.OK).json(tag);
   }
@@ -42,31 +42,24 @@ export class TagController {
       userId: userId as string,
     });
 
-    // Add cache control headers
-    res.set({
-      "Cache-Control": "no-cache, no-store, must-revalidate",
-      Pragma: "no-cache",
-      Expires: "0",
-    });
-
     return res.status(HttpStatus.OK).json(tags);
   }
 
   async deleteTag(req: Request, res: Response) {
-    const { id } = req.params;
-    await this.tagService.deleteTag(id);
+    const { id: tagId } = req.params;
+    await this.tagService.deleteTag(tagId);
     return res.send();
   }
 
   async promoteTag(req: Request, res: Response) {
-    const { id } = req.params;
-    const tag = await this.tagService.promoteTag(id);
+    const { id: tagId } = req.params;
+    const tag = await this.tagService.promoteTag(tagId);
     return res.status(HttpStatus.OK).json(tag);
   }
 
   async demoteTag(req: Request, res: Response) {
-    const { id } = req.params;
-    const tag = await this.tagService.demoteTag(id);
+    const { id: tagId } = req.params;
+    const tag = await this.tagService.demoteTag(tagId);
     return res.status(HttpStatus.OK).json(tag);
   }
 
@@ -76,13 +69,6 @@ export class TagController {
     const tags = await this.tagService.getTags({
       search: query as string,
       limit: 10,
-    });
-
-    // Add cache control headers
-    res.set({
-      "Cache-Control": "no-cache, no-store, must-revalidate",
-      Pragma: "no-cache",
-      Expires: "0",
     });
 
     return res.status(HttpStatus.OK).json(tags.tags);
@@ -96,13 +82,6 @@ export class TagController {
       userId,
       Number(limit) || 5
     );
-
-    // Add cache control headers
-    res.set({
-      "Cache-Control": "no-cache, no-store, must-revalidate",
-      Pragma: "no-cache",
-      Expires: "0",
-    });
 
     return res.status(HttpStatus.OK).json(tags);
   }

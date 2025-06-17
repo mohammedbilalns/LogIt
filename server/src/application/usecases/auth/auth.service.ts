@@ -69,7 +69,8 @@ export class AuthService {
   async validateAccessToken(token: string) {
     try {
       const decoded = this.tokenService.verifyAccessToken(token);
-      const user = await this.userRepository.findById(decoded.id);
+      const { id: userId } = decoded;
+      const user = await this.userRepository.findById(userId);
 
       if (!user) {
         throw new UserNotFoundError();
@@ -163,7 +164,8 @@ export class AuthService {
       throw new UserNotFoundError();
     }
 
-    await this.userRepository.updateVerificationStatus(user.id, true);
+    const { id: userId } = user;
+    await this.userRepository.updateVerificationStatus(userId, true);
     await this.otpRepository.deleteByEmail(email);
 
     const userWithoutPassword = this.createUserWithoutPassword(user);
@@ -212,7 +214,8 @@ export class AuthService {
   async refreshToken(token: string) {
     try {
       const decoded = this.tokenService.verifyRefreshToken(token);
-      const user = await this.userRepository.findById(decoded.id);
+      const { id: userId } = decoded;
+      const user = await this.userRepository.findById(userId);
 
       if (!user) {
         throw new UserNotFoundError();
@@ -296,7 +299,8 @@ export class AuthService {
           role: "user",
         });
       } else if (!user.googleId) {
-        const updatedUser = await this.userRepository.update(user.id, {
+        const { id: userId } = user;
+        const updatedUser = await this.userRepository.update(userId, {
           googleId: decoded.sub,
           profileImage: decoded.picture,
           provider: "google",
@@ -393,7 +397,8 @@ export class AuthService {
     }
 
     const hashedPassword = await this.cryptoProvider.hash(validatedData.newPassword, 10);
-    const updatedUser = await this.userRepository.update(user.id, {
+    const { id: userId } = user;
+    const updatedUser = await this.userRepository.update(userId, {
       password: hashedPassword,
     });
     if (!updatedUser) {

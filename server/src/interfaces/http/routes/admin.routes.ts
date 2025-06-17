@@ -19,13 +19,11 @@ router.use(
   )
 );
 
-// Get all users
 router.get(
   "/users",
   asyncHandler((req, res) => adminController.fetchUsers(req, res))
 );
 
-// update users
 router.patch(
   "/users/:id",
   validate(updateUserSchema),

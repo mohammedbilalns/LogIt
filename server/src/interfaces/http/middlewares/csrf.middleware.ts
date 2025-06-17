@@ -1,38 +1,40 @@
-import { Request, Response, NextFunction } from 'express';
-import crypto from 'crypto';
-import { HttpStatus } from '../../../config/statusCodes';
+import { Request, Response, NextFunction } from "express";
+import crypto from "crypto";
+import { HttpStatus } from "../../../config/statusCodes";
+import { HttpResponse } from "../../../config/responseMessages";
 
-
-const generateToken = () => crypto.randomBytes(32).toString('hex');
-
+const generateToken = () => crypto.randomBytes(32).toString("hex");
 
 export const csrfMiddleware = () => {
-
   return (req: Request, res: Response, next: NextFunction) => {
-    // Skip CSRF check for GET, HEAD, OPTIONS requests
-    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+    if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
       return next();
     }
 
-    const csrfToken = req.headers['x-csrf-token'];
-    const storedToken = req.cookies['csrfToken'];
-    console.log('Stored token:', storedToken);
+    const csrfToken = req.headers["x-csrf-token"];
+    const storedToken = req.cookies["csrfToken"];
     if (!csrfToken || !storedToken || csrfToken !== storedToken) {
-      return res.status(HttpStatus.FORBIDDEN).json({ message: 'Invalid CSRF token' });
+      return res
+        .status(HttpStatus.FORBIDDEN)
+        .json({ message: HttpResponse.INVALID_CSRF_TOKEN });
     }
 
     next();
   };
 };
 
-export const setCsrfToken = (_req: Request, res: Response, next: NextFunction) => {
+export const setCsrfToken = (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const token = generateToken();
-  console.log('Setting CSRF token:', token);
-  res.cookie('csrfToken', token, {
+  console.log("Setting CSRF token:", token);
+  res.cookie("csrfToken", token, {
     httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
   });
-  res.setHeader('x-csrf-token', token);
+  res.setHeader("x-csrf-token", token);
   next();
-}; 
+};
