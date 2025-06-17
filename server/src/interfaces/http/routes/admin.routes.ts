@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { AdminController } from "../controllers/admin.controller";
+import { IUserManagementService } from "../../../domain/services/usermanagement.service.interface";
 import { UserManagementService } from "../../../application/usecases/usermanagement/usermanagement.service";
 import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
 import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
@@ -10,8 +11,11 @@ import { updateUserSchema } from "../../../application/validations/admin.validat
 
 const router = Router();
 
+// Dependency injection setup
 const userRepository = new MongoUserRepository();
-const userManagementService = new UserManagementService(userRepository);
+
+// Inject concrete implementation into the interface
+const userManagementService: IUserManagementService = new UserManagementService(userRepository);
 const adminController = new AdminController(userManagementService);
 
 router.use(

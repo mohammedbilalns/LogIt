@@ -1,5 +1,6 @@
 import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
 import { User } from '../../../domain/entities/user.entity';
+import { IUserManagementService } from '../../../domain/services/usermanagement.service.interface';
 import { UserNotFoundError } from '../../errors/auth.errors';
 import {
   FetchUsersOptions,
@@ -8,7 +9,7 @@ import {
   UsersListResponse,
 } from '../../dtos';
 
-export class UserManagementService {
+export class UserManagementService implements IUserManagementService {
   constructor(private userRepository: IUserRepository) {}
 
   async fetchUsers(options: FetchUsersOptions = {}): Promise<UsersListResponse> {

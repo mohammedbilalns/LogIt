@@ -1,23 +1,19 @@
 import { IReportRepository } from "../../../domain/repositories/report.repository.interface";
 import { Report } from "../../../domain/entities/report.entity";
-import { IUserRepository } from "../../../domain/repositories/user.repository.interface";
 import { IArticleRepository } from "../../../domain/repositories/article.repository.interface";
+import { IUserManagementService } from "../../../domain/services/usermanagement.service.interface";
+import { IReportService } from "../../../domain/services/report.service.interface";
 import { logger } from "../../../utils/logger";
-import { UserManagementService } from "../usermanagement/usermanagement.service";
 import { ResourceNotFoundError } from "../../errors/resource.errors";
 import { HttpResponse } from "../../../config/responseMessages";
 import { CreateReportDto, GetReportsDto, UpdateReportStatusDto } from "../../dtos";
 
-export class ReportService {
-  private userManagementService: UserManagementService;
-
+export class ReportService implements IReportService {
   constructor(
     private reportRepository: IReportRepository,
     private articleRepository: IArticleRepository,
-     userRepository: IUserRepository
-  ) {
-    this.userManagementService = new UserManagementService(userRepository);
-  }
+    private userManagementService: IUserManagementService
+  ) {}
 
   async createReport(data: CreateReportDto): Promise<Report> {
     // Check if user has already reported this target

@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { ReportService } from "../../../application/usecases/reports/report.service";
+import { IReportService } from "../../../domain/services/report.service.interface";
 import { HttpStatus } from "../../../config/statusCodes";
 import { HttpResponse } from "../../../config/responseMessages";
 
 export class ReportController {
-  constructor(private reportService: ReportService) {}
+  constructor(private reportService: IReportService) {}
 
   createReport = async (req: Request, res: Response): Promise<void> => {
     const { targetType, targetId, reason } = req.body;

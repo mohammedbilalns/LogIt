@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { UserManagementService } from "../../../application/usecases/usermanagement/usermanagement.service";
+import { IUserManagementService } from "../../../domain/services/usermanagement.service.interface";
 import { HttpStatus } from "../../../config/statusCodes";
 
 export class AdminController {
-  constructor(private userManagementService: UserManagementService) {}
+  constructor(private userManagementService: IUserManagementService) {}
 
   fetchUsers = async (req: Request, res: Response): Promise<void> => {
     const page = parseInt(req.query.page as string) || 1;

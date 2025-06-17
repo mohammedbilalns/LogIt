@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { ReportController } from "../controllers/report.controller";
+import { IReportService } from "../../../domain/services/report.service.interface";
 import { ReportService } from "../../../application/usecases/reports/report.service";
+import { IUserManagementService } from "../../../domain/services/usermanagement.service.interface";
+import { UserManagementService } from "../../../application/usecases/usermanagement/usermanagement.service";
 import { MongoReportRepository } from "../../../infrastructure/repositories/report.repository";
 import { MongoArticleRepository } from "../../../infrastructure/repositories/article.repository";
 import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
@@ -19,7 +22,8 @@ const reportRepository = new MongoReportRepository();
 const articleRepository = new MongoArticleRepository();
 const userRepository = new MongoUserRepository();
 
-const reportService = new ReportService(reportRepository, articleRepository, userRepository);
+const userManagementService: IUserManagementService = new UserManagementService(userRepository);
+const reportService: IReportService = new ReportService(reportRepository, articleRepository, userManagementService);
 const reportController = new ReportController(reportService);
 
 router.use(asyncHandler((req, res, next) => authMiddleware()(req, res, next)));
