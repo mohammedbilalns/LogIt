@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { TagController } from "../controllers/tag.controller";
-import { TagService } from "../../../application/usecases/articles/tag.service";
+import { TagService } from "../../../application/usecases/tag/tag.service";
 import { MongoTagRepository } from "../../../infrastructure/repositories/tag.repository";
 import { authorizeRoles, authMiddleware } from "../middlewares/auth.middleware";
 import { asyncHandler } from "../../../utils/asyncHandler";
@@ -17,18 +17,14 @@ router.get(
   "/",
   asyncHandler((req, res) => tagController.getTags(req, res))
 );
+
 router.get(
-  "/search",
-  asyncHandler((req, res) => tagController.searchTags(req, res))
+  "/by-ids",
+  asyncHandler((req, res) => tagController.getTagsByIds(req, res))
 );
 
 router.use(asyncHandler((req, res, next) => csrfMiddleware()(req, res, next)));
 router.use(asyncHandler((req, res, next) => authMiddleware()(req, res, next)));
-
-router.get(
-  "/promoted-and-user",
-  asyncHandler((req, res) => tagController.getPromotedAndUserTags(req, res))
-);
 
 router.post(
   "/",

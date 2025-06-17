@@ -9,6 +9,7 @@ export interface Tag {
 export interface TagState {
     tags: Tag[];
     searchResults: Tag[];
+    tagNames: Tag[];
     loading: boolean;
     error: string | null;
     total: number;

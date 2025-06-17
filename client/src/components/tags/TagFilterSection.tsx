@@ -2,7 +2,7 @@ import { Group, Paper, Stack, Text, Chip, useMantineColorScheme } from '@mantine
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { AppDispatch, RootState } from '@/store';
-import { fetchPromotedAndUserTags } from '@slices/tagSlice';
+import { fetchTags } from '@slices/tagSlice';
 import TagSearchSelector from './TagSearchSelector';
 
 interface TagFilterSectionProps {
@@ -23,12 +23,12 @@ export default function TagFilterSection({
   searchDescription = 'Search and select more tags to filter',
 }: TagFilterSectionProps) {
   const dispatch = useDispatch<AppDispatch>();
-  const { tags } = useSelector((state: RootState) => state.tags);
+  const { promotedTags } = useSelector((state: RootState) => state.tags);
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
 
   useEffect(() => {
-    dispatch(fetchPromotedAndUserTags({ limit: 5 }));
+    dispatch(fetchTags({ promoted: true, limit: 5 }));
   }, [dispatch]);
 
   return (
@@ -49,7 +49,7 @@ export default function TagFilterSection({
         <Stack gap="xs">
           <Text fw={500}>Quick Select Tags:</Text>
           <Group gap="xs" wrap="wrap">
-            {tags.map((tag) => (
+            {promotedTags.map((tag) => (
               <Chip
                 key={tag._id}
                 checked={selectedTags.includes(tag._id)}

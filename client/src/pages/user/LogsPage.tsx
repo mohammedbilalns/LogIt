@@ -3,7 +3,7 @@ import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { fetchLogs, deleteLog } from '@slices/logSlice';
-import { fetchPromotedAndUserTags } from '@slices/tagSlice';
+import { fetchTags } from '@slices/tagSlice';
 import LogRow from '@components/log/LogRow';
 import LogRowSkeleton from '@/components/skeletons/LogRowSkeleton';
 import { useMediaQuery, useDebouncedValue } from '@mantine/hooks';
@@ -37,7 +37,7 @@ export default function LogsPage() {
   const observerTarget = useRef<HTMLDivElement>(null);
 
   const { logs, loading, hasMore } = useSelector((state: RootState) => state.logs);
-  const { tags } = useSelector((state: RootState) => state.tags);
+  const { promotedTags } = useSelector((state: RootState) => state.tags);
   const userId = useSelector((state: RootState) => state.auth.user?._id);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
@@ -61,7 +61,7 @@ export default function LogsPage() {
   []);
 
   useEffect(() => {
-    dispatch(fetchPromotedAndUserTags({ limit: 5 }));
+    dispatch(fetchTags({ promoted: true, limit: 5 }));
   }, [dispatch]);
 
   useEffect(() => {

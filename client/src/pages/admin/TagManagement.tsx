@@ -115,6 +115,8 @@ export default function TagManagement() {
     limit: pageSize,
     search: debouncedSearch,
     promoted: false,
+    sortBy: 'createdAt',
+    sortOrder: 'desc' as const,
   }), [page, pageSize, debouncedSearch]);
 
   const promotedTagsParams = useMemo(() => ({

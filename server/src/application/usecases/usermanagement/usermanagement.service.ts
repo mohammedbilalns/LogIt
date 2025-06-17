@@ -13,7 +13,7 @@ export class UserManagementService {
 
   async fetchUsers(options: FetchUsersOptions = {}): Promise<UsersListResponse> {
     const { page = 1, limit = 10, search = '', sortBy = 'createdAt', sortOrder = 'desc' } = options;
-    
+
     const result = await this.userRepository.findAll({
       page,
       limit,

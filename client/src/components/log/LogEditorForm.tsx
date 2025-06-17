@@ -118,7 +118,7 @@ export default function LogEditorForm({
       form.setValues({
         title: currentLog.title,
         content: currentLog.content,
-        tags: currentLog.tags.map(tag => tag.id),
+        tags: currentLog.tags.map(tag => tag._id || tag.id),
         mediaUrls: currentLog.mediaUrls,
         createdAt: new Date(currentLog.createdAt),
       });

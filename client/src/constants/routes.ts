@@ -29,6 +29,7 @@ export const API_ROUTES = {
   TAGS: {
     BASE: '/tags',
     BY_ID: (id: string) => `/tags/${id}`,
+    BY_IDS: (ids: string[]) => `/tags/by-ids?ids=${ids.join(',')}`,
     PROMOTE: (id: string) => `/tags/${id}/promote`,
     DEMOTE: (id: string) => `/tags/${id}/demote`,
   },

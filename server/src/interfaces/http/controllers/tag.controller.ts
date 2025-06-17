@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { TagService } from "../../../application/usecases/articles/tag.service";
+import { TagService } from "../../../application/usecases/tag/tag.service";
 import { HttpStatus } from "../../../config/statusCodes";
 
 export class TagController {
@@ -30,7 +30,7 @@ export class TagController {
   }
 
   async getTags(req: Request, res: Response) {
-    const { page, limit, search, promoted } = req.query;
+    const { page, limit, search, promoted, sortBy, sortOrder } = req.query;
     const userId = req.user?.id;
 
     const defaultLimit = 5;
@@ -40,9 +40,26 @@ export class TagController {
       search: search as string,
       promoted: promoted === "true",
       userId: userId as string,
+      sortBy: sortBy as string,
+      sortOrder: sortOrder as 'asc' | 'desc',
     });
 
     return res.status(HttpStatus.OK).json(tags);
+  }
+
+  async getTagsByIds(req: Request, res: Response) {
+    const { ids } = req.query;
+    
+    if (!ids || typeof ids !== 'string') {
+      return res.status(HttpStatus.BAD_REQUEST).json({ 
+        message: 'Tag IDs are required' 
+      });
+    }
+
+    const tagIds = ids.split(',').filter(id => id.trim());
+    const tags = await this.tagService.getTagsByIds(tagIds);
+
+    return res.status(HttpStatus.OK).json({ tags });
   }
 
   async deleteTag(req: Request, res: Response) {
@@ -61,28 +78,5 @@ export class TagController {
     const { id: tagId } = req.params;
     const tag = await this.tagService.demoteTag(tagId);
     return res.status(HttpStatus.OK).json(tag);
-  }
-
-  async searchTags(req: Request, res: Response) {
-    const { query } = req.query;
-
-    const tags = await this.tagService.getTags({
-      search: query as string,
-      limit: 10,
-    });
-
-    return res.status(HttpStatus.OK).json(tags.tags);
-  }
-
-  async getPromotedAndUserTags(req: Request, res: Response) {
-    const userId = req.user?.id;
-    const { limit } = req.query;
-
-    const tags = await this.tagService.getPromotedAndUserTags(
-      userId,
-      Number(limit) || 5
-    );
-
-    return res.status(HttpStatus.OK).json(tags);
   }
 }

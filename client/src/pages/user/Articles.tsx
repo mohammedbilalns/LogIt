@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ArticleRow from '@components/article/ArticleRow';
 import { fetchArticles } from '@slices/articleSlice';
-import { fetchPromotedAndUserTags } from '@slices/tagSlice';
+import { fetchTags } from '@slices/tagSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box, Center, Chip, Group, Paper, Select, Stack, Text, Title } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
@@ -24,7 +24,7 @@ export default function ArticlesPage() {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
   const { articles, loading, hasMore } = useSelector((state: RootState) => state.articles);
-  const { tags } = useSelector((state: RootState) => state.tags);
+  const { promotedTags } = useSelector((state: RootState) => state.tags);
   const observerTarget = useRef<HTMLDivElement>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchTags, setSearchTags] = useState<string[]>([]);
@@ -47,7 +47,7 @@ export default function ArticlesPage() {
   );
 
   useEffect(() => {
-    dispatch(fetchPromotedAndUserTags({ limit: 5 }));
+    dispatch(fetchTags({ promoted: true, limit: 5 }));
   }, [dispatch]);
 
   useEffect(() => {

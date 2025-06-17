@@ -4,12 +4,10 @@ import { TagState} from "@type/tag.types"
 import { API_ROUTES } from '@/constants/routes';
 import axios from 'axios';
 
-
-
-
 const initialState: TagState = {
   tags: [],
   searchResults: [],
+  tagNames: [],
   loading: false,
   error: null,
   total: 0,
@@ -19,14 +17,6 @@ const initialState: TagState = {
   loadingPromotedTags: false,
   errorPromotedTags: null,
 };
-
-export const searchTags = createAsyncThunk(
-  'tags/search',
-  async (query: string) => {
-    const response = await axiosInstance.get(`${API_ROUTES.TAGS.BASE}/search?query=${encodeURIComponent(query)}`);
-    return response.data;
-  }
-);
 
 export const createTag = createAsyncThunk(
   'tags/create',
@@ -58,7 +48,7 @@ export const fetchTags = createAsyncThunk(
       const params = new URLSearchParams();
       if (page) params.append('page', page.toString());
       if (limit) params.append('limit', limit.toString());
-      params.append('search', search || '');
+      if (search) params.append('search', search);
       if (promoted !== undefined) params.append('promoted', promoted.toString());
       if (sortBy) params.append('sortBy', sortBy);
       if (sortOrder) params.append('sortOrder', sortOrder);
@@ -66,6 +56,22 @@ export const fetchTags = createAsyncThunk(
 
       const response = await axiosInstance.get(`${API_ROUTES.TAGS.BASE}?${params.toString()}`);
       return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        return rejectWithValue(error.response?.data?.message || 'Failed to fetch tags');
+      }
+      return rejectWithValue('An unexpected error occurred');
+    }
+  }
+);
+
+export const fetchTagsByIds = createAsyncThunk(
+  'tags/fetchByIds',
+  async (ids: string[], { rejectWithValue }) => {
+    try {
+      // Use the new BY_IDS endpoint for better performance
+      const response = await axiosInstance.get(API_ROUTES.TAGS.BY_IDS(ids));
+      return response.data.tags; // Extract tags from the response
     } catch (error) {
       if (axios.isAxiosError(error)) {
         return rejectWithValue(error.response?.data?.message || 'Failed to fetch tags');
@@ -113,16 +119,6 @@ export const demoteTag = createAsyncThunk(
   }
 );
 
-export const fetchPromotedAndUserTags = createAsyncThunk(
-  'tags/fetchPromotedAndUser',
-  async ({ limit = 5 }: { limit?: number }) => {
-    const params = new URLSearchParams();
-    if (limit) params.append('limit', limit.toString());
-    const response = await axiosInstance.get(`${API_ROUTES.TAGS.BASE}/promoted-and-user?${params.toString()}`);
-    return response.data;
-  }
-);
-
 const tagSlice = createSlice({
   name: 'tags',
   initialState,
@@ -138,19 +134,6 @@ const tagSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Search Tags
-      .addCase(searchTags.pending, (state) => {
-        state.loading = true; 
-        state.error = null;
-      })
-      .addCase(searchTags.fulfilled, (state, action) => {
-        state.loading = false;
-        state.searchResults = action.payload;
-      })
-      .addCase(searchTags.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string || 'Failed to search tags';
-      })
       // Create Tag
       .addCase(createTag.pending, (state) => {
         state.loading = true;
@@ -179,6 +162,9 @@ const tagSlice = createSlice({
         if (action.meta.arg.promoted) {
           state.loadingPromotedTags = false;
           state.promotedTags = action.payload.tags;
+        } else if (action.meta.arg.search) {
+          state.loadingAllTags = false;
+          state.searchResults = action.payload.tags;
         } else {
           state.loadingAllTags = false;
           state.tags = action.payload.tags;
@@ -193,6 +179,22 @@ const tagSlice = createSlice({
           state.loadingAllTags = false;
           state.errorAllTags = action.payload as string || 'Failed to fetch all tags';
         }
+      })
+      // Fetch Tags by IDs
+      .addCase(fetchTagsByIds.pending, (state) => {
+        state.loadingAllTags = true;
+        state.errorAllTags = null;
+      })
+      .addCase(fetchTagsByIds.fulfilled, (state, action) => {
+        state.loadingAllTags = false;
+        // Store tag names separately to avoid mixing with search results
+        const existingIds = new Set(state.tagNames.map(tag => tag._id));
+        const newTags = action.payload.filter((tag: any) => !existingIds.has(tag._id));
+        state.tagNames = [...state.tagNames, ...newTags];
+      })
+      .addCase(fetchTagsByIds.rejected, (state, action) => {
+        state.loadingAllTags = false;
+        state.errorAllTags = action.payload as string || 'Failed to fetch tags';
       })
       // Delete Tag
       .addCase(deleteTag.pending, (state) => {
@@ -246,20 +248,6 @@ const tagSlice = createSlice({
       .addCase(demoteTag.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string || 'Failed to demote tag';
-      })
-      // Fetch Promoted and User Tags
-      .addCase(fetchPromotedAndUserTags.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchPromotedAndUserTags.fulfilled, (state, action) => {
-        state.loading = false;
-        state.tags = action.payload.tags;
-        state.total = action.payload.total;
-      })
-      .addCase(fetchPromotedAndUserTags.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed to fetch tags';
       });
   },
 });

@@ -25,7 +25,6 @@ export const updateArticleSchema = z.object({
     .max(50000, "Content cannot exceed 50000 characters")
     .optional(),
   tagIds: z.array(z.string())
-    .min(1, "At least one tag is required")
     .max(10, "Cannot add more than 10 tags")
     .optional(),
   featured_image: z.string()

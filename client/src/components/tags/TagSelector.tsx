@@ -1,7 +1,7 @@
 import  { useState, useCallback, useMemo, useEffect, memo, useRef } from 'react';
 import { MultiSelect } from '@mantine/core';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchTags, createTag, searchTags } from '@slices/tagSlice';
+import { fetchTags, createTag, fetchTagsByIds } from '@slices/tagSlice';
 import { AppDispatch, RootState } from '@/store';
 import { notifications } from '@mantine/notifications';
 
@@ -19,7 +19,7 @@ interface TagSelectorProps {
 
 function TagSelector({ value, onChange }: TagSelectorProps) {
   const dispatch = useDispatch<AppDispatch>();
-  const { tags, searchResults, loading } = useSelector((state: RootState) => state.tags);
+  const { tags, searchResults, tagNames, loading } = useSelector((state: RootState) => state.tags);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedTagNames, setSelectedTagNames] = useState<Map<string, string>>(new Map());
@@ -28,13 +28,26 @@ function TagSelector({ value, onChange }: TagSelectorProps) {
 
   // Fetch tags when component mounts
   useEffect(() => {
-    dispatch(fetchTags({ search: '' }));
+    dispatch(fetchTags({ search: '', promoted: false }));
   }, [dispatch]);
+
+  // Fetch tag names by IDs when component mounts with existing values
+  useEffect(() => {
+    if (value.length > 0) {
+      // Get IDs that don't have names in tagNames yet
+      const existingIds = new Set(tagNames.map(tag => tag._id));
+      const missingIds = value.filter(id => !existingIds.has(id));
+      
+      if (missingIds.length > 0) {
+        dispatch(fetchTagsByIds(missingIds));
+      }
+    }
+  }, [value, tagNames, dispatch]);
 
   // Update selected tag names 
   useEffect(() => {
     const newSelectedTagNames = new Map<string, string>();
-    const allTags = [...tags, ...searchResults];
+    const allTags = [...tags, ...searchResults, ...tagNames];
     
     value.forEach(tagId => {
       const tag = allTags.find(t => t._id === tagId);
@@ -44,7 +57,7 @@ function TagSelector({ value, onChange }: TagSelectorProps) {
     });
     
     setSelectedTagNames(newSelectedTagNames);
-  }, [value, tags, searchResults]);
+  }, [value, tags, searchResults, tagNames]);
 
   useEffect(() => {
     if (inputRef.current && isDropdownOpen) {
@@ -65,6 +78,12 @@ function TagSelector({ value, onChange }: TagSelectorProps) {
     searchResults.forEach((tag: Tag) => {
       allTagsMap.set(tag._id, tag);
     });
+    
+    tagNames.forEach((tag: Tag) => {
+      if (!allTagsMap.has(tag._id)) {
+        allTagsMap.set(tag._id, tag);
+      }
+    });
 
     // Add any selected tags that might not be in the current results
     value.forEach(tagId => {
@@ -83,7 +102,7 @@ function TagSelector({ value, onChange }: TagSelectorProps) {
       value: tag._id,
       label: tag.name
     }));
-  }, [searchResults, tags, value, selectedTagNames]);
+  }, [searchResults, tags, tagNames, value, selectedTagNames]);
 
   const handleTagCreate = useCallback(async (query: string) => {
     try {
@@ -106,7 +125,7 @@ function TagSelector({ value, onChange }: TagSelectorProps) {
   const handleDropdownOpen = useCallback(() => {
     setIsDropdownOpen(true);
     if (!searchQuery) {
-      dispatch(fetchTags({ search: '' }));
+      dispatch(fetchTags({ search: '', promoted: false }));
     }
   }, [dispatch, searchQuery]);
 
@@ -136,10 +155,11 @@ function TagSelector({ value, onChange }: TagSelectorProps) {
     }
 
     searchTimeoutRef.current = setTimeout(() => {
-      if (query.trim()) {
-        dispatch(searchTags(query));
+      const trimmedQuery = query.trim();
+      if (trimmedQuery) {
+        dispatch(fetchTags({ search: trimmedQuery, promoted: false }));
       } else {
-        dispatch(fetchTags({ search: '' }));
+        dispatch(fetchTags({ search: '', promoted: false }));
       }
     }, 300); // 300ms debounce
   }, [dispatch]);

@@ -147,7 +147,10 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
   useEffect(() => {
     if (mode === 'edit' && currentArticle && editor) {
       setTitle(currentArticle.title);
-      setSelectedTags(currentArticle.tags);
+      const tagIds = currentArticle.tags.map((tag: any) => 
+        typeof tag === 'string' ? tag : (tag._id || tag.id)
+      );
+      setSelectedTags(tagIds);
       setFeaturedImage(currentArticle.featured_image);
       editor.commands.setContent(currentArticle.content);
       setEditorContent(currentArticle.content);
