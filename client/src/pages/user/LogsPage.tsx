@@ -13,7 +13,7 @@ import UserSidebar from '@components/user/UserSidebar';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import TagFilterSection from '@/components/tags/TagFilterSection';
-import SortBy from '@/components/common/SortBy';
+import SortBy from '@/components/SortBy';
 import { ConfirmModal } from '@/components/confirm';
 
 interface LogFilters {

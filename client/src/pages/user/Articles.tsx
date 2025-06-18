@@ -8,7 +8,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import ArticleRowSkeleton from '@/components/skeletons/ArticleRowSkeleton';
 import TagFilterSection from '@/components/tags/TagFilterSection';
 import CreateButton from '@/components/user/CreateButton';
-import SortBy from '@/components/common/SortBy';
+import SortBy from '@/components/SortBy';
 import { AppDispatch, RootState } from '@/store';
 
 interface ArticleFilters {

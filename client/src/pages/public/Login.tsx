@@ -1,20 +1,13 @@
 import { useEffect } from 'react';
 import { useForm } from '@mantine/form';
 import {
-  TextInput,
-  PasswordInput,
   Text,
-  Paper,
   Button,
   Stack,
-  Container,
-  Title,
-  Center,
-  Divider,
   Group,
+  Divider,
   Alert,
 } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { IconLock, IconAlertCircle } from '@tabler/icons-react';
@@ -22,12 +15,18 @@ import { AppDispatch, RootState } from '@/store';
 import { login, clearError } from '@slices/authSlice';
 import { GoogleButton } from '@components/user/GoogleButton';
 
+import AuthContainer from '@/components/auth/AuthContainer';
+import AuthHeader from '@/components/auth/AuthHeader';
+import { TextField } from '@/components/auth/FormField';
+import { PasswordField } from '@/components/auth/FormField';
+import SubmitButton from '@/components/auth/SubmitButton';
+import ErrorDisplay from '@/components/auth/ErrorDisplay';
+
 export default function Login() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const location = useLocation();
   const { loading, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const isMobile = useMediaQuery('(max-width: 768px)');
   const searchParams = new URLSearchParams(location.search);
   const isBlocked = searchParams.get('error') === 'blocked';
 
@@ -70,116 +69,80 @@ export default function Login() {
   };
 
   return (
-    <Container size={580} my={40} mt={140} px={isMobile ? 'xs' : 'md'}>
-      <Paper
-        radius="lg"
-        p={isMobile ? 'md' : 'xl'}
-        withBorder={false}
-        style={{
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(16px)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-        }}
-      >
-        <Center mb="lg">
-          <IconLock size={42} color="var(--mantine-color-blue-6)" />
-        </Center>
+    <AuthContainer>
+      <AuthHeader
+        icon={<IconLock size={42} color="var(--mantine-color-blue-6)" />}
+        title="Welcome back to LogIt"
+        description="Enter your credentials to access your account"
+      />
 
-        <Title order={2} ta="center" mb="xs" fw={700}>
-          Welcome back to LogIt
-        </Title>
+      {isBlocked && (
+        <Alert
+          icon={<IconAlertCircle size={16} />}
+          title="Account Blocked"
+          color="red"
+          mb="lg"
+          variant="filled"
+        >
+          Your account has been blocked. Please contact support for assistance.
+        </Alert>
+      )}
 
-        <Text c="dimmed" size="sm" ta="center" mb="lg">
-          Enter your credentials to access your account
-        </Text>
+      <form onSubmit={form.onSubmit(handleSubmit)}>
+        <Stack gap="md">
+          <TextField
+            label="Email"
+            placeholder="your@email.com"
+            {...form.getInputProps('email')}
+          />
 
-        {isBlocked && (
-          <Alert
-            icon={<IconAlertCircle size={16} />}
-            title="Account Blocked"
-            color="red"
-            mb="lg"
-            variant="filled"
-          >
-            Your account has been blocked. Please contact support for assistance.
-          </Alert>
-        )}
+          <PasswordField
+            label="Password"
+            placeholder="Your password"
+            {...form.getInputProps('password')}
+          />
 
-        <form onSubmit={form.onSubmit(handleSubmit)}>
-          <Stack gap="md">
-            <TextInput
-              label="Email"
-              placeholder="your@email.com"
-              radius="md"
-              size="md"
-              withAsterisk
-              {...form.getInputProps('email')}
-            />
+          <ErrorDisplay error={error} />
 
-            <PasswordInput
-              label="Password"
-              placeholder="Your password"
-              radius="md"
-              size="md"
-              withAsterisk
-              {...form.getInputProps('password')}
-            />
+          <SubmitButton loading={loading}>
+            Sign in
+          </SubmitButton>
 
-            {error && (
-              <Text c="red" size="sm" ta="center">
-                {error}
-              </Text>
-            )}
-
+          <Group justify="flex-end">
             <Button
-              type="submit"
-              radius="xl"
-              loading={loading}
-              fullWidth
-              size="md"
-              variant="gradient"
-              gradient={{ from: 'blue', to: 'cyan', deg: 45 }}
+              component={Link}
+              to="/reset-password"
+              variant="subtle"
+              size="sm"
+              color="gray"
             >
-              Sign in
+              Forgot password?
+            </Button>
+          </Group>
+
+          <Divider
+            label="Don't have an account?"
+            labelPosition="center"
+            my="xs"
+            color="gray"
+          />
+
+          <Stack gap="sm">
+            <Button
+              component={Link}
+              to="/signup"
+              variant="light"
+              radius="xl"
+              size="md"
+              fullWidth
+            >
+              Create account
             </Button>
 
-            <Group justify="flex-end">
-              <Button
-                component={Link}
-                to="/reset-password"
-                variant="subtle"
-                size="sm"
-                color="gray"
-              >
-                Forgot password?
-              </Button>
-            </Group>
-
-            <Divider
-              label="Don't have an account?"
-              labelPosition="center"
-              my="xs"
-              color="gray"
-            />
-
-            <Stack gap="sm">
-              <Button
-                component={Link}
-                to="/signup"
-                variant="light"
-                radius="xl"
-                size="md"
-                fullWidth
-              >
-                Create account
-              </Button>
-
-              <GoogleButton style={{ width: '100%' }} />
-            </Stack>
+            <GoogleButton style={{ width: '100%' }} />
           </Stack>
-        </form>
-      </Paper>
-    </Container>
+        </Stack>
+      </form>
+    </AuthContainer>
   );
 }

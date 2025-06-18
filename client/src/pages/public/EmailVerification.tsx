@@ -3,15 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
   Text,
-  Paper,
-  Group,
   Button,
-  Container,
   Stack,
-  PinInput,
-  Center,
-  Title,
-  Box,
 } from '@mantine/core';
 import { IconMailCheck } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '@/store';
@@ -22,7 +15,12 @@ import {
   setVerificationEmail,
 } from '@slices/authSlice';
 import { notifications } from '@mantine/notifications';
-import { useMediaQuery } from '@mantine/hooks';
+
+import AuthContainer from '@/components/auth/AuthContainer';
+import AuthHeader from '@/components/auth/AuthHeader';
+import OTPInput from '@/components/auth/OTPInput';
+import SubmitButton from '@/components/auth/SubmitButton';
+import ErrorDisplay from '@/components/auth/ErrorDisplay';
 
 const OTP_EXPIRY_TIME = 5 * 60;
 const RESEND_COOLDOWN = 60;
@@ -37,14 +35,6 @@ export default function EmailVerification() {
   const { loading, resendLoading, error, isAuthenticated, verificationEmail } = useSelector(
     (state: RootState) => state.auth
   );
-
-  const isMobile = useMediaQuery('(max-width: 768px)');
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   const startResendCooldown = useCallback(() => setResendCooldown(RESEND_COOLDOWN), []);
   const resetOtpExpiry = useCallback(() => setOtpExpiryTime(OTP_EXPIRY_TIME), []);
@@ -116,113 +106,63 @@ export default function EmailVerification() {
   };
 
   return (
-    <Container size={580} my={100} px={isMobile ? 'xs' : 'md'}>
-      <Paper
-        radius="md"
-        p={isMobile ? 'md' : 'xl'}
-        withBorder
-        style={{
-          backdropFilter: 'blur(10px)',
-          backgroundColor: 'rgba(255, 255, 255, 0.5)',
-          border: '1px solid rgba(0,0,0,0.05)',
-          boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
-        }}
-      >
-        <Center mb="xl">
-          <IconMailCheck size={50} color="var(--mantine-color-blue-6)" />
-        </Center>
-
-        <Title order={2} ta="center" mb="sm">
-          Verify Your Email
-        </Title>
-
-        <Text c="dimmed" size="sm" ta="center" mb="xl">
-          We've sent a verification code to{' '}
-          <Text span fw={500} c="blue">
-            {verificationEmail}
-          </Text>
-        </Text>
-
-        <form onSubmit={handleSubmit}>
-          <Stack>
-            <Center>
-              <PinInput
-                length={6}
-                size={isMobile ? 'md' : 'lg'}
-                value={otp}
-                onChange={handleOTPChange}
-                error={Boolean(error)}
-                type="number"
-                oneTimeCode
-                autoFocus
-                disabled={otpExpiryTime === 0}
-              />
-            </Center>
-
-            <Text
-              c={otpExpiryTime < 60 ? 'red' : 'dimmed'}
-              size="sm"
-              ta="center"
-              fw={500}
-            >
-              OTP expires in: {formatTime(otpExpiryTime)}
+    <AuthContainer my={100} withBorder>
+      <AuthHeader
+        icon={<IconMailCheck size={50} color="var(--mantine-color-blue-6)" />}
+        title="Verify Your Email"
+        description={
+          <>
+            We've sent a verification code to{' '}
+            <Text span fw={500} c="blue">
+              {verificationEmail}
             </Text>
+          </>
+        }
+      />
 
-            {error && (
-              <Text c="red" size="sm" ta="center">
-                {error}
-              </Text>
-            )}
+      <form onSubmit={handleSubmit}>
+        <Stack>
+          <OTPInput
+            value={otp}
+            onChange={handleOTPChange}
+            error={Boolean(error)}
+            disabled={otpExpiryTime === 0}
+            expiryTime={otpExpiryTime}
+            resendCooldown={resendCooldown}
+            onResend={handleResendOTP}
+            onResendLoading={resendLoading}
+          />
 
-            {otpExpiryTime === 0 && (
-              <Text c="orange" size="sm" ta="center">
-                OTP expired. Please resend.
-              </Text>
-            )}
+          <ErrorDisplay error={error} />
 
-            <Button
-              type="submit"
-              radius="md"
-              loading={loading}
-              disabled={otp.length !== 6 || otpExpiryTime === 0}
-              fullWidth
-              style={{ boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)' }}
-            >
-              Verify Email
-            </Button>
+          {otpExpiryTime === 0 && (
+            <Text c="orange" size="sm" ta="center">
+              OTP expired. Please resend.
+            </Text>
+          )}
 
-            <Group justify="center" gap="xs">
-              <Text size="sm" c="dimmed">
-                Didn't receive the code?
-              </Text>
-              <Button
-                variant="subtle"
-                size="sm"
-                onClick={handleResendOTP}
-                loading={resendLoading}
-                disabled={resendCooldown > 0}
-              >
-                {resendCooldown > 0
-                  ? `Resend in ${formatTime(resendCooldown)}`
-                  : 'Resend'}
-              </Button>
-            </Group>
+          <SubmitButton
+            loading={loading}
+            disabled={otp.length !== 6 || otpExpiryTime === 0}
+            style={{ boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)' }}
+          >
+            Verify Email
+          </SubmitButton>
 
-            <Button
-              variant="subtle"
-              fullWidth
-              mt="md"
-              radius="md"
-              onClick={() => {
-                dispatch(setVerificationEmail(null));
-                navigate('/signup');
-              }}
-            >
-              Back to Signup
-            </Button>
-          </Stack>
-        </form>
-      </Paper>
-    </Container>
+          <Button
+            variant="subtle"
+            fullWidth
+            mt="md"
+            radius="md"
+            onClick={() => {
+              dispatch(setVerificationEmail(null));
+              navigate('/signup');
+            }}
+          >
+            Back to Signup
+          </Button>
+        </Stack>
+      </form>
+    </AuthContainer>
   );
 }
