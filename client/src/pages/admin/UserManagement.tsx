@@ -1,63 +1,51 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  Container,
-  Title,
-  TextInput,
   Table,
   Group,
   Text,
   Badge,
   Paper,
-  Loader,
   Avatar,
   Stack,
-  Box,
   ActionIcon,
   Tooltip,
   ScrollArea,
   useMantineTheme,
   useMantineColorScheme,
-  Pagination,
-  Select,
   Card,
-  Flex,
   Divider,
 } from '@mantine/core';
-import { IconSearch, IconLock, IconLockOpen, IconMail, IconUser, IconCalendar, IconBriefcase } from '@tabler/icons-react';
+import { IconLock, IconLockOpen, IconMail, IconUser, IconCalendar, IconBriefcase } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '@/store';
 import { fetchUsers, setSearchQuery, blockUser, unblockUser } from '@slices/userManagementSlice';
 import { UserManagementState } from '@/types/user-management.types';
 import { useDebouncedValue, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { ConfirmModal } from '@/components/confirm';
+import AdminPageContainer from '@/components/admin/AdminPageContainer';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
+import ResponsivePagination from '@/components/admin/ResponsivePagination';
+import LoadingState from '@/components/admin/LoadingState';
+import EmptyState from '@/components/admin/EmptyState';
+import ErrorState from '@/components/admin/ErrorState';
 
 export default function UserManagement() {
   const dispatch = useDispatch<AppDispatch>();
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
-  const isOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch] = useDebouncedValue(searchInput, 500);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
-  const isTablet = useMediaQuery(`(max-width: ${theme.breakpoints.md})`);
   const [blockModalOpen, setBlockModalOpen] = useState(false);
   const [userToBlock, setUserToBlock] = useState<{ id: string; isBlocked: boolean } | null>(null);
 
   const { users, loading, error, totalPages } = useSelector(
     (state: RootState) => state.userManagement as UserManagementState
   );
-
-  // Calculate proper margin to account for sidebar
-  const containerStyle = useMemo(() => ({
-    marginLeft: isOpen && !isMobile ? '266px' : '0px', // 250px sidebar + 1rem (16px) left position
-    transition: 'margin-left 0.3s ease',
-    width: isOpen && !isMobile ? 'calc(100% - 266px)' : '100%',
-    maxWidth: '100%',
-  }), [isOpen, isMobile]);
 
   const handleBlockUser = useCallback(async (userId: string, isBlocked: boolean) => {
     setUserToBlock({ id: userId, isBlocked });
@@ -133,7 +121,7 @@ export default function UserManagement() {
     dispatch(fetchUsers(fetchParams));
   }, [dispatch, fetchParams]);
 
-  // Mobile card view for users
+  // Mobile card view
   const renderMobileUserCard = (user: any) => (
     <Card key={user._id} shadow="xs" p="md" withBorder mb="sm">
       <Stack gap="sm">
@@ -212,28 +200,14 @@ export default function UserManagement() {
   );
 
   return (
-    <Box style={containerStyle}>
+    <AdminPageContainer>
       <Stack gap="lg">
-        <Paper
-          shadow="xs"
-          p="md"
-          withBorder
-          style={{
-            backgroundColor: isDark ? theme.colors.dark[7] : theme.white,
-          }}
-        >
-          <Stack gap="md">
-            <Title order={2} fw={600}>User Management</Title>
-            <TextInput
-              placeholder="Search users by name or email"
-              leftSection={<IconSearch size={16} />}
-              value={searchInput}
-              onChange={handleSearchChange}
-              style={{ width: '100%', maxWidth: isTablet ? '100%' : '400px' }}
-              size="md"
-            />
-          </Stack>
-        </Paper>
+        <AdminPageHeader
+          title="User Management"
+          searchPlaceholder="Search users by name or email"
+          searchValue={searchInput}
+          onSearchChange={handleSearchChange}
+        />
 
         <Paper shadow="xs" p="md" withBorder>
           {isMobile ? (
@@ -241,46 +215,10 @@ export default function UserManagement() {
             <Stack gap="md">
               {users.map(renderMobileUserCard)}
 
-              {loading && (
-                <Box
-                  style={{
-                    padding: '1rem',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Stack align="center" gap="xs">
-                    <Loader size="md" />
-                    <Text size="sm" c="dimmed">Loading users...</Text>
-                  </Stack>
-                </Box>
-              )}
-
-              {error && (
-                <Box
-                  style={{
-                    padding: '1rem',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Text c="red" size="sm" fw={500}>{error}</Text>
-                </Box>
-              )}
-
+              {loading && <LoadingState message="Loading users..." showBorder={false} />}
+              {error && <ErrorState message={error} showBorder={false} />}
               {!loading && !error && users.length === 0 && (
-                <Box
-                  style={{
-                    padding: '1rem',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Text c="dimmed" size="sm">No users found</Text>
-                </Box>
+                <EmptyState message="No users found" showBorder={false} />
               )}
             </Stack>
           ) : (
@@ -371,85 +309,22 @@ export default function UserManagement() {
                 </Table>
               </ScrollArea>
 
-              {loading && (
-                <Box
-                  style={{
-                    padding: '1rem',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    borderTop: '1px solid var(--mantine-color-gray-3)'
-                  }}
-                >
-                  <Stack align="center" gap="xs">
-                    <Loader size="md" />
-                    <Text size="sm" c="dimmed">Loading users...</Text>
-                  </Stack>
-                </Box>
-              )}
-
-              {error && (
-                <Box
-                  style={{
-                    padding: '1rem',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    borderTop: '1px solid var(--mantine-color-gray-3)'
-                  }}
-                >
-                  <Text c="red" size="sm" fw={500}>{error}</Text>
-                </Box>
-              )}
-
+              {loading && <LoadingState message="Loading users..." />}
+              {error && <ErrorState message={error} />}
               {!loading && !error && users.length === 0 && (
-                <Box
-                  style={{
-                    padding: '1rem',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    borderTop: '1px solid var(--mantine-color-gray-3)'
-                  }}
-                >
-                  <Text c="dimmed" size="sm">No users found</Text>
-                </Box>
+                <EmptyState message="No users found" />
               )}
             </>
           )}
 
           {!loading && !error && users.length > 0 && (
-            <Stack gap="md" mt="md">
-              <Flex
-                justify="space-between"
-                align="center"
-                wrap="wrap"
-                gap="md"
-                direction={isMobile ? "column" : "row"}
-              >
-                <Select
-                  label={isMobile ? undefined : "Page size"}
-                  placeholder={isMobile ? "Page size" : undefined}
-                  value={pageSize.toString()}
-                  onChange={handlePageSizeChange}
-                  data={[
-                    { value: '5', label: '5 per page' },
-                    { value: '10', label: '10 per page' },
-                    { value: '20', label: '20 per page' },
-                    { value: '50', label: '50 per page' },
-                  ]}
-                  style={{ width: isMobile ? '100%' : '150px' }}
-                  size={isMobile ? 'sm' : 'md'}
-                />
-                <Pagination
-                  total={totalPages}
-                  value={page}
-                  onChange={handlePageChange}
-                  withEdges
-                  size={isMobile ? 'sm' : 'md'}
-                />
-              </Flex>
-            </Stack>
+            <ResponsivePagination
+              currentPage={page}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+            />
           )}
         </Paper>
       </Stack>
@@ -467,6 +342,6 @@ export default function UserManagement() {
         confirmColor={userToBlock?.isBlocked ? "green" : "red"}
         loading={loading}
       />
-    </Box>
+    </AdminPageContainer>
   );
 } 

@@ -1,32 +1,23 @@
 import  { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  Container,
-  Title,
-  TextInput,
   Table,
   Group,
   Text,
   Badge,
   Paper,
-  Loader,
   Stack,
-  Box,
   ActionIcon,
   Tooltip,
   ScrollArea,
   useMantineTheme,
   useMantineColorScheme,
-  Pagination,
-  Select,
   Button,
-  Center,
-  ComboboxItem,
   Card,
-  Flex,
   Divider,
+  Select,
 } from '@mantine/core';
-import { IconSearch, IconArticle, IconUser, IconCalendar, IconFlag } from '@tabler/icons-react';
+import { IconArticle, IconUser, IconCalendar, IconFlag } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '@/store';
 import { fetchReports, updateReportStatus, blockArticle } from '@/store/slices/reportSlice';
 import { Report } from '@/types/report.types';
@@ -34,6 +25,12 @@ import { useDebouncedValue, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
 import { ConfirmModal } from '@/components/confirm';
+import AdminPageContainer from '@/components/admin/AdminPageContainer';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
+import ResponsivePagination from '@/components/admin/ResponsivePagination';
+import LoadingState from '@/components/admin/LoadingState';
+import EmptyState from '@/components/admin/EmptyState';
+import ErrorState from '@/components/admin/ErrorState';
 
 export default function ReportsManagement() {
   const dispatch = useDispatch<AppDispatch>();
@@ -41,27 +38,18 @@ export default function ReportsManagement() {
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
-  const isOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch] = useDebouncedValue(searchInput, 500);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'reviewed' | 'resolved'>('all');
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
-  const isTablet = useMediaQuery(`(max-width: ${theme.breakpoints.md})`);
   const [blockModalOpen, setBlockModalOpen] = useState(false);
   const [articleToBlock, setArticleToBlock] = useState<string | null>(null);
 
   const { reports = [], loading, error, totalPages } = useSelector(
     (state: RootState) => state.report
   );
-
-  const containerStyle = useMemo(() => ({
-    marginLeft: isOpen && !isMobile ? '266px' : '0px',
-    transition: 'margin-left 0.3s ease',
-    width: isOpen && !isMobile ? 'calc(100% - 266px)' : '100%',
-    maxWidth: '100%',
-  }), [isOpen, isMobile]);
 
   const handleUpdateStatus = useCallback(async (reportId: string, status: 'reviewed' | 'resolved') => {
     try {
@@ -269,44 +257,33 @@ export default function ReportsManagement() {
     </Card>
   );
 
+  const statusFilterSelect = (
+    <Select
+      label="Status Filter"
+      value={filterStatus}
+      onChange={handleStatusFilterChange}
+      data={[
+        { value: 'all', label: 'All' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'reviewed', label: 'Reviewed' },
+        { value: 'resolved', label: 'Resolved' },
+      ]}
+      style={{ width: '200px' }}
+      size="md"
+    />
+  );
+
   return (
-    <Box style={containerStyle}>
+    <AdminPageContainer>
       <Stack gap="lg">
-        <Paper
-          shadow="xs"
-          p="md"
-          withBorder
-          style={{
-            backgroundColor: isDark ? theme.colors.dark[7] : theme.white,
-          }}
-        >
-          <Stack gap="md">
-            <Title order={2} fw={600}>Reports Management</Title>
-            <Group align="flex-end" wrap="wrap" gap="md">
-              <TextInput
-                placeholder="Search reports by reason or reported by email"
-                leftSection={<IconSearch size={16} />}
-                value={searchInput}
-                onChange={handleSearchChange}
-                style={{ flexGrow: 1, minWidth: isTablet ? '100%' : '300px' }}
-                size="md"
-              />
-              <Select
-                label="Status Filter"
-                value={filterStatus}
-                onChange={handleStatusFilterChange}
-                data={[
-                  { value: 'all', label: 'All' },
-                  { value: 'pending', label: 'Pending' },
-                  { value: 'reviewed', label: 'Reviewed' },
-                  { value: 'resolved', label: 'Resolved' },
-                ]}
-                style={{ width: isTablet ? '100%' : '200px' }}
-                size="md"
-              />
-            </Group>
-          </Stack>
-        </Paper>
+        <AdminPageHeader
+          title="Reports Management"
+          searchPlaceholder="Search reports by reason or reported by email"
+          searchValue={searchInput}
+          onSearchChange={handleSearchChange}
+          searchMaxWidth="300px"
+          additionalFilters={statusFilterSelect}
+        />
 
         <Paper shadow="xs" p="md" withBorder>
           {isMobile ? (
@@ -314,46 +291,10 @@ export default function ReportsManagement() {
             <Stack gap="md">
               {reports.map(renderMobileReportCard)}
               
-              {loading && (
-                <Box
-                  style={{
-                    padding: '1rem',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Stack align="center" gap="xs">
-                    <Loader size="md" />
-                    <Text size="sm" c="dimmed">Loading reports...</Text>
-                  </Stack>
-                </Box>
-              )}
-
-              {error && (
-                <Box
-                  style={{
-                    padding: '1rem',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Text c="red" size="sm" fw={500}>{error}</Text>
-                </Box>
-              )}
-
+              {loading && <LoadingState message="Loading reports..." showBorder={false} />}
+              {error && <ErrorState message={error} showBorder={false} />}
               {!loading && !error && reports.length === 0 && (
-                <Box
-                  style={{
-                    padding: '1rem',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Text c="dimmed" size="sm">No reports found</Text>
-                </Box>
+                <EmptyState message="No reports found" showBorder={false} />
               )}
             </Stack>
           ) : (
@@ -469,85 +410,24 @@ export default function ReportsManagement() {
                 </Table>
               </ScrollArea>
 
-              {loading && (
-                <Box 
-                  style={{ 
-                    padding: '1rem',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    borderTop: '1px solid var(--mantine-color-gray-3)'
-                  }}
-                >
-                  <Stack align="center" gap="xs">
-                    <Loader size="md" />
-                    <Text size="sm" c="dimmed">Loading reports...</Text>
-                  </Stack>
-                </Box>
-              )}
-              
-              {error && (
-                <Box 
-                  style={{ 
-                    padding: '1rem',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    borderTop: '1px solid var(--mantine-color-gray-3)'
-                  }}
-                >
-                  <Text c="red" size="sm">{error}</Text>
-                </Box>
-              )}
-
+              {loading && <LoadingState message="Loading reports..." />}
+              {error && <ErrorState message={error} />}
               {!loading && !error && reports.length === 0 && (
-                <Box 
-                  style={{ 
-                    padding: '1rem',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    borderTop: '1px solid var(--mantine-color-gray-3)'
-                  }}
-                >
-                  <Text c="dimmed" size="sm">No reports found</Text>
-                </Box>
+                <EmptyState message="No reports found" />
               )}
             </>
           )}
 
           {!loading && !error && reports.length > 0 && (
-            <Stack gap="md" mt="md">
-              <Flex 
-                justify="space-between" 
-                align="center" 
-                wrap="wrap" 
-                gap="md"
-                direction={isMobile ? "column" : "row"}
-              >
-                <Select
-                  label={isMobile ? undefined : "Reports per page"}
-                  placeholder={isMobile ? "Reports per page" : undefined}
-                  value={pageSize.toString()}
-                  onChange={handlePageSizeChange}
-                  data={[
-                    { value: '5', label: '5 per page' },
-                    { value: '10', label: '10 per page' },
-                    { value: '20', label: '20 per page' },
-                    { value: '50', label: '50 per page' },
-                  ]}
-                  style={{ width: isMobile ? '100%' : '150px' }}
-                  size={isMobile ? 'sm' : 'md'}
-                />
-                <Pagination
-                  total={totalPages}
-                  value={page}
-                  onChange={handlePageChange}
-                  withEdges
-                  size={isMobile ? 'sm' : 'md'}
-                />
-              </Flex>
-            </Stack>
+            <ResponsivePagination
+              currentPage={page}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              label="Reports per page"
+              placeholder="Reports per page"
+            />
           )}
         </Paper>
       </Stack>
@@ -565,6 +445,6 @@ export default function ReportsManagement() {
         confirmColor="red"
         loading={loading}
       />
-    </Box>
+    </AdminPageContainer>
   );
 } 
