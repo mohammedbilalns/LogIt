@@ -22,8 +22,11 @@ import {
   Button,
   Center,
   ComboboxItem,
+  Card,
+  Flex,
+  Divider,
 } from '@mantine/core';
-import { IconSearch, IconArticle } from '@tabler/icons-react';
+import { IconSearch, IconArticle, IconUser, IconCalendar, IconFlag } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '@/store';
 import { fetchReports, updateReportStatus, blockArticle } from '@/store/slices/reportSlice';
 import { Report } from '@/types/report.types';
@@ -54,16 +57,10 @@ export default function ReportsManagement() {
   );
 
   const containerStyle = useMemo(() => ({
-    marginLeft: isOpen && !isMobile ? '200px' : '0px',
+    marginLeft: isOpen && !isMobile ? '266px' : '0px',
     transition: 'margin-left 0.3s ease',
-    width: isOpen && !isMobile ? 'calc(100% - 200px)' : '100%',
+    width: isOpen && !isMobile ? 'calc(100% - 266px)' : '100%',
     maxWidth: '100%',
-    ...(isMobile && {
-      marginLeft: '0',
-      width: '100%',
-      padding: '1rem',
-      maxWidth: '100%',
-    }),
   }), [isOpen, isMobile]);
 
   const handleUpdateStatus = useCallback(async (reportId: string, status: 'reviewed' | 'resolved') => {
@@ -154,15 +151,126 @@ export default function ReportsManagement() {
     dispatch(fetchReports(fetchParams));
   }, [dispatch, fetchParams]);
 
-  const containerPadding = isMobile ? "md" : "xl";
+  // Mobile card view for reports
+  const renderMobileReportCard = (report: Report) => (
+    <Card key={report.id} shadow="xs" p="md" withBorder mb="sm">
+      <Stack gap="sm">
+        <Group justify="space-between" align="flex-start">
+          <Stack gap={4}>
+            <Group gap="xs">
+              <IconUser size={14} />
+              <Text fw={600} size="sm">
+                {report.reportedBy.name}
+              </Text>
+            </Group>
+            <Text size="xs" c="dimmed" lineClamp={1}>
+              {report.reportedBy.email}
+            </Text>
+          </Stack>
+          <Badge
+            color={
+              report.status === 'pending' ? 'yellow' 
+              : report.status === 'reviewed' ? 'blue' 
+              : report.status === 'blocked' ? 'red'
+              : 'green'
+            }
+            variant="light"
+            size="sm"
+          >
+            {report.status}
+          </Badge>
+        </Group>
+        
+        <Divider />
+        
+        <Stack gap="xs">
+          <Group gap="xs">
+            <IconFlag size={14} />
+            <Text size="sm" fw={500}>Reason:</Text>
+          </Group>
+          <Text size="sm" c="dimmed">
+            {report.reason}
+          </Text>
+        </Stack>
+        
+        <Group gap="xs">
+          <IconCalendar size={14} />
+          <Text size="xs" c="dimmed">
+            {formatDate(report.createdAt)}
+          </Text>
+        </Group>
+        
+        {report.targetType === 'article' && (
+          <Group gap="xs">
+            <IconArticle size={14} />
+            <Text size="sm" fw={500}>Target: Article</Text>
+          </Group>
+        )}
+        
+        <Stack gap="xs">
+          <Group gap="xs" wrap="wrap">
+            {report.targetType === 'article' && (
+              <>
+                <Button
+                  variant="subtle"
+                  color="blue"
+                  size="xs"
+                  leftSection={<IconArticle size={14} />}
+                  onClick={() => handleViewArticle(report.targetId)}
+                >
+                  View Article
+                </Button>
+                {report.status !== 'resolved' && report.status !== 'blocked' && (
+                  <Button
+                    variant="outline"
+                    color="red"
+                    size="xs"
+                    onClick={() => handleBlockArticle(report.targetId)}
+                  >
+                    Block Article
+                  </Button>
+                )}
+              </>
+            )}
+          </Group>
+          
+          {(report.status === 'pending' || report.status === 'reviewed') && (
+            <Group gap="xs" wrap="wrap">
+              {report.status === 'pending' && (
+                <Button
+                  variant="light"
+                  color="green"
+                  size="xs"
+                  onClick={() => handleUpdateStatus(report.id, 'reviewed')}
+                >
+                  Mark Reviewed
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                color="gray"
+                size="xs"
+                onClick={() => handleUpdateStatus(report.id, 'resolved')}
+              >
+                Dismiss
+              </Button>
+            </Group>
+          )}
+          
+          {report.status === 'blocked' && (
+            <Text size="sm" c="red">Article Blocked</Text>
+          )}
+          
+          {report.status === 'resolved' && (
+            <Text size="sm" c="dimmed">No actions available</Text>
+          )}
+        </Stack>
+      </Stack>
+    </Card>
+  );
 
   return (
-    <Container
-      size="xl"
-      py="xl"
-      px={containerPadding}
-      style={containerStyle}
-    >
+    <Box style={containerStyle}>
       <Stack gap="lg">
         <Paper
           shadow="xs"
@@ -201,173 +309,225 @@ export default function ReportsManagement() {
         </Paper>
 
         <Paper shadow="xs" p="md" withBorder>
-          <ScrollArea>
-            <Box style={{
-              minWidth: isMobile ? 800 : 1000,
-              ['@media (max-width: 768px)']: {
-                minWidth: 800,
-              }
-            }}>
-              <Table
-                striped
-                highlightOnHover
-                withTableBorder
-                withColumnBorders
-              >
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th style={{ width: isMobile ? '120px' : '150px' }}>Reported By</Table.Th>
-                    <Table.Th style={{ width: isMobile ? '180px' : '250px' }}>Reason</Table.Th>
-                    <Table.Th style={{ width: isMobile ? '100px' : '120px' }}>Status</Table.Th>
-                    <Table.Th style={{ width: isMobile ? '180px' : '250px' }}>Target</Table.Th>
-                    <Table.Th style={{ width: isMobile ? '180px' : '250px' }}>Actions</Table.Th>
-                    <Table.Th style={{ width: isMobile ? '160px' : '200px' }}>Created At</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {reports.map((report: Report) => (
-                    <Table.Tr key={report.id}>
-                      <Table.Td>
-                        <Text size={isMobile ? "sm" : "md"} fw={500}>{report.reportedBy.name}</Text>
-                        <Text size={isMobile ? "xs" : "sm"} c="dimmed">{report.reportedBy.email}</Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text size={isMobile ? "sm" : "md"}>{report.reason}</Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Badge
-                          color={
-                            report.status === 'pending' ? 'yellow' 
-                            : report.status === 'reviewed' ? 'blue' 
-                            : report.status === 'blocked' ? 'red'
-                            : 'green'
-                          }
-                          variant="light"
-                          size={isMobile ? "sm" : "md"}
-                        >
-                          {report.status}
-                        </Badge>
-                      </Table.Td>
-                      <Table.Td>
-                        {report.targetType === 'article' ? (
-                          <Group gap="xs">
-                            <Tooltip label="View Article">
-                              <ActionIcon 
-                                variant="subtle" 
-                                color="blue" 
-                                onClick={() => handleViewArticle(report.targetId)} 
-                                size={isMobile ? "sm" : "md"}
-                              >
-                                <IconArticle size={isMobile ? 16 : 18} />
-                              </ActionIcon>
-                            </Tooltip>
-                            {report.status !== 'resolved' && report.status !== 'blocked' && (
+          {isMobile ? (
+            // Mobile card view
+            <Stack gap="md">
+              {reports.map(renderMobileReportCard)}
+              
+              {loading && (
+                <Box
+                  style={{
+                    padding: '1rem',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Stack align="center" gap="xs">
+                    <Loader size="md" />
+                    <Text size="sm" c="dimmed">Loading reports...</Text>
+                  </Stack>
+                </Box>
+              )}
+
+              {error && (
+                <Box
+                  style={{
+                    padding: '1rem',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text c="red" size="sm" fw={500}>{error}</Text>
+                </Box>
+              )}
+
+              {!loading && !error && reports.length === 0 && (
+                <Box
+                  style={{
+                    padding: '1rem',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text c="dimmed" size="sm">No reports found</Text>
+                </Box>
+              )}
+            </Stack>
+          ) : (
+            // Desktop table view
+            <>
+              <ScrollArea>
+                <Table
+                  striped
+                  highlightOnHover
+                  withTableBorder
+                  withColumnBorders
+                >
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th style={{ width: '150px' }}>Reported By</Table.Th>
+                      <Table.Th style={{ width: '250px' }}>Reason</Table.Th>
+                      <Table.Th style={{ width: '120px' }}>Status</Table.Th>
+                      <Table.Th style={{ width: '250px' }}>Target</Table.Th>
+                      <Table.Th style={{ width: '250px' }}>Actions</Table.Th>
+                      <Table.Th style={{ width: '200px' }}>Created At</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {reports.map((report: Report) => (
+                      <Table.Tr key={report.id}>
+                        <Table.Td>
+                          <Text size="md" fw={500}>{report.reportedBy.name}</Text>
+                          <Text size="sm" c="dimmed">{report.reportedBy.email}</Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="md">{report.reason}</Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Badge
+                            color={
+                              report.status === 'pending' ? 'yellow' 
+                              : report.status === 'reviewed' ? 'blue' 
+                              : report.status === 'blocked' ? 'red'
+                              : 'green'
+                            }
+                            variant="light"
+                            size="md"
+                          >
+                            {report.status}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td>
+                          {report.targetType === 'article' ? (
+                            <Group gap="xs">
+                              <Tooltip label="View Article">
+                                <ActionIcon 
+                                  variant="subtle" 
+                                  color="blue" 
+                                  onClick={() => handleViewArticle(report.targetId)} 
+                                  size="md"
+                                >
+                                  <IconArticle size={18} />
+                                </ActionIcon>
+                              </Tooltip>
+                              {report.status !== 'resolved' && report.status !== 'blocked' && (
+                                <Button
+                                  variant="outline"
+                                  color="red"
+                                  size="sm"
+                                  onClick={() => handleBlockArticle(report.targetId)}
+                                >
+                                  Block Article
+                                </Button>
+                              )}
+                            </Group>
+                          ) : (
+                            <Text size="md">User ID: {report.targetId}</Text>
+                          )}
+                        </Table.Td>
+                        <Table.Td>
+                          {(report.status === 'pending' || report.status === 'reviewed') && (
+                            <Group gap="xs" wrap="nowrap">
+                              {report.status === 'pending' && (
+                                <Button
+                                  variant="light"
+                                  color="green"
+                                  size="sm"
+                                  onClick={() => handleUpdateStatus(report.id, 'reviewed')}
+                                >
+                                  Mark Reviewed
+                                </Button>
+                              )}
                               <Button
                                 variant="outline"
-                                color="red"
-                                size={isMobile ? "xs" : "sm"}
-                                onClick={() => handleBlockArticle(report.targetId)}
+                                color="gray"
+                                size="sm"
+                                onClick={() => handleUpdateStatus(report.id, 'resolved')}
                               >
-                                Block Article
+                                Dismiss
                               </Button>
-                            )}
-                          </Group>
-                        ) : (
-                          <Text size={isMobile ? "sm" : "md"}>User ID: {report.targetId}</Text>
-                        )}
-                      </Table.Td>
-                      <Table.Td>
-                        {(report.status === 'pending' || report.status === 'reviewed') && (
-                          <Group gap="xs" wrap="nowrap">
-                            {report.status === 'pending' && (
-                              <Button
-                                variant="light"
-                                color="green"
-                                size={isMobile ? "xs" : "sm"}
-                                onClick={() => handleUpdateStatus(report.id, 'reviewed')}
-                              >
-                                Mark Reviewed
-                              </Button>
-                            )}
-                            <Button
-                              variant="outline"
-                              color="gray"
-                              size={isMobile ? "xs" : "sm"}
-                              onClick={() => handleUpdateStatus(report.id, 'resolved')}
-                            >
-                              Dismiss
-                            </Button>
-                          </Group>
-                        )}
-                        {report.status === 'blocked' && (
-                          <Text size={isMobile ? "sm" : "md"} c="red">Article Blocked</Text>
-                        )}
-                        {report.status === 'resolved' && (
-                          <Text size={isMobile ? "sm" : "md"} c="dimmed">No actions available</Text>
-                        )}
-                      </Table.Td>
-                      <Table.Td>
-                        <Text size={isMobile ? "sm" : "md"} c="dimmed">
-                          {formatDate(report.createdAt)}
-                        </Text>
-                      </Table.Td>
-                    </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
-            </Box>
-          </ScrollArea>
+                            </Group>
+                          )}
+                          {report.status === 'blocked' && (
+                            <Text size="md" c="red">Article Blocked</Text>
+                          )}
+                          {report.status === 'resolved' && (
+                            <Text size="md" c="dimmed">No actions available</Text>
+                          )}
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="md" c="dimmed">
+                            {formatDate(report.createdAt)}
+                          </Text>
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </ScrollArea>
 
-          {loading && (
-            <Box 
-              style={{ 
-                padding: '1rem',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderTop: '1px solid var(--mantine-color-gray-3)'
-              }}
-            >
-              <Stack align="center" gap="xs">
-                <Loader size="md" />
-                <Text size="sm" c="dimmed">Loading reports...</Text>
-              </Stack>
-            </Box>
-          )}
-          
-          {error && (
-            <Box 
-              style={{ 
-                padding: '1rem',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderTop: '1px solid var(--mantine-color-gray-3)'
-              }}
-            >
-              <Text c="red" size="sm">{error}</Text>
-            </Box>
-          )}
+              {loading && (
+                <Box 
+                  style={{ 
+                    padding: '1rem',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderTop: '1px solid var(--mantine-color-gray-3)'
+                  }}
+                >
+                  <Stack align="center" gap="xs">
+                    <Loader size="md" />
+                    <Text size="sm" c="dimmed">Loading reports...</Text>
+                  </Stack>
+                </Box>
+              )}
+              
+              {error && (
+                <Box 
+                  style={{ 
+                    padding: '1rem',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderTop: '1px solid var(--mantine-color-gray-3)'
+                  }}
+                >
+                  <Text c="red" size="sm">{error}</Text>
+                </Box>
+              )}
 
-          {!loading && !error && reports.length === 0 && (
-            <Box 
-              style={{ 
-                padding: '1rem',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderTop: '1px solid var(--mantine-color-gray-3)'
-              }}
-            >
-              <Text c="dimmed" size="sm">No reports found</Text>
-            </Box>
+              {!loading && !error && reports.length === 0 && (
+                <Box 
+                  style={{ 
+                    padding: '1rem',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderTop: '1px solid var(--mantine-color-gray-3)'
+                  }}
+                >
+                  <Text c="dimmed" size="sm">No reports found</Text>
+                </Box>
+              )}
+            </>
           )}
 
           {!loading && !error && reports.length > 0 && (
-            <Stack gap="md" mt="md" px={isMobile ? "sm" : "md"}>
-              <Group justify="space-between" wrap="wrap" gap="md">
+            <Stack gap="md" mt="md">
+              <Flex 
+                justify="space-between" 
+                align="center" 
+                wrap="wrap" 
+                gap="md"
+                direction={isMobile ? "column" : "row"}
+              >
                 <Select
-                  label="Reports per page"
+                  label={isMobile ? undefined : "Reports per page"}
+                  placeholder={isMobile ? "Reports per page" : undefined}
                   value={pageSize.toString()}
                   onChange={handlePageSizeChange}
                   data={[
@@ -376,7 +536,8 @@ export default function ReportsManagement() {
                     { value: '20', label: '20 per page' },
                     { value: '50', label: '50 per page' },
                   ]}
-                  style={{ width: '150px' }}
+                  style={{ width: isMobile ? '100%' : '150px' }}
+                  size={isMobile ? 'sm' : 'md'}
                 />
                 <Pagination
                   total={totalPages}
@@ -385,7 +546,7 @@ export default function ReportsManagement() {
                   withEdges
                   size={isMobile ? 'sm' : 'md'}
                 />
-              </Group>
+              </Flex>
             </Stack>
           )}
         </Paper>
@@ -404,6 +565,6 @@ export default function ReportsManagement() {
         confirmColor="red"
         loading={loading}
       />
-    </Container>
+    </Box>
   );
 } 

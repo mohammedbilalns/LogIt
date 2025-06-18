@@ -20,8 +20,11 @@ import {
   useMantineColorScheme,
   Pagination,
   Select,
+  Card,
+  Flex,
+  Divider,
 } from '@mantine/core';
-import { IconSearch, IconLock, IconLockOpen } from '@tabler/icons-react';
+import { IconSearch, IconLock, IconLockOpen, IconMail, IconUser, IconCalendar, IconBriefcase } from '@tabler/icons-react';
 import { AppDispatch, RootState } from '@/store';
 import { fetchUsers, setSearchQuery, blockUser, unblockUser } from '@slices/userManagementSlice';
 import { UserManagementState } from '@/types/user-management.types';
@@ -48,17 +51,12 @@ export default function UserManagement() {
     (state: RootState) => state.userManagement as UserManagementState
   );
 
+  // Calculate proper margin to account for sidebar
   const containerStyle = useMemo(() => ({
-    marginLeft: isOpen && !isMobile ? '200px' : '0px',
+    marginLeft: isOpen && !isMobile ? '266px' : '0px', // 250px sidebar + 1rem (16px) left position
     transition: 'margin-left 0.3s ease',
-    width: isOpen && !isMobile ? 'calc(100% - 200px)' : '100%',
+    width: isOpen && !isMobile ? 'calc(100% - 266px)' : '100%',
     maxWidth: '100%',
-    ...(isMobile && {
-      marginLeft: '0',
-      width: '100%',
-      padding: '1rem',
-      maxWidth: '100%',
-    }),
   }), [isOpen, isMobile]);
 
   const handleBlockUser = useCallback(async (userId: string, isBlocked: boolean) => {
@@ -135,15 +133,86 @@ export default function UserManagement() {
     dispatch(fetchUsers(fetchParams));
   }, [dispatch, fetchParams]);
 
-  const containerPadding = isMobile ? "md" : "xl";
+  // Mobile card view for users
+  const renderMobileUserCard = (user: any) => (
+    <Card key={user._id} shadow="xs" p="md" withBorder mb="sm">
+      <Stack gap="sm">
+        <Group justify="space-between" align="flex-start">
+          <Group gap="sm">
+            <Avatar
+              src={user.profileImage}
+              alt={user.name}
+              size="lg"
+              radius="xl"
+            />
+            <Stack gap={4}>
+              <Text fw={600} size="sm" lineClamp={1}>
+                {user.name}
+              </Text>
+              <Group gap="xs">
+                <IconMail size={14} />
+                <Text size="xs" c="dimmed" lineClamp={1} style={{ maxWidth: '150px' }}>
+                  {user.email}
+                </Text>
+              </Group>
+            </Stack>
+          </Group>
+          <Tooltip label={user.isBlocked ? 'Unblock User' : 'Block User'}>
+            <ActionIcon
+              onClick={() => handleBlockUser(user._id, user.isBlocked)}
+              color={user.isBlocked ? 'green' : 'red'}
+              variant="light"
+              size="sm"
+            >
+              {user.isBlocked ? <IconLockOpen size={16} /> : <IconLock size={16} />}
+            </ActionIcon>
+          </Tooltip>
+        </Group>
+
+        <Divider />
+
+        <Group gap="lg" wrap="wrap">
+          <Group gap="xs">
+            <IconBriefcase size={14} />
+            <Text size="xs" c="dimmed">
+              {user.profession || 'Not specified'}
+            </Text>
+          </Group>
+
+          <Group gap="xs">
+            <IconUser size={14} />
+            <Badge
+              variant="light"
+              color={user.provider === 'google' ? 'blue' : 'gray'}
+              size="xs"
+            >
+              {user.provider}
+            </Badge>
+          </Group>
+
+          <Group gap="xs">
+            <IconCalendar size={14} />
+            <Text size="xs" c="dimmed">
+              {formatDate(user.createdAt)}
+            </Text>
+          </Group>
+        </Group>
+
+        <Group justify="flex-end">
+          <Badge
+            color={user.isBlocked ? 'red' : 'green'}
+            variant="light"
+            size="sm"
+          >
+            {user.isBlocked ? 'Blocked' : 'Active'}
+          </Badge>
+        </Group>
+      </Stack>
+    </Card>
+  );
 
   return (
-    <Container
-      size="xl"
-      py="xl"
-      px={containerPadding}
-      style={containerStyle}
-    >
+    <Box style={containerStyle}>
       <Stack gap="lg">
         <Paper
           shadow="xs"
@@ -167,148 +236,200 @@ export default function UserManagement() {
         </Paper>
 
         <Paper shadow="xs" p="md" withBorder>
-          <ScrollArea>
-            <Box style={{
-              minWidth: isMobile ? 650 : 800,
-              ['@media (max-width: 768px)']: {
-                minWidth: 650,
-              }
-            }}>
-              <Table
-                striped
-                highlightOnHover
-                withTableBorder
-                withColumnBorders
-              >
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th style={{ width: isMobile ? '60px' : '70px' }}>Image</Table.Th>
-                    <Table.Th style={{ width: isMobile ? '140px' : '180px' }}>Name</Table.Th>
-                    <Table.Th style={{ width: isMobile ? '180px' : '220px' }}>Email</Table.Th>
-                    <Table.Th style={{ width: isMobile ? '120px' : '150px' }}>Profession</Table.Th>
-                    <Table.Th style={{ width: isMobile ? '90px' : '100px' }}>Provider</Table.Th>
-                    <Table.Th style={{ width: isMobile ? '90px' : '100px' }}>Status</Table.Th>
-                    <Table.Th style={{ width: isMobile ? '100px' : '120px' }}>Joined</Table.Th>
-                    <Table.Th style={{ width: isMobile ? '80px' : '100px' }}>Action</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {users.map((user) => (
-                    <Table.Tr key={user._id}>
-                      <Table.Td>
-                        <Avatar
-                          src={user.profileImage}
-                          alt={user.name}
-                          size={isMobile ? "md" : "lg"}
-                          radius="xl"
-                        />
-                      </Table.Td>
-                      <Table.Td>
-                        <Text size={isMobile ? "sm" : "md"} fw={500} lineClamp={1}>
-                          {user.name}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text size={isMobile ? "sm" : "md"} c="dimmed" lineClamp={1}>
-                          {user.email}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text size={isMobile ? "sm" : "md"} lineClamp={1}>
-                          {user.profession || 'Not specified'}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Badge
-                          variant="light"
-                          color={user.provider === 'google' ? 'blue' : 'gray'}
-                          size={isMobile ? "md" : "lg"}
-                        >
-                          {user.provider}
-                        </Badge>
-                      </Table.Td>
-                      <Table.Td>
-                        <Badge
-                          color={user.isBlocked ? 'red' : 'green'}
-                          variant="light"
-                          size={isMobile ? "md" : "lg"}
-                        >
-                          {user.isBlocked ? 'Blocked' : 'Active'}
-                        </Badge>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text size={isMobile ? "sm" : "md"} c="dimmed">
-                          {formatDate(user.createdAt)}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Tooltip label={user.isBlocked ? 'Unblock User' : 'Block User'}>
-                          <ActionIcon
-                            onClick={() => handleBlockUser(user._id, user.isBlocked)}
-                            color={user.isBlocked ? 'green' : 'red'}
-                            variant="light"
-                          >
-                            {user.isBlocked ? <IconLockOpen size={16} /> : <IconLock size={16} />}
-                          </ActionIcon>
-                        </Tooltip>
-                      </Table.Td>
+          {isMobile ? (
+            // Mobile card view
+            <Stack gap="md">
+              {users.map(renderMobileUserCard)}
+
+              {loading && (
+                <Box
+                  style={{
+                    padding: '1rem',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Stack align="center" gap="xs">
+                    <Loader size="md" />
+                    <Text size="sm" c="dimmed">Loading users...</Text>
+                  </Stack>
+                </Box>
+              )}
+
+              {error && (
+                <Box
+                  style={{
+                    padding: '1rem',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text c="red" size="sm" fw={500}>{error}</Text>
+                </Box>
+              )}
+
+              {!loading && !error && users.length === 0 && (
+                <Box
+                  style={{
+                    padding: '1rem',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text c="dimmed" size="sm">No users found</Text>
+                </Box>
+              )}
+            </Stack>
+          ) : (
+            // Desktop table view
+            <>
+              <ScrollArea>
+                <Table
+                  striped
+                  highlightOnHover
+                  withTableBorder
+                  withColumnBorders
+                >
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th style={{ width: '70px' }}>Image</Table.Th>
+                      <Table.Th style={{ width: '180px' }}>Name</Table.Th>
+                      <Table.Th style={{ width: '220px' }}>Email</Table.Th>
+                      <Table.Th style={{ width: '150px' }}>Profession</Table.Th>
+                      <Table.Th style={{ width: '100px' }}>Provider</Table.Th>
+                      <Table.Th style={{ width: '100px' }}>Status</Table.Th>
+                      <Table.Th style={{ width: '120px' }}>Joined</Table.Th>
+                      <Table.Th style={{ width: '100px' }}>Action</Table.Th>
                     </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
-            </Box>
-          </ScrollArea>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {users.map((user) => (
+                      <Table.Tr key={user._id}>
+                        <Table.Td>
+                          <Avatar
+                            src={user.profileImage}
+                            alt={user.name}
+                            size="lg"
+                            radius="xl"
+                          />
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="md" fw={500} lineClamp={1}>
+                            {user.name}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="md" c="dimmed" lineClamp={1}>
+                            {user.email}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="md" lineClamp={1}>
+                            {user.profession || 'Not specified'}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Badge
+                            variant="light"
+                            color={user.provider === 'google' ? 'blue' : 'gray'}
+                            size="lg"
+                          >
+                            {user.provider}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td>
+                          <Badge
+                            color={user.isBlocked ? 'red' : 'green'}
+                            variant="light"
+                            size="lg"
+                          >
+                            {user.isBlocked ? 'Blocked' : 'Active'}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="md" c="dimmed">
+                            {formatDate(user.createdAt)}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Tooltip label={user.isBlocked ? 'Unblock User' : 'Block User'}>
+                            <ActionIcon
+                              onClick={() => handleBlockUser(user._id, user.isBlocked)}
+                              color={user.isBlocked ? 'green' : 'red'}
+                              variant="light"
+                            >
+                              {user.isBlocked ? <IconLockOpen size={16} /> : <IconLock size={16} />}
+                            </ActionIcon>
+                          </Tooltip>
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </ScrollArea>
 
-          {loading && (
-            <Box
-              style={{
-                padding: '1rem',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderTop: '1px solid var(--mantine-color-gray-3)'
-              }}
-            >
-              <Stack align="center" gap="xs">
-                <Loader size="md" />
-                <Text size="sm" c="dimmed">Loading users...</Text>
-              </Stack>
-            </Box>
-          )}
+              {loading && (
+                <Box
+                  style={{
+                    padding: '1rem',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderTop: '1px solid var(--mantine-color-gray-3)'
+                  }}
+                >
+                  <Stack align="center" gap="xs">
+                    <Loader size="md" />
+                    <Text size="sm" c="dimmed">Loading users...</Text>
+                  </Stack>
+                </Box>
+              )}
 
-          {error && (
-            <Box
-              style={{
-                padding: '1rem',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderTop: '1px solid var(--mantine-color-gray-3)'
-              }}
-            >
-              <Text c="red" size="sm" fw={500}>{error}</Text>
-            </Box>
-          )}
+              {error && (
+                <Box
+                  style={{
+                    padding: '1rem',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderTop: '1px solid var(--mantine-color-gray-3)'
+                  }}
+                >
+                  <Text c="red" size="sm" fw={500}>{error}</Text>
+                </Box>
+              )}
 
-          {!loading && !error && users.length === 0 && (
-            <Box
-              style={{
-                padding: '1rem',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderTop: '1px solid var(--mantine-color-gray-3)'
-              }}
-            >
-              <Text c="dimmed" size="sm">No users found</Text>
-            </Box>
+              {!loading && !error && users.length === 0 && (
+                <Box
+                  style={{
+                    padding: '1rem',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderTop: '1px solid var(--mantine-color-gray-3)'
+                  }}
+                >
+                  <Text c="dimmed" size="sm">No users found</Text>
+                </Box>
+              )}
+            </>
           )}
 
           {!loading && !error && users.length > 0 && (
-            <Stack gap="md" mt="md" px={isMobile ? "sm" : "md"}>
-              <Group justify="space-between" wrap="wrap" gap="md">
+            <Stack gap="md" mt="md">
+              <Flex
+                justify="space-between"
+                align="center"
+                wrap="wrap"
+                gap="md"
+                direction={isMobile ? "column" : "row"}
+              >
                 <Select
-                  label="Page size"
+                  label={isMobile ? undefined : "Page size"}
+                  placeholder={isMobile ? "Page size" : undefined}
                   value={pageSize.toString()}
                   onChange={handlePageSizeChange}
                   data={[
@@ -317,7 +438,8 @@ export default function UserManagement() {
                     { value: '20', label: '20 per page' },
                     { value: '50', label: '50 per page' },
                   ]}
-                  style={{ width: '150px' }}
+                  style={{ width: isMobile ? '100%' : '150px' }}
+                  size={isMobile ? 'sm' : 'md'}
                 />
                 <Pagination
                   total={totalPages}
@@ -326,7 +448,7 @@ export default function UserManagement() {
                   withEdges
                   size={isMobile ? 'sm' : 'md'}
                 />
-              </Group>
+              </Flex>
             </Stack>
           )}
         </Paper>
@@ -345,6 +467,6 @@ export default function UserManagement() {
         confirmColor={userToBlock?.isBlocked ? "green" : "red"}
         loading={loading}
       />
-    </Container>
+    </Box>
   );
 } 

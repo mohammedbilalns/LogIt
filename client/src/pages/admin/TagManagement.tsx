@@ -23,6 +23,7 @@ import {
   Tooltip,
   useMantineColorScheme,
   useMantineTheme,
+  Flex,
 } from '@mantine/core';
 import { useDebouncedValue, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -61,16 +62,10 @@ export default function TagManagement() {
   } = useSelector((state: RootState) => state.tagManagement);
 
   const containerStyle = useMemo(() => ({
-    marginLeft: isOpen && !isMobile ? '200px' : '0px',
+    marginLeft: isOpen && !isMobile ? '266px' : '0px',
     transition: 'margin-left 0.3s ease',
-    width: isOpen && !isMobile ? 'calc(100% - 200px)' : '100%',
+    width: isOpen && !isMobile ? 'calc(100% - 266px)' : '100%',
     maxWidth: '100%',
-    ...(isMobile && {
-      marginLeft: '0',
-      width: '100%',
-      padding: '1rem',
-      maxWidth: '100%',
-    }),
   }), [isOpen, isMobile]);
 
   const handlePromoteUnpromote = useCallback(async (tagId: string, promote: boolean) => {
@@ -155,15 +150,8 @@ export default function TagManagement() {
     dispatch(fetchTagsForManagement(promotedTagsParams));
   }, [dispatch, promotedTagsParams]);
 
-  const containerPadding = isMobile ? 'md' : 'xl';
-
   return (
-    <Container
-      size="xl"
-      py="xl"
-      px={containerPadding}
-      style={containerStyle}
-    >
+    <Box style={containerStyle}>
       <Stack gap="lg">
         <Paper
           shadow="xs"
@@ -256,59 +244,50 @@ export default function TagManagement() {
             </Group>
 
             <ScrollArea>
-              <Box
-                style={{
-                  minWidth: isMobile ? 600 : 800,
-                  ['@media (max-width: 768px)']: {
-                    minWidth: 600,
-                  },
-                }}
-              >
-                <Table striped highlightOnHover withTableBorder withColumnBorders>
-                  <Table.Thead>
-                    <Table.Tr>
-                      <Table.Th style={{ width: isMobile ? '180px' : '250px' }}>Tag</Table.Th>
-                      <Table.Th style={{ width: isMobile ? '120px' : '150px' }}>
-                        Usage Count
-                      </Table.Th>
-                      <Table.Th style={{ width: isMobile ? '120px' : '150px' }}>Status</Table.Th>
-                      <Table.Th style={{ width: isMobile ? '100px' : '120px' }}>Action</Table.Th>
+              <Table striped highlightOnHover withTableBorder withColumnBorders>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th style={{ width: '250px' }}>Tag</Table.Th>
+                    <Table.Th style={{ width: '150px' }}>
+                      Usage Count
+                    </Table.Th>
+                    <Table.Th style={{ width: '150px' }}>Status</Table.Th>
+                    <Table.Th style={{ width: '120px' }}>Action</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {tags.map((tag) => (
+                    <Table.Tr key={tag._id}>
+                      <Table.Td>
+                        <Text size="md" fw={500} lineClamp={1}>
+                          {tag.name}
+                        </Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="md">{tag.usageCount}</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Badge
+                          color={tag.promoted ? 'green' : 'gray'}
+                          variant="light"
+                          size="lg"
+                        >
+                          {tag.promoted ? 'Promoted' : 'Not Promoted'}
+                        </Badge>
+                      </Table.Td>
+                      <Table.Td>
+                        <Button
+                          color={tag.promoted ? 'red' : 'blue'}
+                          size="sm"
+                          onClick={() => handlePromoteUnpromote(tag._id, !tag.promoted)}
+                        >
+                          {tag.promoted ? 'UnPromote' : 'Promote'}
+                        </Button>
+                      </Table.Td>
                     </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {tags.map((tag) => (
-                      <Table.Tr key={tag._id}>
-                        <Table.Td>
-                          <Text size={isMobile ? 'sm' : 'md'} fw={500} lineClamp={1}>
-                            {tag.name}
-                          </Text>
-                        </Table.Td>
-                        <Table.Td>
-                          <Text size={isMobile ? 'sm' : 'md'}>{tag.usageCount}</Text>
-                        </Table.Td>
-                        <Table.Td>
-                          <Badge
-                            color={tag.promoted ? 'green' : 'gray'}
-                            variant="light"
-                            size={isMobile ? 'md' : 'lg'}
-                          >
-                            {tag.promoted ? 'Promoted' : 'Not Promoted'}
-                          </Badge>
-                        </Table.Td>
-                        <Table.Td>
-                          <Button
-                            color={tag.promoted ? 'red' : 'blue'}
-                            size={isMobile ? 'xs' : 'sm'}
-                            onClick={() => handlePromoteUnpromote(tag._id, !tag.promoted)}
-                          >
-                            {tag.promoted ? 'UnPromote' : 'Promote'}
-                          </Button>
-                        </Table.Td>
-                      </Table.Tr>
-                    ))}
-                  </Table.Tbody>
-                </Table>
-              </Box>
+                  ))}
+                </Table.Tbody>
+              </Table>
             </ScrollArea>
 
             {loadingAllTags && tags.length === 0 ? (
@@ -357,10 +336,17 @@ export default function TagManagement() {
                 </Text>
               </Box>
             ) : (
-              <Stack gap="md" mt="md" px={isMobile ? 'sm' : 'md'}>
-                <Group justify="space-between" wrap="wrap" gap="md">
+              <Stack gap="md" mt="md">
+                <Flex 
+                  justify="space-between" 
+                  align="center" 
+                  wrap="wrap" 
+                  gap="md"
+                  direction={isMobile ? "column" : "row"}
+                >
                   <Select
-                    label="Page size"
+                    label={isMobile ? undefined : "Page size"}
+                    placeholder={isMobile ? "Page size" : undefined}
                     value={pageSize.toString()}
                     onChange={handlePageSizeChange}
                     data={[
@@ -369,7 +355,8 @@ export default function TagManagement() {
                       { value: '20', label: '20 per page' },
                       { value: '50', label: '50 per page' },
                     ]}
-                    style={{ width: '150px' }}
+                    style={{ width: isMobile ? '100%' : '150px' }}
+                    size={isMobile ? 'sm' : 'md'}
                   />
                   <Pagination
                     total={Math.ceil(total / pageSize)}
@@ -378,12 +365,12 @@ export default function TagManagement() {
                     withEdges
                     size={isMobile ? 'sm' : 'md'}
                   />
-                </Group>
+                </Flex>
               </Stack>
             )}
           </Stack>
         </Paper>
       </Stack>
-    </Container>
+    </Box>
   );
 }
