@@ -1,12 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import env from "../../../config/env";
-import { IUserService } from "../../../domain/services/user.service.interface";
-import { UserService } from "../../../application/usecases/usermanagement/user.service";
+import { IAuthCheckService } from "../../../domain/services/auth-check.service.interface";
+import { AuthCheckService } from "../../../application/usecases/auth/auth-check.service";
 import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
-import { MongoArticleRepository } from "../../../infrastructure/repositories/article.repository";
-import { MongoLogRepository } from "../../../infrastructure/repositories/log.repository";
-import { BcryptCryptoProvider } from "../../../application/providers/crypto.provider";
 import { HttpStatus } from "../../../config/statusCodes";
 import { HttpResponse } from "../../../config/responseMessages";
 
@@ -20,7 +17,7 @@ declare module "express" {
   }
 }
 
-export const createAuthMiddleware = (userService: IUserService, jwtSecret: string = env.JWT_SECRET) => {
+export const createAuthMiddleware = (authCheckService: IAuthCheckService, jwtSecret: string = env.JWT_SECRET) => {
   return async (
     req: Request,
     res: Response,
@@ -45,7 +42,7 @@ export const createAuthMiddleware = (userService: IUserService, jwtSecret: strin
 
       try {
         const { id: userId } = decoded;
-        await userService.checkUserBlocked(userId);
+        await authCheckService.checkUserBlocked(userId);
         req.user = decoded;
         next();
       } catch (error) {
@@ -84,18 +81,9 @@ export const createAuthMiddleware = (userService: IUserService, jwtSecret: strin
 
 export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
   const userRepository = new MongoUserRepository();
-  const articleRepository = new MongoArticleRepository();
-  const logRepository = new MongoLogRepository();
-  const cryptoProvider = new BcryptCryptoProvider();
-  
-  const userService: IUserService = new UserService(
-    userRepository,
-    articleRepository,
-    logRepository,
-    cryptoProvider
-  );
+  const authCheckService: IAuthCheckService = new AuthCheckService(userRepository);
 
-  return createAuthMiddleware(userService, jwtSecret);
+  return createAuthMiddleware(authCheckService, jwtSecret);
 };
 
 export const authorizeRoles = (
