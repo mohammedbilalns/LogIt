@@ -102,8 +102,13 @@ export class AuthController {
   refresh = async (req: Request, res: Response): Promise<void> => {
     const accessToken = req.cookies.accessToken;
     if (accessToken) {
-      const user = await this.authService.validateAccessToken(accessToken);
-      this.setCsrfToken(res);
+      const { user, csrfToken } = await this.authService.validateAccessToken(accessToken);
+      res.cookie("csrfToken", csrfToken, {
+        ...COOKIE_OPTIONS,
+        httpOnly: false,
+        maxAge: ACCESS_COOKIE_EXPIRY,
+      });
+      res.setHeader("x-csrf-token", csrfToken);
       res.status(HttpStatus.OK).json({
         message: HttpResponse.VALID_TOKEN,
         user,

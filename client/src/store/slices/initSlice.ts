@@ -17,12 +17,13 @@ export const initializeApp = createAsyncThunk(
   'init/initialize',
   async (_, { dispatch, rejectWithValue }) => {
     try {
-      await api.get(API_ROUTES.AUTH.CSRF);
-      await dispatch(checkAuth());
+        await api.get(API_ROUTES.AUTH.CSRF);
+        await dispatch(checkAuth()).unwrap();
+      
       return true;
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to initialize app';
-      return rejectWithValue(message);
+      console.log('App initialization completed (no valid session)');
+      return true;
     }
   }
 );

@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { AppDispatch } from '@/store';
+import { logout } from '@/store/slices/authSlice';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -81,7 +82,7 @@ export const setupAxiosInterceptors = (store: { dispatch: AppDispatch }) => {
         status === 403 &&
         message === 'User is blocked'
       ) {
-        store.dispatch({ type: 'auth/logout' });
+        store.dispatch(logout());
         window.location.href = '/login?error=blocked';
         return Promise.reject(error);
       }

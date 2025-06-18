@@ -25,9 +25,8 @@ router.get(
   "/by-ids",
   asyncHandler((req, res) => tagController.getTagsByIds(req, res))
 );
-
-router.use(asyncHandler((req, res, next) => csrfMiddleware()(req, res, next)));
 router.use(asyncHandler((req, res, next) => authMiddleware()(req, res, next)));
+router.use(asyncHandler((req, res, next) => csrfMiddleware()(req, res, next)));
 
 router.post(
   "/",

@@ -153,14 +153,24 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
                     }}
                   >
                     <Group gap="md">
-                      <ActionIcon
-                        variant={isActive ? 'filled' : 'light'}
-                        size="lg"
-                        color="blue"
-                        radius="md"
+                      <Box
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '0.5rem',
+                          backgroundColor: isActive
+                            ? 'var(--mantine-color-blue-6)'
+                            : isDark
+                              ? 'rgba(0, 123, 255, 0.1)'
+                              : 'rgba(0, 123, 255, 0.05)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: isActive ? 'white' : 'var(--mantine-color-blue-6)',
+                        }}
                       >
                         <item.icon size={20} />
-                      </ActionIcon>
+                      </Box>
                       <Text
                         size="sm"
                         fw={isActive ? 600 : 400}

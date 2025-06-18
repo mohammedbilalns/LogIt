@@ -24,7 +24,7 @@ interface ArticleRowProps {
     title: string;
     content: string;
     author: string;
-    featured_image?: string;
+    featured_image?: string | null;
     tagNames: string[];
     createdAt: string;
   };

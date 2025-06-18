@@ -28,7 +28,6 @@ export default function ArticlesPage() {
   const observerTarget = useRef<HTMLDivElement>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchTags, setSearchTags] = useState<string[]>([]);
-  const userId = useSelector((state: RootState) => state.auth.user?._id);
 
   const filters = useMemo(
     () => ({
@@ -148,3 +147,4 @@ export default function ArticlesPage() {
     </Box>
   );
 }
+
