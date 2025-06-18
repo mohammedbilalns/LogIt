@@ -94,7 +94,9 @@ export default function Navbar() {
                     ? 'rgba(36, 36, 40, 0.6)'
                     : 'rgba(255, 255, 255, 0.6)',
                   backdropFilter: 'blur(8px)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  border: isDark 
+                    ? '1px solid rgba(255, 255, 255, 0.2)'
+                    : '1px solid rgba(0, 0, 0, 0.15)',
                 },
               }}
             />
