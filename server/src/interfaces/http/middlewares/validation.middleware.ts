@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { AnyZodObject, ZodError } from "zod";
 import { HttpStatus } from "../../../config/statusCodes";
+import { logger } from "../../../utils/logger";
 
 export const validate = (schema: AnyZodObject) => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -10,6 +11,7 @@ export const validate = (schema: AnyZodObject) => {
     } catch (error) {
       if (error instanceof ZodError) {
         const errorMessage = error.errors.map((err) => err.message).join(", ");
+        logger.red("validation error", errorMessage);
         res.status(HttpStatus.BAD_REQUEST).json({
           message: errorMessage,
         });

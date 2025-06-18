@@ -6,9 +6,9 @@ export class AdminController {
   constructor(private userManagementService: IUserManagementService) {}
 
   fetchUsers = async (req: Request, res: Response): Promise<void> => {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
-    const search = (req.query.search as string) || "";
+    const page = Number(req.query.page as string) || 1;
+    const limit = Number(req.query.limit as string) || 10;
+    const search = typeof req.query.search === "string" ? req.query.search : "";
 
     const result = await this.userManagementService.fetchUsers({
       page,

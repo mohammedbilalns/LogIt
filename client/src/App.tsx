@@ -1,14 +1,14 @@
-import  { useEffect, Suspense } from 'react';
-import { MantineProvider, LoadingOverlay } from '@mantine/core';
-import { Notifications } from '@mantine/notifications';
-import { RouterProvider } from 'react-router-dom';
-import { Provider, useDispatch, useSelector } from 'react-redux';
+import { Suspense, useEffect } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { store, AppDispatch, RootState } from '@/store';
-import { router } from '@/Router';
-import { theme } from '@/theme';
 import { initializeApp } from '@slices/initSlice';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import { RouterProvider } from 'react-router-dom';
+import { LoadingOverlay, MantineProvider } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import { setupAxiosInterceptors } from '@/api/axios';
+import { router } from '@/Router';
+import { AppDispatch, RootState, store } from '@/store';
+import { theme } from '@/theme';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import '@mantine/dates/styles.css';
@@ -33,7 +33,7 @@ function AppContent() {
   }, [isInitialized]);
 
   if (!isInitialized) {
-    console.log("App not initialized showing loading ui");
+    console.log('App not initialized showing loading ui');
     return <LoadingOverlay />;
   }
 

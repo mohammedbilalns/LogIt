@@ -56,20 +56,19 @@ router.post(
   asyncHandler((req, res) => articleController.createArticle(req, res))
 );
 
-router.put(
-  "/:id",
+router.use(
   asyncHandler((req, res, next) =>
     authorizeRoles("user", "admin", "superadmin")(req, res, next)
-  ),
+  )
+);
+router.put(
+  "/:id",
   validate(updateArticleSchema),
   asyncHandler((req, res) => articleController.updateArticle(req, res))
 );
 
 router.delete(
   "/:id",
-  asyncHandler((req, res, next) =>
-    authorizeRoles("user", "admin", "superadmin")(req, res, next)
-  ),
   asyncHandler((req, res) => articleController.deleteArticle(req, res))
 );
 

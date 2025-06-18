@@ -17,7 +17,10 @@ declare module "express" {
   }
 }
 
-export const createAuthMiddleware = (authCheckService: IAuthCheckService, jwtSecret: string = env.JWT_SECRET) => {
+export const createAuthMiddleware = (
+  authCheckService: IAuthCheckService,
+  jwtSecret: string = env.JWT_SECRET
+) => {
   return async (
     req: Request,
     res: Response,
@@ -81,7 +84,9 @@ export const createAuthMiddleware = (authCheckService: IAuthCheckService, jwtSec
 
 export const authMiddleware = (jwtSecret: string = env.JWT_SECRET) => {
   const userRepository = new MongoUserRepository();
-  const authCheckService: IAuthCheckService = new AuthCheckService(userRepository);
+  const authCheckService: IAuthCheckService = new AuthCheckService(
+    userRepository
+  );
 
   return createAuthMiddleware(authCheckService, jwtSecret);
 };

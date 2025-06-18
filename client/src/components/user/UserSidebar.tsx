@@ -1,28 +1,28 @@
 import {
-  ActionIcon,
-  Paper,
-  Stack,
-  useMantineColorScheme,
-  Group,
-  Text,
-  UnstyledButton,
-  Box,
-  Divider,
-  Avatar,
-  Portal,
-} from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
-import {
-  IconHome,
   IconArticle,
-  IconNotes,
+  IconChevronLeft,
+  IconHome,
+  IconMenu2,
   IconMessage,
   IconNetwork,
-  IconMenu2,
-  IconChevronLeft,
+  IconNotes,
 } from '@tabler/icons-react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  ActionIcon,
+  Avatar,
+  Box,
+  Divider,
+  Group,
+  Paper,
+  Portal,
+  Stack,
+  Text,
+  UnstyledButton,
+  useMantineColorScheme,
+} from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { RootState } from '@/store';
 import { toggleSidebar } from '@/store/slices/uiSlice';
 
@@ -110,7 +110,7 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
           p="md"
           style={{
             position: 'fixed',
-            left: isMobile ? (isOpen ? '1rem' : '-300px') : (isOpen ? '1rem' : '-300px'),
+            left: isMobile ? (isOpen ? '1rem' : '-300px') : isOpen ? '1rem' : '-300px',
             top: '5rem',
             width: '250px',
             height: 'calc(100vh - 6rem)',
@@ -124,9 +124,7 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
             backgroundColor: isDark ? 'rgba(30, 30, 30, 0.6)' : 'rgba(255, 255, 255, 0.6)',
             backdropFilter: 'blur(12px)',
             border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
-            boxShadow: isDark
-              ? '0 8px 24px rgba(0,0,0,0.4)'
-              : '0 8px 24px rgba(0,0,0,0.15)',
+            boxShadow: isDark ? '0 8px 24px rgba(0,0,0,0.4)' : '0 8px 24px rgba(0,0,0,0.15)',
           }}
         >
           <Stack gap="xs" style={{ overflowY: 'auto' }}>
@@ -135,8 +133,8 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
                 item.path === '/articles'
                   ? location.pathname.startsWith('/articles')
                   : item.path === '/logs'
-                  ? location.pathname.startsWith('/logs')
-                  : location.pathname === item.path;
+                    ? location.pathname.startsWith('/logs')
+                    : location.pathname === item.path;
 
               return (
                 <Group key={item.label} justify="space-between" align="center" wrap="nowrap">
@@ -167,11 +165,7 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
                         size="sm"
                         fw={isActive ? 600 : 400}
                         c={
-                          isActive
-                            ? isDark
-                              ? 'white'
-                              : 'var(--mantine-color-blue-9)'
-                            : undefined
+                          isActive ? (isDark ? 'white' : 'var(--mantine-color-blue-9)') : undefined
                         }
                       >
                         {item.label}

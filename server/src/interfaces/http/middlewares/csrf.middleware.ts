@@ -29,7 +29,6 @@ export const setCsrfToken = (
   next: NextFunction
 ) => {
   const token = generateToken();
-  console.log("Setting CSRF token:", token);
   res.cookie("csrfToken", token, {
     httpOnly: false,
     secure: process.env.NODE_ENV === "production",
