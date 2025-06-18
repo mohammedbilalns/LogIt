@@ -4,6 +4,7 @@ import { IArticleTagRepository } from "../../../domain/repositories/article-tag.
 import { IUserRepository } from "../../../domain/repositories/user.repository.interface";
 import { IReportRepository } from "../../../domain/repositories/report.repository.interface";
 import { IArticleService } from "../../../domain/services/article.service.interface";
+import { Article } from "../../../domain/entities/article.entity";
 import {
   CreateArticleData,
   UpdateArticleData,
@@ -25,6 +26,43 @@ export class ArticleService implements IArticleService {
     private reportRepository: IReportRepository
   ) {}
 
+  private extractImagesFromContent(content: string): string[] {
+    const images: string[] = [];
+
+    if (!content || typeof content !== "string") {
+      return images;
+    }
+
+    // Extract from HTML img tags
+    const imgTagRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+    let match;
+    while ((match = imgTagRegex.exec(content)) !== null) {
+      if (match[1] && match[1].trim()) {
+        images.push(match[1].trim());
+      }
+    }
+    return [...new Set(images)].filter((img) => img.length > 0);
+  }
+
+  private determineFeaturedImage(
+    content: string,
+    currentFeaturedImage?: string | null
+  ): string | null {
+    const contentImages = this.extractImagesFromContent(content);
+
+    if (contentImages.length === 0) {
+      return null;
+    }
+
+    if (currentFeaturedImage && contentImages.includes(currentFeaturedImage)) {
+      return currentFeaturedImage;
+    }
+    if (currentFeaturedImage && !contentImages.includes(currentFeaturedImage)) {
+      return contentImages[0];
+    }
+    return contentImages[0];
+  }
+
   async createArticle(
     article: CreateArticleData,
     tagIds: string[]
@@ -32,8 +70,13 @@ export class ArticleService implements IArticleService {
     if (!article.authorId || !article.title || !article.content) {
       throw new MissingFieldsError();
     }
+    const createData = { ...article };
 
-    const newArticle = await this.articleRepository.create(article);
+    if (!createData.featured_image) {
+      createData.featured_image = this.determineFeaturedImage(article.content);
+    }
+
+    const newArticle = await this.articleRepository.create(createData);
     // Create article-tag relationships
     for (const tagId of tagIds) {
       const tag = await this.tagRepository.findById(tagId);
@@ -74,7 +117,27 @@ export class ArticleService implements IArticleService {
     article: UpdateArticleData,
     tagIds?: string[]
   ): Promise<ArticleResponse | null> {
-    const updatedArticle = await this.articleRepository.update(id, article);
+    const currentArticle = await this.articleRepository.findById(id);
+    if (!currentArticle) return null;
+
+    const updateData: Partial<Article> = { ...article };
+
+    if (article.content !== undefined) {
+      const newFeaturedImage = this.determineFeaturedImage(
+        article.content,
+        currentArticle.featured_image
+      );
+
+      updateData.featured_image = newFeaturedImage;
+    } else if (
+      article.featured_image === null ||
+      article.featured_image === undefined
+    ) {
+      if (currentArticle.featured_image) {
+        updateData.featured_image = null;
+      }
+    }
+    const updatedArticle = await this.articleRepository.update(id, updateData);
     if (!updatedArticle) return null;
 
     if (tagIds) {
@@ -146,7 +209,8 @@ export class ArticleService implements IArticleService {
     articleId: string
   ): Promise<ArticleResponse> {
     const article = await this.articleRepository.findById(articleId);
-    if (!article) throw new ResourceNotFoundError(HttpResponse.ARTICLE_NOT_FOUND);
+    if (!article)
+      throw new ResourceNotFoundError(HttpResponse.ARTICLE_NOT_FOUND);
 
     const articleTags = await this.articleTagRepository.findByArticleId(
       articleId
@@ -179,4 +243,3 @@ export class ArticleService implements IArticleService {
     await this.articleRepository.update(articleId, { isActive: false });
   }
 }
- 

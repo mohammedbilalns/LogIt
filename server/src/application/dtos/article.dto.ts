@@ -5,13 +5,13 @@ export interface CreateArticleData {
   title: string;
   content: string;
   isActive: boolean;
-  featured_image?: string;
+  featured_image?: string | null;
 }
 
 export interface UpdateArticleData {
   title?: string;
   content?: string;
-  featured_image?: string;
+  featured_image?: string | null;
 }
 
 export interface GetArticlesParams {

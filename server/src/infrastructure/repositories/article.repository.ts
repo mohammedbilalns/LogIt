@@ -106,4 +106,24 @@ export class MongoArticleRepository
     void tagId;
     return Promise.resolve();
   }
+
+  async update(id: string, data: Partial<Article>): Promise<Article | null> {
+    if (data.featured_image === null) {
+      const updateObj: Record<string, unknown> = {
+        $unset: { featured_image: 1 },
+      };
+      const otherFields = Object.fromEntries(
+        Object.entries(data).filter(([key]) => key !== "featured_image")
+      );
+      if (Object.keys(otherFields).length > 0) {
+        updateObj.$set = otherFields;
+      }
+      const doc = await this.model.findByIdAndUpdate(id, updateObj, {
+        new: true,
+      });
+      return doc ? this.mapToEntity(doc) : null;
+    }
+
+    return super.update(id, data);
+  }
 }

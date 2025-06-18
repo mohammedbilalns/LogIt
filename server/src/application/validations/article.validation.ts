@@ -12,6 +12,7 @@ export const createArticleSchema = z.object({
     .optional(),
   featured_image: z.string()
     .url("Featured image must be a valid URL")
+    .nullable()
     .optional(),
 });
 
@@ -29,6 +30,7 @@ export const updateArticleSchema = z.object({
     .optional(),
   featured_image: z.string()
     .url("Featured image must be a valid URL")
+    .nullable()
     .optional(),
 });
 

@@ -25,7 +25,7 @@ export const createArticle = createAsyncThunk(
     title: string; 
     content: string; 
     tagIds: string[]; 
-    featured_image?: string;
+    featured_image?: string | null;
   }, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.post(API_ROUTES.ARTICLES.BASE, articleData);
@@ -50,7 +50,7 @@ export const updateArticle = createAsyncThunk(
       title: string; 
       content: string; 
       tagIds: string[]; 
-      featured_image?: string;
+      featured_image?: string | null;
     }
   }, { rejectWithValue }) => {
     try {

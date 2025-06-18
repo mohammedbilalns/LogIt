@@ -5,7 +5,7 @@ export interface Article extends BaseEntity {
   title: string;
   isActive: boolean;
   content: string;
-  featured_image?: string;
+  featured_image?: string | null;
 
 } 
 

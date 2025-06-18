@@ -6,7 +6,7 @@ export interface Article {
     tagNames: string[];
     author: string;
     authorId: string;
-    featured_image?: string;
+    featured_image?: string | null;
     createdAt: string;
     updatedAt: string;
     isReported?: boolean;
