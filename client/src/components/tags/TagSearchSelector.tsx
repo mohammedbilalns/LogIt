@@ -42,7 +42,7 @@ export default function TagSearchSelector({
     if (value.length > 0) {
       const existingIds = new Set(tagNames.map(tag => tag._id));
       const missingIds = value.filter(id => !existingIds.has(id));
-      
+
       if (missingIds.length > 0) {
         dispatch(fetchTagsByIds(missingIds));
       }
@@ -51,33 +51,30 @@ export default function TagSearchSelector({
 
   useEffect(() => {
     const newSelectedTagNames = new Map<string, string>();
-    
+
     value.forEach(tagId => {
       const tag = searchResults.find(t => t._id === tagId) || tagNames.find(t => t._id === tagId);
       if (tag) {
         newSelectedTagNames.set(tagId, tag.name);
       }
     });
-    
+
     setSelectedTagNames(newSelectedTagNames);
   }, [value, searchResults, tagNames]);
 
   const tagOptions = useMemo(() => {
     const allTagsMap = new Map<string, Tag>();
-    
-    // Add search results first
+
     searchResults.forEach((tag: Tag) => {
       allTagsMap.set(tag._id, tag);
     });
-    
-    // Add tag names (for selected tags)
+
     tagNames.forEach((tag: Tag) => {
       if (!allTagsMap.has(tag._id)) {
         allTagsMap.set(tag._id, tag);
       }
     });
 
-    // Add any selected tags that might not be in the current results
     value.forEach(tagId => {
       if (!allTagsMap.has(tagId) && selectedTagNames.has(tagId)) {
         allTagsMap.set(tagId, {
@@ -102,7 +99,7 @@ export default function TagSearchSelector({
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
-    
+
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
@@ -114,10 +111,9 @@ export default function TagSearchSelector({
       } else {
         dispatch(fetchTags({ search: '' }));
       }
-    }, 300); // 300ms debounce
+    }, 300);
   }, [dispatch]);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (searchTimeoutRef.current) {
