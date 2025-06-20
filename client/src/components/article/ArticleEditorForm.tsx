@@ -151,7 +151,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
         typeof tag === 'string' ? tag : (tag._id || tag.id)
       );
       setSelectedTags(tagIds);
-      setFeaturedImage(currentArticle.featured_image);
+      setFeaturedImage(currentArticle.featured_image ?? undefined );
       editor.commands.setContent(currentArticle.content);
       setEditorContent(currentArticle.content);
     }
@@ -223,7 +223,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
       navigate('/articles');
     } catch (error: any) {
       console.error('Failed to save article:', error);
-      // Error will be displayed in the form via Redux state
+     
     }
   };
 
@@ -375,7 +375,8 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
           <RichTextEditor.Content
             style={{ 
               minHeight: isMobile ? '300px' : '500px', 
-              maxHeight: 'none',
+              maxHeight: isMobile ? '400px' : '600px',
+			  overflow: 'auto',
               backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
               backdropFilter: 'blur(8px)',
               border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',

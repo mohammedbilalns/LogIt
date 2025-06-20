@@ -19,7 +19,7 @@ import UserSidebar from '@components/user/UserSidebar';
 import CreateButton from '@/components/user/CreateButton';
 import { AppDispatch, RootState } from '@/store';
 import { fetchUserArticles } from '@slices/articleSlice';
-import { changePassword, checkAuth } from '@/store/slices/authSlice';
+import { changePassword } from '@/store/slices/authSlice';
 import { updateProfile } from '@/store/slices/userManagementSlice';
 
 interface ChangePasswordForm {

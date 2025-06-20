@@ -16,6 +16,7 @@ const tagRepository = new MongoTagRepository();
 const tagService: ITagService = new TagService(tagRepository);
 const tagController = new TagController(tagService);
 
+router.use(asyncHandler((req, res, next) => authMiddleware()(req, res, next)));
 router.get(
   "/",
   asyncHandler((req, res) => tagController.getTags(req, res))
@@ -25,7 +26,7 @@ router.get(
   "/by-ids",
   asyncHandler((req, res) => tagController.getTagsByIds(req, res))
 );
-router.use(asyncHandler((req, res, next) => authMiddleware()(req, res, next)));
+
 router.use(asyncHandler((req, res, next) => csrfMiddleware()(req, res, next)));
 
 router.post(
@@ -35,11 +36,12 @@ router.post(
   asyncHandler((req, res) => tagController.createTag(req, res))
 );
 
+router.use( asyncHandler((req, res, next) =>
+    authorizeRoles("admin", "superadmin")(req, res, next)
+  ))
+
 router.post(
   "/:id/promote",
-  asyncHandler((req, res, next) =>
-    authorizeRoles("admin", "superadmin")(req, res, next)
-  ),
   asyncHandler((req, res) => tagController.promoteTag(req, res))
 );
 

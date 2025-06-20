@@ -102,13 +102,10 @@ router.post(
 );
 
 router.use(asyncHandler((req, res, next) => authMiddleware()(req, res, next)));
-
+router.use(asyncHandler((req,res,next) => authorizeRoles("user", "admin", "superadmin")(req,res,next)))
 // Protected routes
 router.post(
   "/logout",
-  asyncHandler((req, res, next) =>
-    authorizeRoles("user", "admin", "superadmin")(req, res, next)
-  ),
   asyncHandler((req, res) => authController.logout(req, res))
 );
 

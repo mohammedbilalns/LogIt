@@ -34,14 +34,10 @@ const articleService: IArticleService = new ArticleService(
 
 const articleController = new ArticleController(articleService);
 
-router.get(
-  "/",
-  asyncHandler((req, res) => articleController.getArticles(req, res))
-);
+router.use(asyncHandler((req,res,next) => authMiddleware()(req,res,next)))
 
 router.use(
-  asyncHandler((req, res, next) => authMiddleware()(req, res, next)),
-  asyncHandler((req, res, next) => csrfMiddleware()(req, res, next))
+	asyncHandler((req, res, next) => csrfMiddleware()(req, res, next))
 );
 
 router.get(
@@ -49,22 +45,28 @@ router.get(
   asyncHandler((req, res) => articleController.getArticle(req, res))
 );
 
+router.put(
+  "/:id",
+  validate(updateArticleSchema),
+  asyncHandler((req, res) => articleController.updateArticle(req, res))
+);
+
+router.use(
+  asyncHandler((req, res, next) =>
+    authorizeRoles("user")(req, res, next)
+  )
+);
+
+router.get(
+  "/",
+  asyncHandler((req, res) => articleController.getArticles(req, res))
+);
+
 router.post(
   "/",
   asyncHandler((req, res, next) => authorizeRoles("user")(req, res, next)),
   validate(createArticleSchema),
   asyncHandler((req, res) => articleController.createArticle(req, res))
-);
-
-router.use(
-  asyncHandler((req, res, next) =>
-    authorizeRoles("user", "admin", "superadmin")(req, res, next)
-  )
-);
-router.put(
-  "/:id",
-  validate(updateArticleSchema),
-  asyncHandler((req, res) => articleController.updateArticle(req, res))
 );
 
 router.delete(

@@ -32,6 +32,7 @@ router.use(asyncHandler((req, res, next) => csrfMiddleware()(req, res, next)));
 router.post(
   "/",
   validate(createReportSchema),
+	asyncHandler((req,res,next) => authorizeRoles("user")(req,res,next)), 
   asyncHandler((req, res) => reportController.createReport(req, res))
 );
 
