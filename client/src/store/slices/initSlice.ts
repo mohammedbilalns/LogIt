@@ -17,9 +17,9 @@ export const initializeApp = createAsyncThunk(
   'init/initialize',
   async (_, { dispatch, rejectWithValue }) => {
     try {
-        await api.get(API_ROUTES.AUTH.CSRF);
-        await dispatch(checkAuth()).unwrap();
-      
+      const csrfPromise = api.get(API_ROUTES.AUTH.CSRF);
+      const checkAuthPromise = dispatch(checkAuth()).unwrap();
+      await Promise.all([csrfPromise, checkAuthPromise]);
       return true;
     } catch (error: any) {
       console.log('App initialization completed (no valid session)');

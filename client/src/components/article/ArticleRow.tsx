@@ -7,7 +7,6 @@ import {
   Text,
   useMantineColorScheme,
 } from '@mantine/core';
-import React from 'react';
 import { IconArticle } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';

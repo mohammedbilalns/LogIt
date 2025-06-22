@@ -1,12 +1,13 @@
+import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
-import  { lazy } from 'react';
 import {
-  Layout,
-  UserProtectedRoute,
-  PublicRoute,
   AdminProtectedRoute,
-  SuperAdminProtectedRoute
+  Layout,
+  PublicRoute,
+  SuperAdminProtectedRoute,
+  UserProtectedRoute,
 } from '@/components/RouteGuards';
+import UserPublicProfile from './pages/user/UserPublicProfile';
 
 // Lazy load pages
 const Landing = lazy(() => import('@/pages/public/Landing'));
@@ -23,10 +24,13 @@ const AdminLayout = lazy(() => import('@components/admin/AdminLayout'));
 const UserManagement = lazy(() => import('@pages/admin/UserManagement'));
 const NotFound = lazy(() => import('@pages/NotFound'));
 const Profile = lazy(() => import('@pages/user/Profile'));
-const LogsPage = lazy(()=> import('@/pages/user/LogsPage'));
-const LogEditor = lazy(()=> import('@/pages/user/LogEditor'));
-const ReportManagement = lazy(()=> import('@pages/admin/ReportsManagement'))
-const TagManagement = lazy(()=> import('@pages/admin/TagManagement'))
+const LogsPage = lazy(() => import('@/pages/user/LogsPage'));
+const LogEditor = lazy(() => import('@/pages/user/LogEditor'));
+const ReportManagement = lazy(() => import('@pages/admin/ReportsManagement'));
+const TagManagement = lazy(() => import('@pages/admin/TagManagement'));
+const Network = lazy(() => import('@/pages/user/Network'));
+const Chats = lazy(() => import('@/pages/user/Chats'));
+const SingleChat = lazy(() => import('@/pages/user/SingleChat'));
 
 export const router = createBrowserRouter([
   {
@@ -67,6 +71,10 @@ export const router = createBrowserRouter([
             element: <Home />,
           },
           {
+            path: '/user/:id',
+            element: <UserPublicProfile />,
+          },
+          {
             path: '/articles',
             element: <Articles />,
           },
@@ -96,16 +104,20 @@ export const router = createBrowserRouter([
           },
           {
             path: '/chats',
-            element: <Home />,
+            element: <Chats />,
+          },
+          {
+            path: '/chats/:id',
+            element: <SingleChat />,
           },
           {
             path: '/network',
-            element: <Home />,
+            element: <Network />,
           },
           {
-            path: '/profile', 
+            path: '/profile',
             element: <Profile />,
-          }
+          },
         ],
       },
       // Admin Protected Routes
@@ -157,7 +169,7 @@ export const router = createBrowserRouter([
           },
         ],
       },
-      // 404 Route 
+      // 404 Route
       {
         path: '*',
         element: <NotFound />,
