@@ -19,6 +19,7 @@ import UserSidebar from '@/components/user/UserSidebar';
 import axios from '@/api/axios';
 import { fetchArticles } from '@/store/slices/articleSlice';
 import { IconUserPlus, IconUserMinus, IconMessage, IconBan, IconFileText } from '@tabler/icons-react';
+import { followUser, unfollowUser, blockUser, unblockUser, clearConnectionState } from '@/store/slices/connectionSlice';
 
 export default function UserPublicProfile() {
   const { id } = useParams<{ id: string }>();
@@ -32,6 +33,8 @@ export default function UserPublicProfile() {
   const dispatch = useDispatch<AppDispatch>();
   const { articles, loading, hasMore } = useSelector((state: RootState) => state.articles);
   const { user: loggedInUser } = useSelector((state: RootState) => state.auth);
+  const { loading: connLoading, error: connError } = useSelector((state: RootState) => state.connection);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // Fetch user info
   useEffect(() => {
@@ -90,6 +93,54 @@ export default function UserPublicProfile() {
   const isBlocked = userInfo?.isBlocked;
   const isBlockedByYou = userInfo?.isBlockedByYou;
 
+  const handleFollow = async () => {
+    setActionLoading('follow');
+    await dispatch(followUser(id!));
+    setUserInfo((prev: any) => prev ? {
+      ...prev,
+      isFollowed: true,
+      followersCount: (prev.followersCount || 0) + 1
+    } : prev);
+    dispatch(clearConnectionState());
+    setActionLoading(null);
+  };
+
+  const handleUnfollow = async () => {
+    setActionLoading('unfollow');
+    await dispatch(unfollowUser(id!));
+    setUserInfo((prev: any) => prev ? {
+      ...prev,
+      isFollowed: false,
+      followersCount: Math.max(0, (prev.followersCount || 1) - 1)
+    } : prev);
+    dispatch(clearConnectionState());
+    setActionLoading(null);
+  };
+
+  const handleBlock = async () => {
+    setActionLoading('block');
+    await dispatch(blockUser(id!));
+    setUserInfo((prev: any) => prev ? {
+      ...prev,
+      isBlockedByYou: true,
+      isFollowed: false,
+      followersCount: prev.isFollowed ? Math.max(0, (prev.followersCount || 1) - 1) : prev.followersCount
+    } : prev);
+    dispatch(clearConnectionState());
+    setActionLoading(null);
+  };
+
+  const handleUnblock = async () => {
+    setActionLoading('unblock');
+    await dispatch(unblockUser(id!));
+    setUserInfo((prev: any) => prev ? {
+      ...prev,
+      isBlockedByYou: false
+    } : prev);
+    dispatch(clearConnectionState());
+    setActionLoading(null);
+  };
+
   return (
     <>
       <UserSidebar />
@@ -118,19 +169,35 @@ export default function UserPublicProfile() {
                 </Group>
                 <Group mt="sm" wrap="wrap" justify="center">
                   {!isOwnProfile && !isBlockedByYou && !isBlocked && (
-                    <Button color="blue" leftSection={<IconUserPlus size={18} />} disabled={isFollowed}> {isFollowed ? 'Following' : 'Follow'} </Button>
+                    isFollowed ? (
+                      <Button color="blue" leftSection={<IconUserPlus size={18} />} onClick={handleUnfollow} loading={actionLoading === 'unfollow'} disabled={actionLoading !== null}>
+                        Unfollow
+                      </Button>
+                    ) : (
+                      <Button color="blue" leftSection={<IconUserPlus size={18} />} onClick={handleFollow} loading={actionLoading === 'follow'} disabled={actionLoading !== null}>
+                        Follow
+                      </Button>
+                    )
                   )}
                   {!isOwnProfile && !isBlockedByYou && !isBlocked && (
-                    <Button variant="outline" leftSection={<IconMessage size={18} />}>Chat</Button>
+                    <Button variant="outline" leftSection={<IconMessage size={18} />} disabled>Chat</Button>
                   )}
                   {!isOwnProfile && !isBlockedByYou && !isBlocked && (
-                    <Button color="red" leftSection={<IconBan size={18} />}>Block</Button>
+                    <Button color="red" leftSection={<IconBan size={18} />} onClick={handleBlock} loading={actionLoading === 'block'} disabled={actionLoading !== null}>
+                      Block
+                    </Button>
+                  )}
+                  {!isOwnProfile && isBlockedByYou && (
+                    <Button color="gray" leftSection={<IconBan size={18} />} onClick={handleUnblock} loading={actionLoading === 'unblock'} disabled={actionLoading !== null}>
+                      Unblock
+                    </Button>
                   )}
                   {!isOwnProfile && !isBlockedByYou && !isBlocked && (
                     <Button variant="outline" color="gray">Report</Button>
                   )}
                   {isBlocked && <Text c="red">You are blocked by this user.</Text>}
-                  {isBlockedByYou && <Text c="red">You have blocked this user.</Text>}
+                  {isBlockedByYou && !isBlocked && <Text c="red">You have blocked this user.</Text>}
+                  {connError && <Text c="red">{connError}</Text>}
                 </Group>
               </>
             ) : null}

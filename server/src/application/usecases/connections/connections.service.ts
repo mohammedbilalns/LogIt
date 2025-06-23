@@ -54,16 +54,11 @@ export class ConnectionService implements IConnectionService {
         if (userId === targetUserId) {
             throw new Error("You cannot block yourself.");
         }
-        const existing = await this.connectionRepository.findConnection(userId, targetUserId);
-        if (existing && existing.connectionType === "blocked") {
-            throw new Error("User already blocked.");
-        }
-        // If following, update to blocked
-        if (existing) {
-            await this.connectionRepository.update(existing.id, { connectionType: "blocked" });
-        } else {
-            await this.connectionRepository.create({ userId, connectedUserId: targetUserId, connectionType: "blocked" });
-        }
+        // Remove all connections between the two users (both directions)
+        await this.connectionRepository.deleteConnection(userId, targetUserId);
+        await this.connectionRepository.deleteConnection(targetUserId, userId);
+        // Create block connection
+        await this.connectionRepository.create({ userId, connectedUserId: targetUserId, connectionType: "blocked" });
     }
 
     async unblockUser(userId: string, targetUserId: string): Promise<void> {

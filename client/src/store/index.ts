@@ -10,6 +10,7 @@ import initReducer from '@slices/initSlice';
 import logReducer from '@slices/logSlice';
 import reportReducer from '@slices/reportSlice';
 import homeReducer from '@slices/homeSlice';
+import connectionReducer from './slices/connectionSlice';
 
 export const store = configureStore({
   reducer: {
@@ -24,6 +25,7 @@ export const store = configureStore({
     logs: logReducer,
     report: reportReducer,
     home: homeReducer,
+    connection: connectionReducer,
   },
 });
 

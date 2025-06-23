@@ -42,4 +42,10 @@ export const API_ROUTES = {
   HOME: {
     BASE: '/user/home',
   },
+  CONNECTIONS: {
+    FOLLOW: '/connections/follow',
+    UNFOLLOW: '/connections/unfollow',
+    BLOCK: '/connections/block',
+    UNBLOCK: '/connections/unblock',
+  },
 };
