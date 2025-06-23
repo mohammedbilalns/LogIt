@@ -23,13 +23,16 @@ import {
   RecentActivity,
   ChartDataPoint,
 } from "../../dtos";
+import { UserInfoWithRelationship } from "../../../domain/entities/user.entity";
+import { IConnectionRepository } from "../../../domain/repositories/connection.repository.interface";
 
 export class UserService implements IUserService {
   constructor(
     private userRepository: IUserRepository,
     private articleRepository: IArticleRepository,
     private logsRepository: ILogRepository,
-    private cryptoProvider: ICryptoProvider
+    private cryptoProvider: ICryptoProvider,
+    private connectionRepository: IConnectionRepository
   ) {}
 
   async checkUserBlocked(userId: string): Promise<void> {
@@ -223,5 +226,32 @@ export class UserService implements IUserService {
           : HttpResponse.FAILED_TO_FETCH_HOME;
       throw new InternalServerError(message);
     }
+  }
+
+  async getUserInfoWithRelationship(
+    requestedUserId: string,
+    targetUserId: string
+  ): Promise<UserInfoWithRelationship> {
+    // Fetch user info
+    const user = await this.userRepository.findById(targetUserId);
+    if (!user) throw new UserNotFoundError();
+
+    // Relationship checks
+    const followConn = await this.connectionRepository.findConnection(requestedUserId, targetUserId);
+    const followedByConn = await this.connectionRepository.findConnection(targetUserId, requestedUserId);
+    const isBlocked = !!(followedByConn && followedByConn.connectionType === "blocked");
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      profileImage: user.profileImage,
+      profession: user.profession,
+      bio: user.bio,
+      isBlocked,
+      isFollowed: !!(followConn && followConn.connectionType === "following"),
+      isFollowingBack: !!(followedByConn && followedByConn.connectionType === "following"),
+      isBlockedByYou: !!(followConn && followConn.connectionType === "blocked"),
+    };
   }
 }

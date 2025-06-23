@@ -36,5 +36,10 @@ export class UserController {
     return res.status(HttpStatus.OK).json(data);
   }
 
-  
+  async getUserInfoWithRelationship(req: Request, res: Response) {
+    const requestedUserId = req.user!.id;
+    const targetUserId = req.params.id;
+    const data = await this.userService.getUserInfoWithRelationship(requestedUserId, targetUserId);
+    return res.status(HttpStatus.OK).json(data);
+  }
 }

@@ -1,4 +1,4 @@
-import { User } from "../entities/user.entity";
+import { User, UserInfoWithRelationship } from "../entities/user.entity";
 import {
   UpdateProfileData,
   ChangePasswordData,
@@ -19,4 +19,9 @@ export interface IUserService {
   ): Promise<User>;
 
   getHomeData(userId: string | undefined): Promise<HomeData>;
+
+  getUserInfoWithRelationship(
+    requestedUserId: string,
+    targetUserId: string
+  ): Promise<UserInfoWithRelationship>;
 }

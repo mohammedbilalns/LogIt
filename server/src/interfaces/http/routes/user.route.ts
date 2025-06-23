@@ -5,6 +5,7 @@ import { UserService } from "../../../application/usecases/usermanagement/user.s
 import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
 import { MongoArticleRepository } from "../../../infrastructure/repositories/article.repository";
 import { MongoLogRepository } from "../../../infrastructure/repositories/log.repository";
+import { MongoConnectionRepository } from "../../../infrastructure/repositories/connection.repository";
 import { BcryptCryptoProvider } from "../../../application/providers/crypto.provider";
 import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
@@ -20,14 +21,15 @@ const router = Router();
 const userRepository = new MongoUserRepository();
 const articleRepository = new MongoArticleRepository();
 const logRepository = new MongoLogRepository();
+const connectionRepository = new MongoConnectionRepository();
 const cryptoProvider = new BcryptCryptoProvider();
-
 
 const userService: IUserService = new UserService(
   userRepository,
   articleRepository,
   logRepository,
-  cryptoProvider
+  cryptoProvider,
+  connectionRepository
 );
 const userController = new UserController(userService);
 
@@ -57,31 +59,9 @@ router.get(
   asyncHandler((req, res) => userController.getHome(req, res))
 );
 
-// router.get('/:id', ()=>{
-//   console.log("user profile route is called")
-// })
-
-// router.post('/:id/follow', ()=>{
-//   console.log("Followed user")
-// })
-
-// router.post('/:id/unfollow', ()=>{
-//   console.log("Unfollowed user")
-// })
-
-// router.post('/:id/block',()=>{
-//   console.log("blocked user")
-// })
-
-// router.post('/:id/unblock', ()=>{
-//   console.log('unblocked user')
-// })
-
-// router.get('/followers', ()=>{
-//   console.log("fetched followers detai")
-// })
-// router.get('/following', ()=>{
-//   console.log('fetched following ')
-// })
+router.get(
+  "/info/:id",
+  asyncHandler((req, res) => userController.getUserInfoWithRelationship(req, res))
+);
 
 export default router;
