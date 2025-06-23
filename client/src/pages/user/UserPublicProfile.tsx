@@ -21,6 +21,7 @@ import { fetchArticles } from '@/store/slices/articleSlice';
 import { IconUserPlus, IconUserMinus, IconMessage, IconBan, IconFileText } from '@tabler/icons-react';
 import { followUser, unfollowUser, blockUser, unblockUser, clearConnectionState } from '@/store/slices/connectionSlice';
 import UserStats from '@/components/user/UserStats';
+import { ConfirmModal } from '@/components/confirm';
 
 export const FollowButton = memo(function FollowButton({ userId, isLoading, onSuccess }: { userId: string, isLoading: boolean, onSuccess?: () => void }) {
   const dispatch = useDispatch<AppDispatch>();
@@ -72,6 +73,7 @@ export default function UserPublicProfile() {
   const { user: loggedInUser } = useSelector((state: RootState) => state.auth);
   const { loading: connLoading, error: connError } = useSelector((state: RootState) => state.connection);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [blockModalOpen, setBlockModalOpen] = useState(false);
 
   // Fetch user info
   useEffect(() => {
@@ -141,6 +143,7 @@ export default function UserPublicProfile() {
     } : prev);
     dispatch(clearConnectionState());
     setActionLoading(null);
+    setBlockModalOpen(false);
   };
 
   const handleUnblock = async () => {
@@ -200,7 +203,7 @@ export default function UserPublicProfile() {
                     <Button variant="outline" leftSection={<IconMessage size={18} />} disabled>Chat</Button>
                   )}
                   {!isOwnProfile && !isBlockedByYou && !isBlocked && (
-                    <Button color="red" leftSection={<IconBan size={18} />} onClick={handleBlock} loading={actionLoading === 'block'} disabled={actionLoading !== null}>
+                    <Button color="red" leftSection={<IconBan size={18} />} onClick={() => setBlockModalOpen(true)} loading={actionLoading === 'block'} disabled={actionLoading !== null}>
                       Block
                     </Button>
                   )}
@@ -244,6 +247,16 @@ export default function UserPublicProfile() {
           </Stack>
         </Box>
       </Box>
+      <ConfirmModal
+        opened={blockModalOpen}
+        onClose={() => setBlockModalOpen(false)}
+        onConfirm={handleBlock}
+        title="Block User"
+        message="Are you sure you want to block this user? They will not be able to interact with you."
+        confirmLabel="Block"
+        confirmColor="red"
+        loading={actionLoading === 'block'}
+      />
     </>
   );
 }
