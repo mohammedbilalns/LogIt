@@ -133,8 +133,12 @@ export default function NetworkPage() {
         <Title order={2}>Network</Title>
         <Tabs value={tab} onChange={setTab} variant="outline" radius="md">
           <Tabs.List>
-            <Tabs.Tab value="followers">Followers ({followers.length})</Tabs.Tab>
-            <Tabs.Tab value="following">Following ({localFollowing.length})</Tabs.Tab>
+            <Tabs.Tab value="followers">
+              Followers{tab === 'followers' ? ` (${followers.length})` : ''}
+            </Tabs.Tab>
+            <Tabs.Tab value="following">
+              Following{tab === 'following' ? ` (${localFollowing.length})` : ''}
+            </Tabs.Tab>
           </Tabs.List>
           <Tabs.Panel value="followers" pt="md">
             {followersError && <Text c="red">{followersError}</Text>}
