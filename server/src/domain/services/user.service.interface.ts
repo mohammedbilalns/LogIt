@@ -24,4 +24,6 @@ export interface IUserService {
     requestedUserId: string,
     targetUserId: string
   ): Promise<UserInfoWithRelationship>;
+
+  getUserStats(userId: string): Promise<{ followersCount: number, followingCount: number, articlesCount: number }>;
 }

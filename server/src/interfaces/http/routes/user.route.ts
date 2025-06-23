@@ -54,6 +54,7 @@ router.put(
   asyncHandler((req, res) => userController.changePassword(req, res))
 );
 
+
 router.get(
   "/home",
   asyncHandler((req, res) => userController.getHome(req, res))
@@ -62,6 +63,11 @@ router.get(
 router.get(
   "/info/:id",
   asyncHandler((req, res) => userController.getUserInfoWithRelationship(req, res))
+);
+
+router.get(
+  "/stats",
+  asyncHandler((req, res) => userController.getOwnStats(req, res))
 );
 
 export default router;

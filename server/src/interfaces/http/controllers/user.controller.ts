@@ -43,4 +43,10 @@ export class UserController {
     const data = await this.userService.getUserInfoWithRelationship(requestedUserId, targetUserId);
     return res.status(HttpStatus.OK).json(data);
   }
+
+  async getOwnStats(req: Request, res: Response) {
+    const userId = req.user!.id;
+    const data = await this.userService.getUserStats(userId);
+    return res.status(HttpStatus.OK).json(data);
+  }
 }

@@ -264,4 +264,14 @@ export class UserService implements IUserService {
       articlesCount
     };
   }
+
+  async getUserStats(userId: string) {
+    // Fetch counts
+    const [followersCount, followingCount, articlesCount] = await Promise.all([
+      this.connectionRepository.count({ connectedUserId: userId, connectionType: "following" }),
+      this.connectionRepository.count({ userId: userId, connectionType: "following" }),
+      this.articleRepository.count({ authorId: userId })
+    ]);
+    return { followersCount, followingCount, articlesCount };
+  }
 }

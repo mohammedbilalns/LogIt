@@ -21,6 +21,8 @@ import { AppDispatch, RootState } from '@/store';
 import { fetchUserArticles } from '@slices/articleSlice';
 import { changePassword } from '@/store/slices/authSlice';
 import { updateProfile } from '@/store/slices/userManagementSlice';
+import UserStats from '@/components/user/UserStats';
+import axios from '@/api/axios';
 
 interface ChangePasswordForm {
   currentPassword: string;
@@ -49,6 +51,8 @@ export default function ProfilePage() {
   const [passwordOpened, { open: openPassword, close: closePassword }] = useDisclosure(false);
   const [profileOpened, { open: openProfile, close: closeProfile }] = useDisclosure(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
+
+  const [stats, setStats] = useState<{ followersCount: number, followingCount: number, articlesCount: number } | null>(null);
 
   useEffect(() => {
     dispatch(fetchUserArticles({ page: 1, limit: 5 }));
@@ -81,6 +85,10 @@ export default function ProfilePage() {
       if (target) observer.unobserve(target);
     };
   }, [userArticlesHasMore, loading]);
+
+  useEffect(() => {
+    axios.get('/user/stats').then(res => setStats(res.data)).catch(() => setStats(null));
+  }, []);
 
   const handleChangePassword = async (values: ChangePasswordForm) => {
     try {
@@ -158,6 +166,7 @@ export default function ProfilePage() {
             <Text size="sm" ta="center" maw={600}>
               {user?.bio}
             </Text>
+            {stats && <UserStats {...stats} />}
             <Group mt="sm" wrap="wrap" justify="center">
               <Button onClick={openProfile}>Edit Profile</Button>
               <Button variant="default" onClick={openPassword}>

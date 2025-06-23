@@ -20,6 +20,7 @@ import axios from '@/api/axios';
 import { fetchArticles } from '@/store/slices/articleSlice';
 import { IconUserPlus, IconUserMinus, IconMessage, IconBan, IconFileText } from '@tabler/icons-react';
 import { followUser, unfollowUser, blockUser, unblockUser, clearConnectionState } from '@/store/slices/connectionSlice';
+import UserStats from '@/components/user/UserStats';
 
 export default function UserPublicProfile() {
   const { id } = useParams<{ id: string }>();
@@ -162,11 +163,11 @@ export default function UserPublicProfile() {
                 <Text size="sm" ta="center" maw={600}>
                   {userInfo.bio}
                 </Text>
-                <Group gap="md" mt="xs" mb="xs" wrap="wrap" justify="center">
-                  <Group gap={4}><IconUserPlus size={18} /> <Text size="sm">{userInfo.followersCount} Followers</Text></Group>
-                  <Group gap={4}><IconUserMinus size={18} /> <Text size="sm">{userInfo.followingCount} Following</Text></Group>
-                  <Group gap={4}><IconFileText size={18} /> <Text size="sm">{userInfo.articlesCount} Articles</Text></Group>
-                </Group>
+                <UserStats 
+                  followersCount={userInfo.followersCount}
+                  followingCount={userInfo.followingCount}
+                  articlesCount={userInfo.articlesCount}
+                />
                 <Group mt="sm" wrap="wrap" justify="center">
                   {!isOwnProfile && !isBlockedByYou && !isBlocked && (
                     isFollowed ? (
