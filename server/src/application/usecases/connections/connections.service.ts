@@ -1,24 +1,59 @@
-import { Connection } from "../../../domain/entities/connection.entity";
 import { IConnectionRepository } from "../../../domain/repositories/connection.repository.interface";
 import { IConnectionService } from "../../../domain/services/connection.service.interface";
+import { IUserRepository } from "../../../domain/repositories/user.repository.interface";
 
 export class ConnectionService implements IConnectionService {
-    constructor(private connectionRepository: IConnectionRepository) {}
+    constructor(
+        private connectionRepository: IConnectionRepository,
+        private userRepository: IUserRepository
+    ) {}
 
-    async fetchFollowers(userId: string): Promise<Connection[]> {
+    async fetchFollowers(userId: string, loggedInUserId?: string): Promise<{ _id: string; name: string; email: string; profession?: string; profileImage?: string; isFollowedByMe?: boolean }[]> {
+        // Find all connections where connectedUserId = userId and type = following
         const { data } = await this.connectionRepository.findAll({
             filters: { connectedUserId: userId, connectionType: "following" },
             limit: 1000,
         });
-        return data;
+        // The follower is the userId field
+        const followerIds = data.map(conn => conn.userId);
+        if (followerIds.length === 0) return [];
+        const users = await this.userRepository.findManyByIds(followerIds);
+        let followedByMeIds: string[] = [];
+        if (loggedInUserId) {
+            // Find all connections where loggedInUserId follows these users
+            const { data: followingData } = await this.connectionRepository.findAll({
+                filters: { userId: loggedInUserId, connectionType: "following", connectedUserId: { $in: followerIds } },
+                limit: 1000,
+            });
+            followedByMeIds = followingData.map(conn => conn.connectedUserId);
+        }
+        return users.map(u => ({
+            _id: u.id,
+            name: u.name,
+            email: u.email,
+            profession: u.profession,
+            profileImage: u.profileImage,
+            isFollowedByMe: loggedInUserId ? followedByMeIds.includes(u.id) : undefined
+        }));
     }
 
-    async fetchFollowing(userId: string): Promise<Connection[]> {
+    async fetchFollowing(userId: string): Promise<{ _id: string; name: string; email: string; profession?: string; profileImage?: string }[]> {
+        // Find all connections where userId = userId and type = following
         const { data } = await this.connectionRepository.findAll({
             filters: { userId, connectionType: "following" },
             limit: 1000,
         });
-        return data;
+        // The following is the connectedUserId field
+        const followingIds = data.map(conn => conn.connectedUserId);
+        if (followingIds.length === 0) return [];
+        const users = await this.userRepository.findManyByIds(followingIds);
+        return users.map(u => ({
+            _id: u.id,
+            name: u.name,
+            email: u.email,
+            profession: u.profession,
+            profileImage: u.profileImage
+        }));
     }
 
     async followUser(userId: string, targetUserId: string): Promise<void> {

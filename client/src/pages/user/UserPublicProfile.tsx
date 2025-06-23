@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
 import {
   Avatar,
   Box,
@@ -21,6 +21,42 @@ import { fetchArticles } from '@/store/slices/articleSlice';
 import { IconUserPlus, IconUserMinus, IconMessage, IconBan, IconFileText } from '@tabler/icons-react';
 import { followUser, unfollowUser, blockUser, unblockUser, clearConnectionState } from '@/store/slices/connectionSlice';
 import UserStats from '@/components/user/UserStats';
+
+export const FollowButton = memo(function FollowButton({ userId, isLoading, onSuccess }: { userId: string, isLoading: boolean, onSuccess?: () => void }) {
+  const dispatch = useDispatch<AppDispatch>();
+  const [loading, setLoading] = useState(false);
+  const handleFollow = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLoading(true);
+    await dispatch(followUser(userId));
+    dispatch(clearConnectionState());
+    setLoading(false);
+    onSuccess?.();
+  };
+  return (
+    <Button color="blue" leftSection={<IconUserPlus size={18} />} onClick={handleFollow} loading={isLoading || loading} disabled={isLoading || loading}>
+      Follow
+    </Button>
+  );
+});
+
+export const UnfollowButton = memo(function UnfollowButton({ userId, isLoading, onSuccess }: { userId: string, isLoading: boolean, onSuccess?: () => void }) {
+  const dispatch = useDispatch<AppDispatch>();
+  const [loading, setLoading] = useState(false);
+  const handleUnfollow = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLoading(true);
+    await dispatch(unfollowUser(userId));
+    dispatch(clearConnectionState());
+    setLoading(false);
+    onSuccess?.();
+  };
+  return (
+    <Button color="blue" leftSection={<IconUserMinus size={18} />} onClick={handleUnfollow} loading={isLoading || loading} disabled={isLoading || loading}>
+      Unfollow
+    </Button>
+  );
+});
 
 export default function UserPublicProfile() {
   const { id } = useParams<{ id: string }>();
@@ -94,30 +130,6 @@ export default function UserPublicProfile() {
   const isBlocked = userInfo?.isBlocked;
   const isBlockedByYou = userInfo?.isBlockedByYou;
 
-  const handleFollow = async () => {
-    setActionLoading('follow');
-    await dispatch(followUser(id!));
-    setUserInfo((prev: any) => prev ? {
-      ...prev,
-      isFollowed: true,
-      followersCount: (prev.followersCount || 0) + 1
-    } : prev);
-    dispatch(clearConnectionState());
-    setActionLoading(null);
-  };
-
-  const handleUnfollow = async () => {
-    setActionLoading('unfollow');
-    await dispatch(unfollowUser(id!));
-    setUserInfo((prev: any) => prev ? {
-      ...prev,
-      isFollowed: false,
-      followersCount: Math.max(0, (prev.followersCount || 1) - 1)
-    } : prev);
-    dispatch(clearConnectionState());
-    setActionLoading(null);
-  };
-
   const handleBlock = async () => {
     setActionLoading('block');
     await dispatch(blockUser(id!));
@@ -171,13 +183,17 @@ export default function UserPublicProfile() {
                 <Group mt="sm" wrap="wrap" justify="center">
                   {!isOwnProfile && !isBlockedByYou && !isBlocked && (
                     isFollowed ? (
-                      <Button color="blue" leftSection={<IconUserPlus size={18} />} onClick={handleUnfollow} loading={actionLoading === 'unfollow'} disabled={actionLoading !== null}>
-                        Unfollow
-                      </Button>
+                      <UnfollowButton userId={id!} isLoading={actionLoading === 'unfollow'} onSuccess={() => setUserInfo((prev: any) => prev ? {
+                        ...prev,
+                        isFollowed: false,
+                        followersCount: Math.max(0, (prev.followersCount || 1) - 1)
+                      } : prev)} />
                     ) : (
-                      <Button color="blue" leftSection={<IconUserPlus size={18} />} onClick={handleFollow} loading={actionLoading === 'follow'} disabled={actionLoading !== null}>
-                        Follow
-                      </Button>
+                      <FollowButton userId={id!} isLoading={actionLoading === 'follow'} onSuccess={() => setUserInfo((prev: any) => prev ? {
+                        ...prev,
+                        isFollowed: true,
+                        followersCount: (prev.followersCount || 0) + 1
+                      } : prev)} />
                     )
                   )}
                   {!isOwnProfile && !isBlockedByYou && !isBlocked && (

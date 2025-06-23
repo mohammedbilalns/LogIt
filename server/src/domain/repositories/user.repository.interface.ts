@@ -11,4 +11,5 @@ export interface IUserRepository extends IBaseRepository<User> {
   verifyPassword(userId: string, password: string): Promise<boolean>;
   deleteByEmail(email: string): Promise<void>;
   isUserBlocked(userId: string): Promise<boolean>;
+  findManyByIds(userIds: string[]): Promise<User[]>;
 }

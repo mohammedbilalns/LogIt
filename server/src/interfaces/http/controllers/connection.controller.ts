@@ -8,7 +8,7 @@ export class ConnectionController {
 
   async fetchFollowers(req: Request, res: Response) {
     const userId = req.params.userId || req.user!.id;
-    const followers = await this.connectionService.fetchFollowers(userId);
+    const followers = await this.connectionService.fetchFollowers(userId, req.user!.id);
     return res.status(HttpStatus.OK).json(followers);
   }
 

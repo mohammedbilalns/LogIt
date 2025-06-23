@@ -13,10 +13,13 @@ import {
   blockUserSchema,
   unblockUserSchema,
 } from "../../../application/validations/connection.validation";
+import { MongoUserRepository } from '../../../infrastructure/repositories/user.repository';
 
+const userRepository = new MongoUserRepository();
 const connectionRepository = new MongoConnectionRepository();
 const connectionService: IConnectionService = new ConnectionService(
-  connectionRepository
+  connectionRepository,
+  userRepository
 );
 const connectionController = new ConnectionController(connectionService);
 

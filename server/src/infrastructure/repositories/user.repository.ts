@@ -70,4 +70,10 @@ export class MongoUserRepository
     const user = await UserModel.findById(userId);
     return user?.isBlocked || false;
   }
+
+  async findManyByIds(userIds: string[]): Promise<User[]> {
+    if (!userIds || userIds.length === 0) return [];
+    const users = await UserModel.find({ _id: { $in: userIds } });
+    return users.map(user => this.mapToEntity(user));
+  }
 }
