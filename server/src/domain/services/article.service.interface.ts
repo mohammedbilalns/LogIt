@@ -7,6 +7,7 @@ import {
 } from "../../application/dtos";
 
 export interface IArticleService {
+  
   createArticle(
     article: CreateArticleData,
     tagIds: string[]

@@ -39,5 +39,9 @@ export enum HttpResponse {
   FAILED_TO_UPDATE_REPORT_STATUS = "Failed to udpate report status",
   FAILED_TO_FETCH_HOME = "Failed to fetch home ",
   INTERNAL_ERROR = "Something went wrong ", 
-  REQUIRED_TAG_IDS = 'Tag IDs are required'
+  REQUIRED_TAG_IDS = 'Tag IDs are required',
+  FOLLOWED_USER = "Followed user successfully.",
+  UNFOLLOWED_USER = "Unfollowed user successfully.",
+  BLOCKED_USER = "Blocked user successfully",
+  UNBLOCKED_USER = "Unblocked user successfully"
 }

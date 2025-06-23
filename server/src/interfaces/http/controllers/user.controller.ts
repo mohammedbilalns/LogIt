@@ -35,4 +35,6 @@ export class UserController {
     const data = await this.userService.getHomeData(userId);
     return res.status(HttpStatus.OK).json(data);
   }
+
+  
 }

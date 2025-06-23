@@ -9,7 +9,7 @@ const connectionSchema = new mongoose.Schema<ConnectionDocument>(
     {
         userId: {type: String, required: true },
         connectedUserId: {type: String,required: true},
-        connectionType: {type: String, required:true, default:"folowing",
+        connectionType: {type: String, required:true, default:"following",
             enum: ['following', 'blocked']
         }
     

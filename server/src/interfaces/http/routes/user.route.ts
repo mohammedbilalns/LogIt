@@ -22,6 +22,7 @@ const articleRepository = new MongoArticleRepository();
 const logRepository = new MongoLogRepository();
 const cryptoProvider = new BcryptCryptoProvider();
 
+
 const userService: IUserService = new UserService(
   userRepository,
   articleRepository,
@@ -35,6 +36,7 @@ router.use(
   asyncHandler((req, res, next) => csrfMiddleware()(req, res, next)),
   asyncHandler((req, res, next) => authorizeRoles("user")(req, res, next))
 );
+
 
 // Update profile
 router.put(
@@ -54,5 +56,32 @@ router.get(
   "/home",
   asyncHandler((req, res) => userController.getHome(req, res))
 );
+
+// router.get('/:id', ()=>{
+//   console.log("user profile route is called")
+// })
+
+// router.post('/:id/follow', ()=>{
+//   console.log("Followed user")
+// })
+
+// router.post('/:id/unfollow', ()=>{
+//   console.log("Unfollowed user")
+// })
+
+// router.post('/:id/block',()=>{
+//   console.log("blocked user")
+// })
+
+// router.post('/:id/unblock', ()=>{
+//   console.log('unblocked user')
+// })
+
+// router.get('/followers', ()=>{
+//   console.log("fetched followers detai")
+// })
+// router.get('/following', ()=>{
+//   console.log('fetched following ')
+// })
 
 export default router;

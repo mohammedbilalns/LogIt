@@ -9,6 +9,7 @@ import tagRoutes from "./interfaces/http/routes/tag.routes";
 import userRoutes from "./interfaces/http/routes/user.route";
 import logRoutes from "./interfaces/http/routes/log.routes";
 import reportRoutes from "./interfaces/http/routes/report.routes";
+import connectionRoutes from "./interfaces/http/routes/connection.routes";
 import { errorMiddleware } from "./interfaces/http/middlewares/error.middleware";
 import env from "./config/env";
 import morgan from "morgan";
@@ -37,6 +38,7 @@ app.use("/api/tags", tagRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/logs", logRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/connections", connectionRoutes);
 app.use(errorMiddleware());
 // Connect to DB
 mongoose
