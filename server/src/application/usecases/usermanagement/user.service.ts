@@ -241,6 +241,13 @@ export class UserService implements IUserService {
     const followedByConn = await this.connectionRepository.findConnection(targetUserId, requestedUserId);
     const isBlocked = !!(followedByConn && followedByConn.connectionType === "blocked");
 
+    // Fetch counts
+    const [followersCount, followingCount, articlesCount] = await Promise.all([
+      this.connectionRepository.count({ connectedUserId: targetUserId, connectionType: "following" }),
+      this.connectionRepository.count({ userId: targetUserId, connectionType: "following" }),
+      this.articleRepository.count({ authorId: targetUserId })
+    ]);
+
     return {
       id: user.id,
       name: user.name,
@@ -252,6 +259,9 @@ export class UserService implements IUserService {
       isFollowed: !!(followConn && followConn.connectionType === "following"),
       isFollowingBack: !!(followedByConn && followedByConn.connectionType === "following"),
       isBlockedByYou: !!(followConn && followConn.connectionType === "blocked"),
+      followersCount,
+      followingCount,
+      articlesCount
     };
   }
 }

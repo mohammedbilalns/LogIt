@@ -27,4 +27,7 @@ export interface UserInfoWithRelationship {
   isFollowed: boolean;
   isFollowingBack: boolean;
   isBlockedByYou: boolean;
+  followersCount: number;
+  followingCount: number;
+  articlesCount: number;
 }

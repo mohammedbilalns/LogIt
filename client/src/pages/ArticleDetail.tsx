@@ -370,7 +370,14 @@ export default function ArticleDetailPage() {
                 </Title>
                 <Group gap="xs" mt={4} wrap="wrap">
                   <Text size="sm" c="dimmed" fw={500}>
-                    By {article.author}
+                    By {isAuthor ? article.author : (
+                      <span
+                        style={{ color: '#228be6', cursor: 'pointer', textDecoration: 'underline' }}
+                        onClick={() => navigate(`/user/${article.authorId}`)}
+                      >
+                        {article.author}
+                      </span>
+                    )}
                   </Text>
                   <Text size="sm" c="dimmed">
                     •

@@ -7,76 +7,70 @@ import {
   Stack,
   Text,
   Title,
+  Loader,
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import ArticleRowSkeleton from '@components/skeletons/ArticleRowSkeleton';
 import ArticleRow from '@components/article/ArticleRow';
 import { useParams } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '@/store';
 import UserSidebar from '@/components/user/UserSidebar';
-
-const dummyUser = {
-  _id: 'u123',
-  name: 'Jane Doe',
-  email: 'jane@example.com',
-  profession: 'Software Engineer',
-  bio: 'Passionate about open source and web technologies.',
-  profileImage: null,
-};
-
-const dummyArticles = [
-  {
-    _id: 'a1',
-    title: 'Understanding React Hooks',
-    content: 'A deep dive into how React Hooks work internally. This is the full content of the article.',
-    author: dummyUser.name,
-    featured_image: null,
-    tagNames: ['React', 'Hooks'],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    _id: 'a2',
-    title: 'TypeScript Best Practices',
-    content: 'Tips and tricks for writing better TS code. This is the full content of the article.',
-    author: dummyUser.name,
-    featured_image: null,
-    tagNames: ['TypeScript', 'Best Practices'],
-    createdAt: new Date().toISOString(),
-  },
-];
+import axios from '@/api/axios';
+import { fetchArticles } from '@/store/slices/articleSlice';
+import { IconUserPlus, IconUserMinus, IconMessage, IconBan, IconFileText } from '@tabler/icons-react';
 
 export default function UserPublicProfile() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [page, setPage] = useState(1);
-  const [articles, setArticles] = useState(dummyArticles);
-  const [loading, setLoading] = useState(false);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userLoading, setUserLoading] = useState(true);
+  const [userError, setUserError] = useState<string | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
+  const dispatch = useDispatch<AppDispatch>();
+  const { articles, loading, hasMore } = useSelector((state: RootState) => state.articles);
+  const { user: loggedInUser } = useSelector((state: RootState) => state.auth);
 
+  // Fetch user info
+  useEffect(() => {
+    if (!id) return;
+    setUserLoading(true);
+    setUserError(null);
+    axios.get(`/user/info/${id}`)
+      .then(res => setUserInfo(res.data))
+      .catch(err => setUserError(err?.response?.data?.message || 'Failed to fetch user info'))
+      .finally(() => setUserLoading(false));
+  }, [id]);
+
+  // Fetch articles by this user
+  useEffect(() => {
+    if (!id) return;
+    dispatch(fetchArticles({
+      page,
+      limit: 5,
+      sortBy: 'createdAt',
+      sortOrder: 'desc',
+      filters: JSON.stringify({ authorId: id, isActive: true })
+    }));
+  }, [dispatch, id, page]);
+
+  // Infinite scroll for articles
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && page === 1 && !loading) {
-        setLoading(true);
-        setTimeout(() => {
-          setArticles((prev) => [...prev, ...dummyArticles]);
-          setPage((p) => p + 1);
-          setLoading(false);
-        }, 1000); // Simulate load
+      if (entry.isIntersecting && hasMore && !loading) {
+        setPage((prev) => prev + 1);
       }
     }, {
       root: null,
       rootMargin: '100px',
       threshold: 0.1,
     });
-
     const target = observerTarget.current;
     if (target) observer.observe(target);
-    return () => {
-      if (target) observer.unobserve(target);
-    };
-  }, [loading, page]);
+    return () => { if (target) observer.unobserve(target); };
+  }, [hasMore, loading]);
 
   const getInitials = (name?: string) => {
     if (!name) return '?';
@@ -89,28 +83,57 @@ export default function UserPublicProfile() {
 
   const containerClassName = `page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
 
+  // Button logic
+  const isOwnProfile = loggedInUser?._id === id;
+  const isFollowed = userInfo?.isFollowed;
+  const isFollowingBack = userInfo?.isFollowingBack;
+  const isBlocked = userInfo?.isBlocked;
+  const isBlockedByYou = userInfo?.isBlockedByYou;
+
   return (
     <>
       <UserSidebar />
       <Box className={containerClassName}>
         <Box mb={40}>
           <Stack align="center" gap="xs">
-            <Avatar src={dummyUser.profileImage} size={isMobile ? 80 : 120} radius="xl">
-              {getInitials(dummyUser.name)}
-            </Avatar>
-            <Title order={3}>{dummyUser.name}</Title>
-            <Text c="dimmed">{dummyUser.email}</Text>
-            <Text size="sm">{dummyUser.profession}</Text>
-            <Text size="sm" ta="center" maw={600}>
-              {dummyUser.bio}
-            </Text>
-
-            <Group mt="sm" wrap="wrap" justify="center">
-              <Button color="blue">Follow</Button>
-              <Button variant="outline">Chat</Button>
-              <Button color="red">Block</Button>
-              <Button variant="outline" color="gray">Report</Button>
-            </Group>
+            {userLoading ? (
+              <Loader size="lg" />
+            ) : userError ? (
+              <Text c="red">{userError}</Text>
+            ) : userInfo ? (
+              <>
+                <Avatar src={userInfo.profileImage} size={isMobile ? 80 : 120} radius="xl">
+                  {getInitials(userInfo.name)}
+                </Avatar>
+                <Title order={3}>{userInfo.name}</Title>
+                <Text c="dimmed">{userInfo.email}</Text>
+                <Text size="sm">{userInfo.profession}</Text>
+                <Text size="sm" ta="center" maw={600}>
+                  {userInfo.bio}
+                </Text>
+                <Group gap="md" mt="xs" mb="xs" wrap="wrap" justify="center">
+                  <Group gap={4}><IconUserPlus size={18} /> <Text size="sm">{userInfo.followersCount} Followers</Text></Group>
+                  <Group gap={4}><IconUserMinus size={18} /> <Text size="sm">{userInfo.followingCount} Following</Text></Group>
+                  <Group gap={4}><IconFileText size={18} /> <Text size="sm">{userInfo.articlesCount} Articles</Text></Group>
+                </Group>
+                <Group mt="sm" wrap="wrap" justify="center">
+                  {!isOwnProfile && !isBlockedByYou && !isBlocked && (
+                    <Button color="blue" leftSection={<IconUserPlus size={18} />} disabled={isFollowed}> {isFollowed ? 'Following' : 'Follow'} </Button>
+                  )}
+                  {!isOwnProfile && !isBlockedByYou && !isBlocked && (
+                    <Button variant="outline" leftSection={<IconMessage size={18} />}>Chat</Button>
+                  )}
+                  {!isOwnProfile && !isBlockedByYou && !isBlocked && (
+                    <Button color="red" leftSection={<IconBan size={18} />}>Block</Button>
+                  )}
+                  {!isOwnProfile && !isBlockedByYou && !isBlocked && (
+                    <Button variant="outline" color="gray">Report</Button>
+                  )}
+                  {isBlocked && <Text c="red">You are blocked by this user.</Text>}
+                  {isBlockedByYou && <Text c="red">You have blocked this user.</Text>}
+                </Group>
+              </>
+            ) : null}
           </Stack>
         </Box>
 
@@ -119,11 +142,21 @@ export default function UserPublicProfile() {
             Recent Articles
           </Title>
           <Stack gap="md">
-            {articles.map((article) => (
-              <ArticleRow key={article._id} article={article} />
-            ))}
-            <div ref={observerTarget} style={{ height: 20 }} />
-            {loading && renderSkeletons()}
+            {loading && page === 1 ? (
+              renderSkeletons()
+            ) : articles.length > 0 ? (
+              <>
+                {articles.map((article) => (
+                  <ArticleRow key={article._id} article={article} />
+                ))}
+                <div ref={observerTarget} style={{ height: 20 }} />
+                {loading && page > 1 && renderSkeletons()}
+              </>
+            ) : (
+              <Text c="dimmed" ta="center">
+                No articles found
+              </Text>
+            )}
           </Stack>
         </Box>
       </Box>
