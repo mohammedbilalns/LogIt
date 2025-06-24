@@ -120,7 +120,6 @@ export default function NetworkPage() {
   const followersVisible = useMemo(() => followers.slice(0, followersPage * PAGE_SIZE), [followers, followersPage]);
   const followingVisible = useMemo(() => localFollowing.slice(0, followingPage * PAGE_SIZE), [localFollowing, followingPage]);
 
-  // Handler for unfollowing in following tab
   const handleUnfollow = (userId: string) => {
     setLocalFollowing((prev) => prev.filter((u) => u._id !== userId));
   };

@@ -1,0 +1,15 @@
+export interface Message{
+    id: string; 
+    chatId: string;
+    senderId: string;
+    content?:string; 
+    media?: string; 
+    log?: string;
+    replyTo?: string; 
+    deletedFor:string[];
+    createdAt:string; 
+    updateAt: string; 
+}
+
+
+

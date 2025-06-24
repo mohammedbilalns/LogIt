@@ -11,6 +11,12 @@ const envSchema = z.object({
   CLIENT_URL: z.string().url().default("http://localhost:5173"),
   EMAIL_USER: z.string().email("Invalid email for EMAIL_USER"),
   EMAIL_PASS: z.string().min(1, "EMAIL_PASS is required"),
+  REDIS_URL: z.string().min(1, "REDIS_URL is requried"),
+  REDIS_PORT: z
+    .string()
+    .min(1, "REDIS_PORT is required")
+    .transform((val) => parseInt(val, 10)),
+  REDIS_PASSWORD: z.string().min(1, "REDIS_PASSWORD is requried"),
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),

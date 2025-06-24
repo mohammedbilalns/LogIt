@@ -2,6 +2,8 @@ import express from "express";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import http from "http";
+
 import authRoutes from "./interfaces/http/routes/auth.routes";
 import adminRoutes from "./interfaces/http/routes/admin.routes";
 import articleRoutes from "./interfaces/http/routes/article.route";
@@ -12,10 +14,16 @@ import reportRoutes from "./interfaces/http/routes/report.routes";
 import connectionRoutes from "./interfaces/http/routes/connection.routes";
 import { errorMiddleware } from "./interfaces/http/middlewares/error.middleware";
 import env from "./config/env";
+import { initializeSocket } from "./config/socket";
 import morgan from "morgan";
 import { logger } from "./utils/logger";
 
 const app = express();
+const server = http.createServer(app);
+
+// Initialize Socket.IO with Redis
+export const socketConfig = initializeSocket(server);
+
 const PORT = env.PORT;
 const MONGODB_URI = env.MONGODB_URI;
 
@@ -24,7 +32,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: env.CLIENT_URL  ,
+    origin: env.CLIENT_URL,
     credentials: true,
   })
 );
@@ -40,12 +48,13 @@ app.use("/api/logs", logRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/connections", connectionRoutes);
 app.use(errorMiddleware());
+
 // Connect to DB
 mongoose
   .connect(MONGODB_URI)
   .then(() => {
     logger.green("DB_STATUS", "Connected to MongoDB");
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       logger.green("SERVER", `Server is running on port ${PORT}`);
     });
   })
