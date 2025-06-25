@@ -1,12 +1,9 @@
+import { BaseEntity } from "./base.entity";
 
-export interface Chat{
-    id : string; 
+export interface Chat extends BaseEntity {
     isGroup: boolean;
-    name?:string ;
-    creator: string; 
-    lastMessage:string; 
-    createAt:string;
-    updatedAt: string;
-    deletedAt:Date;
-
+  name?: string;
+  creator?: string;
+  lastMessage?: string;
+  deletedAt?: Date;
 }

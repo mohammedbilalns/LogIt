@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ArticleRow from '@components/article/ArticleRow';
 import { fetchArticles } from '@slices/articleSlice';
-import { fetchTags } from '@slices/tagSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box, Center, Chip, Group, Paper, Select, Stack, Text, Title } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import ArticleRowSkeleton from '@/components/skeletons/ArticleRowSkeleton';
+import SortBy from '@/components/SortBy';
 import TagFilterSection from '@/components/tags/TagFilterSection';
 import CreateButton from '@/components/user/CreateButton';
-import SortBy from '@/components/SortBy';
 import { AppDispatch, RootState } from '@/store';
 
 interface ArticleFilters {
@@ -46,14 +45,10 @@ export default function ArticlesPage() {
   );
 
   useEffect(() => {
-    dispatch(fetchTags({ promoted: true, limit: 5 }));
-  }, [dispatch]);
-
-  useEffect(() => {
     const currentObserver = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-    
+
         if (entry.isIntersecting && hasMore && !loading) {
           setPage((prev) => prev + 1);
         }
@@ -147,4 +142,3 @@ export default function ArticlesPage() {
     </Box>
   );
 }
-

@@ -12,6 +12,7 @@ import userRoutes from "./interfaces/http/routes/user.route";
 import logRoutes from "./interfaces/http/routes/log.routes";
 import reportRoutes from "./interfaces/http/routes/report.routes";
 import connectionRoutes from "./interfaces/http/routes/connection.routes";
+import { createChatRouter } from "./interfaces/http/routes/chat.routes";
 import { errorMiddleware } from "./interfaces/http/middlewares/error.middleware";
 import env from "./config/env";
 import { initializeSocket } from "./config/socket";
@@ -21,7 +22,6 @@ import { logger } from "./utils/logger";
 const app = express();
 const server = http.createServer(app);
 
-// Initialize Socket.IO with Redis
 export const socketConfig = initializeSocket(server);
 
 const PORT = env.PORT;
@@ -47,6 +47,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/logs", logRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/connections", connectionRoutes);
+app.use("/api/chats", createChatRouter(socketConfig.io));
 app.use(errorMiddleware());
 
 // Connect to DB

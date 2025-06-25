@@ -3,7 +3,6 @@ import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { fetchLogs, deleteLog } from '@slices/logSlice';
-import { fetchTags } from '@slices/tagSlice';
 import LogRow from '@components/log/LogRow';
 import LogRowSkeleton from '@/components/skeletons/LogRowSkeleton';
 import { useMediaQuery, useDebouncedValue } from '@mantine/hooks';
@@ -59,10 +58,6 @@ export default function LogsPage() {
       <LogRowSkeleton key={index} />
     )),
   []);
-
-  useEffect(() => {
-    dispatch(fetchTags({ promoted: true, limit: 5 }));
-  }, [dispatch]);
 
   useEffect(() => {
     setIsInitialLoad(true);

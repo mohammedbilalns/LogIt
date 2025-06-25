@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { IUserService } from "../../../domain/services/user.service.interface";
 import { HttpStatus } from "../../../config/statusCodes";
 import { HttpResponse } from "../../../config/responseMessages";
+import { onlineUsers } from '../../../config/socket';
 
 export class UserController {
   constructor(private userService: IUserService) {}
@@ -48,5 +49,11 @@ export class UserController {
     const userId = req.user!.id;
     const data = await this.userService.getUserStats(userId);
     return res.status(HttpStatus.OK).json(data);
+  }
+
+  async getOnlineStatus(req: Request, res: Response) {
+    const targetUserId = req.params.id;
+    const isOnline = onlineUsers.has(targetUserId);
+    return res.json({ online: isOnline });
   }
 }

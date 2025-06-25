@@ -7,8 +7,9 @@ export interface Message{
     log?: string;
     replyTo?: string; 
     deletedFor:string[];
-    createdAt:string; 
-    updateAt: string; 
+    seenBy: string[];
+    createdAt: Date;
+    updatedAt: Date; 
 }
 
 

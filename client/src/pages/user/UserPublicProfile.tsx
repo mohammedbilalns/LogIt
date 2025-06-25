@@ -12,7 +12,7 @@ import {
 import { useMediaQuery } from '@mantine/hooks';
 import ArticleRowSkeleton from '@components/skeletons/ArticleRowSkeleton';
 import ArticleRow from '@components/article/ArticleRow';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/store';
 import UserSidebar from '@/components/user/UserSidebar';
@@ -22,6 +22,7 @@ import { IconUserPlus, IconUserMinus, IconMessage, IconBan, IconFileText } from 
 import { followUser, unfollowUser, blockUser, unblockUser, clearConnectionState } from '@/store/slices/connectionSlice';
 import UserStats from '@/components/user/UserStats';
 import { ConfirmModal } from '@/components/confirm';
+import {  getOrCreatePrivateChat } from '@/store/slices/chatSlice';
 
 export const FollowButton = memo(function FollowButton({ userId, isLoading, onSuccess }: { userId: string, isLoading: boolean, onSuccess?: () => void }) {
   const dispatch = useDispatch<AppDispatch>();
@@ -61,6 +62,7 @@ export const UnfollowButton = memo(function UnfollowButton({ userId, isLoading, 
 
 export default function UserPublicProfile() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [page, setPage] = useState(1);
   const [userInfo, setUserInfo] = useState<any>(null);
@@ -157,6 +159,17 @@ export default function UserPublicProfile() {
     setActionLoading(null);
   };
 
+  const handleChatClick = async () => {
+    if (!id || !loggedInUser?._id) return;
+    try {
+      // Use the new thunk to get or create a private chat
+      const chatId = await dispatch(getOrCreatePrivateChat(id)).unwrap();
+      navigate(`/chats/${chatId}`);
+    } catch (error) {
+      console.error('Failed to get or create chat:', error);
+    }
+  };
+
   return (
     <>
       <UserSidebar />
@@ -200,7 +213,15 @@ export default function UserPublicProfile() {
                     )
                   )}
                   {!isOwnProfile && !isBlockedByYou && !isBlocked && (
-                    <Button variant="outline" leftSection={<IconMessage size={18} />} disabled>Chat</Button>
+                    <Button 
+                      variant="outline" 
+                      leftSection={<IconMessage size={18} />} 
+                      onClick={handleChatClick}
+                      loading={actionLoading === 'chat'}
+                      disabled={actionLoading !== null}
+                    >
+                      Chat
+                    </Button>
                   )}
                   {!isOwnProfile && !isBlockedByYou && !isBlocked && (
                     <Button color="red" leftSection={<IconBan size={18} />} onClick={() => setBlockModalOpen(true)} loading={actionLoading === 'block'} disabled={actionLoading !== null}>

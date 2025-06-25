@@ -1,4 +1,4 @@
-import { Document, Schema } from "mongoose";
+import { Document, Schema, model } from "mongoose";
 import { Message } from "../../domain/entities/message.entity";
 
 type MessageWithoutId = Omit<Message, "id">;
@@ -11,8 +11,11 @@ const messageSchema = new Schema<MessageDocument>({
   media: { type: String },
   log: { type: String },
   replyTo: { type: String },
-  deletedFor: [{ type: String }],
+  deletedFor: [{ type: String, default: [] }],
+  seenBy: [{ type: String, default: [] }],
 
 }, {timestamps:true});
 
-export default messageSchema; 
+const MessageModel = model<MessageDocument>("Message", messageSchema);
+
+export default MessageModel; 

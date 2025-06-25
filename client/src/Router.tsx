@@ -8,6 +8,7 @@ import {
   UserProtectedRoute,
 } from '@/components/RouteGuards';
 import UserPublicProfile from './pages/user/UserPublicProfile';
+import SingleChatPage from './pages/user/SingleChat';
 
 // Lazy load pages
 const Landing = lazy(() => import('@/pages/public/Landing'));
@@ -30,7 +31,7 @@ const ReportManagement = lazy(() => import('@pages/admin/ReportsManagement'));
 const TagManagement = lazy(() => import('@pages/admin/TagManagement'));
 const Network = lazy(() => import('@/pages/user/Network'));
 const Chats = lazy(() => import('@/pages/user/Chats'));
-const SingleChat = lazy(() => import('@/pages/user/SingleChat'));
+
 
 export const router = createBrowserRouter([
   {
@@ -108,7 +109,7 @@ export const router = createBrowserRouter([
           },
           {
             path: '/chats/:id',
-            element: <SingleChat />,
+            element: <SingleChatPage />,
           },
           {
             path: '/network',

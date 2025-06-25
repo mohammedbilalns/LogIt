@@ -70,4 +70,9 @@ router.get(
   asyncHandler((req, res) => userController.getOwnStats(req, res))
 );
 
+router.get(
+  "/online/:id",
+  asyncHandler((req, res) => userController.getOnlineStatus(req, res))
+);
+
 export default router;

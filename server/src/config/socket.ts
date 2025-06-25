@@ -4,6 +4,7 @@ import { Server as SocketIOServer } from "socket.io";
 import { Server as HTTPServer } from "http";
 import env from "./env";
 import { logger } from "../utils/logger";
+import { chatHandler } from "../interfaces/http/sockets/chat.handler";
 
 export interface SocketConfig {
   io: SocketIOServer;
@@ -11,8 +12,9 @@ export interface SocketConfig {
   subClient: Redis;
 }
 
+export const onlineUsers = new Map();
+
 export const initializeSocket = (server: HTTPServer): SocketConfig => {
-  // Initialize Socket.IO server
   const io = new SocketIOServer(server, {
     cors: {
       origin: env.CLIENT_URL,
@@ -20,7 +22,6 @@ export const initializeSocket = (server: HTTPServer): SocketConfig => {
     },
   });
 
-  // Initialize Redis clients
   const pubClient = new Redis({
     host: env.REDIS_URL,
     port: env.REDIS_PORT,
@@ -28,19 +29,39 @@ export const initializeSocket = (server: HTTPServer): SocketConfig => {
   });
   const subClient = pubClient.duplicate();
 
-  // Set up Redis adapter
   io.adapter(createAdapter(pubClient, subClient));
   logger.green("SOCKET_IO", "Redis adapter initialized");
 
-  // Set up Socket.IO event handlers
   io.on("connection", (socket) => {
     logger.yellow("SOCKET", `Client connected: ${socket.id}`);
 
-    socket.on("chat:message", (data) => {
-      io.to(data.roomId).emit("chat:message", data);
+    socket.on("identify", (userId: string) => {
+      if (userId) {
+        onlineUsers.set(userId, socket.id);
+        socket.broadcast.emit("user_online", { userId });
+        logger.green("SOCKET_ONLINE", `User online: ${userId}`);
+      }
     });
 
+    socket.on("check_online_status", ({ userIds }, callback) => {
+      const status: Record<string, boolean> = {};
+      userIds.forEach((id: string) => {
+        status[id] = onlineUsers.has(id);
+      });
+      if (typeof callback === 'function') callback(status);
+    });
+
+    chatHandler(io, socket);
+
     socket.on("disconnect", () => {
+      for (const [userId, sId] of onlineUsers.entries()) {
+        if (sId === socket.id) {
+          onlineUsers.delete(userId);
+          socket.broadcast.emit("user_offline", { userId });
+          logger.yellow("SOCKET_OFFLINE", `User offline: ${userId}`);
+          break;
+        }
+      }
       logger.yellow("SOCKET", `Client disconnected: ${socket.id}`);
     });
   });
@@ -50,4 +71,5 @@ export const initializeSocket = (server: HTTPServer): SocketConfig => {
     pubClient,
     subClient,
   };
-}; 
+};
+ 

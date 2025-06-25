@@ -5,8 +5,6 @@ import { IconAlertTriangle, IconEdit, IconTrash } from '@tabler/icons-react';
 import ReactMarkdown, { Components } from 'react-markdown';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import { ConfirmModal } from '@/components/confirm';
@@ -193,33 +191,6 @@ export default function ArticleDetailPage() {
     );
   }
 
-  const renderCodeBlock = (language: string | undefined, code: React.ReactNode) => {
-    const codeString = String(code);
-
-    return (
-      <Box style={{ position: 'relative' }}>
-        <SyntaxHighlighter
-          language={language}
-          style={vscDarkPlus}
-          customStyle={{
-            margin: `${theme.spacing.md}px 0`,
-            borderRadius: theme.radius.md,
-            fontSize: isMobile ? theme.fontSizes.sm : theme.fontSizes.md,
-            backgroundColor: isDark ? theme.colors.dark[7] : theme.colors.gray[0],
-            padding: theme.spacing.md,
-            overflow: 'auto',
-          }}
-          showLineNumbers
-          wrapLines
-          wrapLongLines
-          useInlineStyles
-        >
-          {codeString.replace(/\n$/, '')}
-        </SyntaxHighlighter>
-      </Box>
-    );
-  };
-
   const components: Components = {
     img: ({ src, alt }) => (
       <Box style={{ maxWidth: '100%', overflow: 'hidden' }}>
@@ -255,51 +226,38 @@ export default function ArticleDetailPage() {
         {children}
       </Title>
     ),
-    pre: ({ children, className }) => {
-      const match = /language-(\w+)/.exec(className || '');
-      const language = match ? match[1] : undefined;
-
-      return language ? (
-        renderCodeBlock(language, children)
-      ) : (
+    pre: ({ children }) => (
+      <Box
+        component="pre"
+        style={{
+          overflowX: 'auto',
+          maxWidth: '100%',
+          backgroundColor: isDark ? theme.colors.dark[7] : theme.colors.gray[0],
+          padding: theme.spacing.md,
+          borderRadius: theme.radius.md,
+          fontSize: isMobile ? theme.fontSizes.sm : theme.fontSizes.md,
+        }}
+      >
+        {children}
+      </Box>
+    ),
+    code: ({ className, children }) => {
+      // Inline code
+      return (
         <Box
-          component="pre"
+          component="code"
           style={{
-            overflowX: 'auto',
-            maxWidth: '100%',
             backgroundColor: isDark ? theme.colors.dark[7] : theme.colors.gray[0],
-            padding: theme.spacing.md,
-            borderRadius: theme.radius.md,
+            padding: '0.2em 0.4em',
+            borderRadius: theme.radius.sm,
             fontSize: isMobile ? theme.fontSizes.sm : theme.fontSizes.md,
+            fontFamily: 'monospace',
+            color: isDark ? theme.colors.gray[0] : theme.colors.dark[7],
           }}
         >
           {children}
         </Box>
       );
-    },
-    code: ({ className, children }) => {
-      const match = /language-(\w+)/.exec(className || '');
-      const language = match ? match[1] : undefined;
-      const isInline = !match;
-
-      if (isInline) {
-        return (
-          <Box
-            component="code"
-            style={{
-              backgroundColor: isDark ? theme.colors.dark[7] : theme.colors.gray[0],
-              padding: '0.2em 0.4em',
-              borderRadius: theme.radius.sm,
-              fontSize: isMobile ? theme.fontSizes.sm : theme.fontSizes.md,
-              fontFamily: 'monospace',
-              color: isDark ? theme.colors.gray[0] : theme.colors.dark[7],
-            }}
-          >
-            {children}
-          </Box>
-        );
-      }
-      return renderCodeBlock(language, children);
     },
   };
 

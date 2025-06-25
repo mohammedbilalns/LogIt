@@ -11,6 +11,7 @@ import logReducer from '@slices/logSlice';
 import reportReducer from '@slices/reportSlice';
 import homeReducer from '@slices/homeSlice';
 import connectionReducer from './slices/connectionSlice';
+import chatReducer from './slices/chatSlice';
 
 export const store = configureStore({
   reducer: {
@@ -26,6 +27,7 @@ export const store = configureStore({
     report: reportReducer,
     home: homeReducer,
     connection: connectionReducer,
+    chat: chatReducer,
   },
 });
 

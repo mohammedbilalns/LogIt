@@ -43,5 +43,13 @@ export enum HttpResponse {
   FOLLOWED_USER = "Followed user successfully.",
   UNFOLLOWED_USER = "Unfollowed user successfully.",
   BLOCKED_USER = "Blocked user successfully",
-  UNBLOCKED_USER = "Unblocked user successfully"
+  UNBLOCKED_USER = "Unblocked user successfully",
+  PRIVATE_CHAT_PARTICIPANT_ERROR = "Private chat must have exactly two participants.",
+  CHAT_NOT_FOUND = "Chat not found",
+  NOT_A_MEMBER = "You are not a member of this chat.",
+  CHAT_NOT_FOUND_OR_NOT_GROUP = "Chat not found or not a group chat.",
+  NO_PERMISSION_ADD = "You do not have permission to add participants.",
+  ALREADY_PARTICIPANT = "User is already a participant.",
+  NO_PERMISSION_REMOVE = "You do not have permission to remove participants.",
+  NOT_A_PARTICIPANT = "User is not a participant."
 }
