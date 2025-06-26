@@ -10,6 +10,7 @@ export class ChatController {
     res.status(201).json(chat);
   }
 
+  
   async getUserChats(req: Request, res: Response) {
     const userId = (req.user as { id: string }).id;
     const chats = await this.chatService.getUserChats(userId);

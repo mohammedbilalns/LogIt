@@ -14,7 +14,7 @@ export default function SingleChatPage() {
   }
   if (chat.error) {
     return <><UserSidebar /><Box className={chat.containerClassName} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><span style={{ color: 'red' }}>{chat.error}</span></Box></>;
-  }
+    }
   return (
     <>
       <UserSidebar />

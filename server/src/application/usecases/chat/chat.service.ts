@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
 import { CreateChatDto, SendMessageDto } from "../../../application/dtos/chat.dto";
-import { IChatService } from "../../../domain/services/chat.service.interface";
+import { IChatService, ChatWithDetails } from "../../../domain/services/chat.service.interface";
 import { IChatRepository } from "../../../domain/repositories/chat.repository.interface";
 import { IMessageRepository } from "../../../domain/repositories/message.repository.interface";
 import { IChatParticipantRepository } from "../../../domain/repositories/chat-participant.repository.interface";
@@ -42,7 +42,7 @@ export class ChatService implements IChatService {
     });
 
     for (const userId of allParticipants) {
-      // Check if participant already exists (shouldn't for new chat, but for safety)
+      // Check if participant already exists
       const existingParticipant = await this.chatParticipantRepository.findParticipant(newChat.id, userId);
       if (!existingParticipant) {
         await this.chatParticipantRepository.create({
@@ -55,15 +55,13 @@ export class ChatService implements IChatService {
     }
 
     allParticipants.forEach(userId => {
-        // Here you would get the socket ID for each user from a session store/cache
-        // and emit an event to them. For now, we'll assume they join a room by chat ID.
         this.io.to(userId).emit("new_chat", newChat);
     });
     
     return newChat;
   }
 
-  async getUserChats(userId: string) {
+  async getUserChats(userId: string): Promise<ChatWithDetails[]> {
     return this.chatRepository.findUserChats(userId);
   }
 
@@ -143,7 +141,7 @@ export class ChatService implements IChatService {
   async getChatMessages(chatId: string, userId: string, page = 1, limit = 10) {
     const participant = await this.chatParticipantRepository.findParticipant(chatId, userId);
     if (!participant) throw new UnauthorizedError(HttpResponse.NOT_A_MEMBER);
-    // Fetch latest messages first, then reverse for display
+    // Fetch latest messages
     const { data } = await this.messageRepository.findAll({
       filters: { chatId },
       sortBy: "createdAt",
@@ -159,12 +157,10 @@ export class ChatService implements IChatService {
     if (userId === targetUserId) {
       throw new BadRequestError('Cannot create a private chat with yourself.');
     }
-    // Use the new method to check for an existing private chat between the two users
     const existingChat = await this.chatParticipantRepository.findPrivateChatBetweenUsers(userId, targetUserId);
     if (existingChat) {
       return existingChat;
     }
-    // If not found, create a new chat and add both users as participants
     const newChat = await this.chatRepository.create({
       isGroup: false,
       creator: userId,

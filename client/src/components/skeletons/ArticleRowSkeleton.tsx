@@ -1,5 +1,4 @@
 import { Box, Group, Paper, Skeleton, useMantineColorScheme } from '@mantine/core';
-import React from 'react';
 
 export default function ArticleRowSkeleton() {
   const { colorScheme } = useMantineColorScheme();

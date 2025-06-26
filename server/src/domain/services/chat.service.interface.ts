@@ -3,9 +3,27 @@ import { ChatParticipants } from "../entities/chat-participants";
 import { Message } from "../entities/message.entity";
 import { CreateChatDto, SendMessageDto } from "../../application/dtos/chat.dto";
 
+export interface ChatWithDetails extends Chat {
+  participants: Array<{
+    id: string;
+    userId: string;
+    name: string;
+    profileImage?: string;
+    role: string;
+  }>;
+  lastMessageDetails?: {
+    id: string;
+    content: string;
+    senderId: string;
+    senderName: string;
+    createdAt: Date;
+  };
+  unreadCount?: number;
+}
+
 export interface IChatService {
   createChat(creatorId: string, data: CreateChatDto): Promise<Chat>;
-  getUserChats(userId: string): Promise<Chat[]>;
+  getUserChats(userId: string): Promise<ChatWithDetails[]>;
   getChatDetails(
     chatId: string,
     userId: string

@@ -18,7 +18,7 @@ import { RootState, AppDispatch } from '@/store';
 import UserSidebar from '@/components/user/UserSidebar';
 import axios from '@/api/axios';
 import { fetchArticles } from '@/store/slices/articleSlice';
-import { IconUserPlus, IconUserMinus, IconMessage, IconBan, IconFileText } from '@tabler/icons-react';
+import { IconUserPlus, IconUserMinus, IconMessage, IconBan } from '@tabler/icons-react';
 import { followUser, unfollowUser, blockUser, unblockUser, clearConnectionState } from '@/store/slices/connectionSlice';
 import UserStats from '@/components/user/UserStats';
 import { ConfirmModal } from '@/components/confirm';

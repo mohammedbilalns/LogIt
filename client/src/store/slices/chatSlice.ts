@@ -9,6 +9,21 @@ export interface Chat {
   lastMessage?: string;
   createdAt: string;
   updatedAt: string;
+  participants: Array<{
+    id: string;
+    userId: string;
+    name: string;
+    profileImage?: string;
+    role: string;
+  }>;
+  lastMessageDetails?: {
+    id: string;
+    content: string;
+    senderId: string;
+    senderName: string;
+    createdAt: string;
+  };
+  unreadCount?: number;
 }
 
 export interface Message {
@@ -72,6 +87,7 @@ export const fetchUserChats = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get('/chats');
+      console.log("Fetched chats", response.data)
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch chats');

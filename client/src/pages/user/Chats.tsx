@@ -1,16 +1,12 @@
-import { useState, useMemo } from 'react';
-import { Box, Stack, Title, Tabs, Avatar, Group, Text, Paper, Button, Badge } from '@mantine/core';
+import { useState, useMemo, useEffect } from 'react';
+import { Box, Stack, Title, Tabs, Avatar, Group, Text, Paper, Badge, Loader } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store';
+import { useSelector, useDispatch } from 'react-redux';
+import { AppDispatch, RootState } from '@/store';
+import { fetchUserChats } from '@/store/slices/chatSlice';
 import UserSidebar from '@/components/user/UserSidebar';
 import { useNavigate } from 'react-router-dom';
-
-const dummySingleChats = [
-  { id: 'c1', name: 'Alice Johnson', lastMessage: 'Hey, how are you?', avatar: '', unread: 2 },
-  { id: 'c2', name: 'Bob Smith', lastMessage: "Let's catch up tomorrow.", avatar: '', unread: 0 },
-  { id: 'c3', name: 'Charlie Brown', lastMessage: 'Sent you the files.', avatar: '', unread: 1 },
-];
+import { formatDistanceToNow } from 'date-fns';
 
 const dummyGroupChats = [
   { id: 'g1', name: 'Project Team', lastMessage: 'Deadline is next week!', avatar: '', members: 5, unread: 3 },
@@ -19,6 +15,39 @@ const dummyGroupChats = [
 
 function ChatCard({ chat, isGroup }: { chat: any; isGroup?: boolean }) {
   const navigate = useNavigate();
+
+  // For single chats, get the other participant's name and image
+  const currentUser = useSelector((state: RootState) => state.auth.user);
+  const otherParticipant = chat.participants?.find((p: any) => String(p.userId) !== String(currentUser?._id));
+
+  const getChatName = () => {
+    if (isGroup) return chat.name;
+    return otherParticipant?.name || 'Unknown User';
+  };
+
+  const getLastMessage = () => {
+    if (chat.lastMessageDetails) {
+      return chat.lastMessageDetails.content;
+    }
+    return isGroup ? chat.lastMessage : 'No messages yet';
+  };
+
+  const getLastMessageTime = () => {
+    if (chat.lastMessageDetails?.createdAt) {
+      return formatDistanceToNow(new Date(chat.lastMessageDetails.createdAt), { addSuffix: true });
+    }
+    return '';
+  };
+
+  const getUnreadCount = () => {
+    return chat.unreadCount || 0;
+  };
+
+  const chatName = getChatName();
+  const lastMessage = getLastMessage();
+  const lastMessageTime = getLastMessageTime();
+  const unreadCount = getUnreadCount();
+
   return (
     <Paper
       withBorder
@@ -31,30 +60,67 @@ function ChatCard({ chat, isGroup }: { chat: any; isGroup?: boolean }) {
       onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 rgba(0,0,0,0)')}
     >
       <Group align="center">
-        <Avatar src={chat.avatar} radius="xl" size={48} color={isGroup ? 'teal' : 'blue'}>
-          {chat.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+        <Avatar
+          src={isGroup ? chat.avatar : otherParticipant?.profileImage || undefined}
+          radius="xl"
+          size={48}
+          color={isGroup ? 'teal' : 'blue'}
+        >
+          {chatName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
         </Avatar>
         <Stack gap={0} style={{ flex: 1 }}>
-          <Group gap="xs">
-            <Text fw={600}>{chat.name}</Text>
+          <Group gap="xs" justify="space-between">
+            <Text fw={600}>{chatName}</Text>
             {isGroup && <Badge color="teal" size="xs">Group</Badge>}
+            {lastMessageTime && (
+              <Text size="xs" c="dimmed">{lastMessageTime}</Text>
+            )}
           </Group>
-          <Text size="sm" c="dimmed" lineClamp={1}>{chat.lastMessage}</Text>
+          <Text size="sm" c="dimmed" lineClamp={1}>{lastMessage}</Text>
         </Stack>
-        {chat.unread > 0 && <Badge color="red" size="sm">{chat.unread}</Badge>}
+        {unreadCount > 0 && <Badge color="red" size="sm">{unreadCount}</Badge>}
       </Group>
     </Paper>
   );
 }
 
 export default function ChatsPage() {
+  const dispatch = useDispatch<AppDispatch>();
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
+  const { chats, loading, error } = useSelector((state: RootState) => state.chat);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [tab, setTab] = useState<string | null>('single');
   const containerClassName = `page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
 
-  const singleChats = useMemo(() => dummySingleChats, []);
+  // Filter chats by type
+  const singleChats = useMemo(() => chats.filter(chat => !chat.isGroup), [chats]);
   const groupChats = useMemo(() => dummyGroupChats, []);
+
+  useEffect(() => {
+    dispatch(fetchUserChats());
+  }, [dispatch]);
+
+  if (loading && chats.length === 0) {
+    return (
+      <>
+        <UserSidebar />
+        <Box className={containerClassName} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <Loader size="lg" />
+        </Box>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <UserSidebar />
+        <Box className={containerClassName} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <Text c="red">{error}</Text>
+        </Box>
+      </>
+    );
+  }
 
   return (
     <>
