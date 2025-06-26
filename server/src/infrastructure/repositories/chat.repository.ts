@@ -57,7 +57,6 @@ export class ChatRepository
     const chats = await this.model.aggregate([
       // Match by chat IDs
       { $match: { _id: { $in: allChatIds.map((id) => new mongoose.Types.ObjectId(id)) } } },
-      // Lookup participants by stringified _id
       {
         $lookup: {
           from: "chatparticipants",

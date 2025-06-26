@@ -31,6 +31,7 @@ const ReportManagement = lazy(() => import('@pages/admin/ReportsManagement'));
 const TagManagement = lazy(() => import('@pages/admin/TagManagement'));
 const Network = lazy(() => import('@/pages/user/Network'));
 const Chats = lazy(() => import('@/pages/user/Chats'));
+const SubscriptionSettings = lazy(() => import('@/pages/admin/SubscriptionSettings'));
 
 
 export const router = createBrowserRouter([
@@ -146,7 +147,7 @@ export const router = createBrowserRouter([
               },
               {
                 path: '/admin/subscriptions',
-                element: <AdminDashboard />,
+                element: <SubscriptionSettings />,
               },
               {
                 path: '/admin/analytics',

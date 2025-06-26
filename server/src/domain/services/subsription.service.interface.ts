@@ -1,5 +1,6 @@
 import { SubscriptionPlan } from "../entities/subscription.entity";
 
 export interface ISubscriptionService {
-    create
+    fetchSubscriptions(): Promise<SubscriptionPlan[]>;
+    updateSubscription(id: string, data: Partial<Omit<SubscriptionPlan, 'id'>>): Promise<SubscriptionPlan | null>;
 }

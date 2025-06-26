@@ -14,4 +14,9 @@ export class ResourceConflictError extends HttpError {
         this.name = 'ResourceConflictError'
     }
 }   
-
+export class ResourceLimitExceededError extends HttpError {
+    constructor(message: string = "Maximum number of resource exceeded"){
+        super(HttpStatus.FORBIDDEN, message)
+        this.name = 'ResourceLimitExceededError'
+    }
+}

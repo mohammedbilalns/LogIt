@@ -12,6 +12,7 @@ import reportReducer from '@slices/reportSlice';
 import homeReducer from '@slices/homeSlice';
 import connectionReducer from './slices/connectionSlice';
 import chatReducer from './slices/chatSlice';
+import subscriptionReducer from './slices/subscriptionSlice';
 
 export const store = configureStore({
   reducer: {
@@ -28,6 +29,7 @@ export const store = configureStore({
     home: homeReducer,
     connection: connectionReducer,
     chat: chatReducer,
+    subscriptions: subscriptionReducer,
   },
 });
 

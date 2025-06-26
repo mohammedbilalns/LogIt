@@ -51,5 +51,21 @@ export enum HttpResponse {
   NO_PERMISSION_ADD = "You do not have permission to add participants.",
   ALREADY_PARTICIPANT = "User is already a participant.",
   NO_PERMISSION_REMOVE = "You do not have permission to remove participants.",
-  NOT_A_PARTICIPANT = "User is not a participant."
+  NOT_A_PARTICIPANT = "User is not a participant.",
+  FETCH_SUBSCRIPTIONS_SUCCESS = "Fetched subscriptions successfully.",
+  SUBSCRIPTION_CREATED = "Subscription created successfully.",
+  SUBSCRIPTION_UPDATED = "Subscription updated successfully.",
+  SUBSCRIPTION_DELETED = "Subscription deleted successfully.",
+  SUBSCRIPTION_NOT_FOUND = "Subscription not found.",
+  SUBSCRIPTION_PLAN_LIMIT_EXCEEDED = "Maximum number of subscription plans (5) reached",
+  SUBSCRIPTION_PLANS_DOES_NOT_EXISTS = 'All three plans (Base, Plus, Pro) must exist.',
+  PRO_PLAN_UNLIMITED_LOGS = 'Pro plan must have unlimited logs.',
+  PRO_PLAN_UNLIMITED_ARTICLES = 'Pro plan must have unlimited articles.',
+  PRO_PLAN_PRICE_HIGHEST = 'Pro price must be highest.',
+  PLUS_PLAN_PRICE_BETWEEN = 'Plus price must be between Base and Pro.',
+  PLUS_PLAN_LOGS_GT_BASE = 'Plus log limit must be greater than Base.',
+  PLUS_PLAN_ARTICLES_GT_BASE = 'Plus article limit must be greater than Base.',
+  BASE_PLAN_PRICE_LOWEST = 'Base price must be lowest.',
+  BASE_PLAN_LOGS_LT_PLUS = 'Base log limit must be less than Plus.',
+  BASE_PLAN_ARTICLES_LT_PLUS = 'Base article limit must be less than Plus.'
 }
