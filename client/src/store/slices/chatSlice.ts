@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import axios from '@/api/axios';
 
 export interface Chat {
@@ -54,7 +54,8 @@ export interface ChatParticipant {
 }
 
 interface ChatState {
-  chats: Chat[];
+  singleChats: Chat[];
+  groupChats: Chat[];
   currentChat: Chat | null;
   messages: Message[];
   participants: ChatParticipant[];
@@ -68,7 +69,8 @@ interface ChatState {
 }
 
 const initialState: ChatState = {
-  chats: [],
+  singleChats: [],
+  groupChats: [],
   currentChat: null,
   messages: [],
   participants: [],
@@ -87,7 +89,7 @@ export const fetchUserChats = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get('/chats');
-      console.log("Fetched chats", response.data)
+      console.log('Fetched chats', response.data);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch chats');
@@ -97,12 +99,27 @@ export const fetchUserChats = createAsyncThunk(
 
 export const createChat = createAsyncThunk(
   'chat/createChat',
-  async (data: { isGroup: boolean; name?: string; participants: string[] }, { rejectWithValue }) => {
+  async (
+    data: { isGroup: boolean; name?: string; participants: string[] },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await axios.post('/chats', data);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create chat');
+    }
+  }
+);
+
+export const createGroupChat = createAsyncThunk(
+  'chat/createGroupChat',
+  async (data: { name: string; participants: string[] }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post('/chats/group', data);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to create group chat');
     }
   }
 );
@@ -153,7 +170,23 @@ export const getOrCreatePrivateChat = createAsyncThunk(
       const response = await axios.get(`/chats/private/${userId}`);
       return response.data.id;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to get or create private chat');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to get or create private chat'
+      );
+    }
+  }
+);
+
+export const fetchUserGroupChats = createAsyncThunk(
+  'chat/fetchUserGroupChats',
+  async (_, { rejectWithValue }) => {
+    try {
+      console.log('triggered fetchuser group chats');
+      const response = await axios.get('/chats/group');
+      console.log('Group chats ', response.data);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch group chats');
     }
   }
 );
@@ -177,8 +210,14 @@ const chatSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
-    updateChatLastMessage: (state, action: PayloadAction<{ chatId: string; messageId: string }>) => {
-      const chat = state.chats.find(c => c.id === action.payload.chatId);
+    updateChatLastMessage: (
+      state,
+      action: PayloadAction<{ chatId: string; messageId: string }>
+    ) => {
+      let chat = state.singleChats.find((c) => c.id === action.payload.chatId);
+      if (!chat) {
+        chat = state.groupChats.find((c) => c.id === action.payload.chatId);
+      }
       if (chat) {
         chat.lastMessage = action.payload.messageId;
       }
@@ -193,7 +232,7 @@ const chatSlice = createSlice({
       })
       .addCase(fetchUserChats.fulfilled, (state, action) => {
         state.loading = false;
-        state.chats = action.payload;
+        state.singleChats = action.payload;
       })
       .addCase(fetchUserChats.rejected, (state, action) => {
         state.loading = false;
@@ -206,13 +245,37 @@ const chatSlice = createSlice({
       })
       .addCase(createChat.fulfilled, (state, action) => {
         state.loading = false;
-        const existingChat = state.chats.find(c => c.id === action.payload.id);
-        if (!existingChat) {
-          state.chats.push(action.payload);
+        if (action.payload.isGroup) {
+          const existingGroup = state.groupChats.find((c) => c.id === action.payload.id);
+          if (!existingGroup) {
+            state.groupChats.push(action.payload);
+          }
+        } else {
+          const existingSingle = state.singleChats.find((c) => c.id === action.payload.id);
+          if (!existingSingle) {
+            state.singleChats.push(action.payload);
+          }
         }
         state.currentChat = action.payload;
       })
       .addCase(createChat.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // Create group chat
+      .addCase(createGroupChat.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createGroupChat.fulfilled, (state, action) => {
+        state.loading = false;
+        const existingGroup = state.groupChats.find((c) => c.id === action.payload.id);
+        if (!existingGroup) {
+          state.groupChats.push(action.payload);
+        }
+        state.currentChat = action.payload;
+      })
+      .addCase(createGroupChat.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
@@ -235,9 +298,7 @@ const chatSlice = createSlice({
       .addCase(sendMessage.pending, (state) => {
         state.error = null;
       })
-      .addCase(sendMessage.fulfilled, (state, action) => {
-        // Do nothing here; message will be added via socket event
-      })
+      .addCase(sendMessage.fulfilled, (state, action) => {})
       .addCase(sendMessage.rejected, (state, action) => {
         state.error = action.payload as string;
       })
@@ -262,6 +323,19 @@ const chatSlice = createSlice({
       .addCase(fetchChatMessages.rejected, (state, action) => {
         state.messagesLoading = false;
         state.error = action.payload as string;
+      })
+      // Fetch user group chats
+      .addCase(fetchUserGroupChats.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUserGroupChats.fulfilled, (state, action) => {
+        state.loading = false;
+        state.groupChats = action.payload;
+      })
+      .addCase(fetchUserGroupChats.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });
@@ -275,4 +349,4 @@ export const {
   updateChatLastMessage,
 } = chatSlice.actions;
 
-export default chatSlice.reducer; 
+export default chatSlice.reducer;

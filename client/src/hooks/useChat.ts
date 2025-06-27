@@ -7,16 +7,16 @@ import { AppDispatch, RootState } from '@/store';
 import {
   clearMessages,
   fetchChatDetails,
+  fetchChatMessages,
   sendMessage,
   setCurrentChat,
-  fetchChatMessages,
 } from '@/store/slices/chatSlice';
 
 export function useChat(id?: string) {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
-  const isMobile = false; // You can add useMediaQuery if needed
+  const isMobile = false; 
   const { user: loggedInUser } = useSelector((state: RootState) => state.auth);
   const { currentChat, messages, participants, loading, messagesLoading, error, socketConnected } =
     useSelector((state: RootState) => state.chat);
@@ -25,6 +25,7 @@ export function useChat(id?: string) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerClassName = `page-container ${isSidebarOpen ? 'sidebar-open' : ''}`;
   const [isOnline, setIsOnline] = useState(false);
+  const [onlineCount, setOnlineCount] = useState(0);
   const { socket, joinChatRoom, leaveChatRoom, subscribeToUserStatus } = useSocket();
   const page = useSelector((state: RootState) => state.chat.page);
   const hasMore = useSelector((state: RootState) => state.chat.hasMore);
@@ -105,6 +106,40 @@ export function useChat(id?: string) {
     return unsubscribe;
   }, [otherParticipant?.userId, subscribeToUserStatus]);
 
+  useEffect(() => {
+    if (!currentChat?.isGroup || !participants.length || !socket || !socket.connected) {
+      setOnlineCount(0);
+      return;
+    }
+    // Exclude self from online count
+    const userIds = participants
+      .map((p) => p.userId)
+      .filter((uid) => uid && uid !== loggedInUser?._id);
+    if (userIds.length === 0) {
+      setOnlineCount(1); // Only self
+      return;
+    }
+    const updateOnlineCount = () => {
+      socket.emit('check_online_status', { userIds }, (status: Record<string, boolean>) => {
+        let count = 0;
+        for (const uid of userIds) {
+          if (status[uid]) count++;
+        }
+        if (loggedInUser?._id && socket.connected) count++;
+        setOnlineCount(count);
+      });
+    };
+    updateOnlineCount();
+    const handleOnline = () => updateOnlineCount();
+    const handleOffline = () => updateOnlineCount();
+    socket.on('user_online', handleOnline);
+    socket.on('user_offline', handleOffline);
+    return () => {
+      socket.off('user_online', handleOnline);
+      socket.off('user_offline', handleOffline);
+    };
+  }, [currentChat?.isGroup, participants, socket, socket?.connected, loggedInUser?._id]);
+
   // Fetch initial messages
   useEffect(() => {
     if (id) {
@@ -115,13 +150,11 @@ export function useChat(id?: string) {
   // Fetch previous messages (older)
   const fetchPreviousMessages = async () => {
     if (!id || !hasMore) return;
-    // 1. Record scrollHeight and scrollTop before fetch
     const container = messagesContainerRef.current;
     const prevScrollHeight = container ? container.scrollHeight : 0;
     const prevScrollTop = container ? container.scrollTop : 0;
     await dispatch(fetchChatMessages({ chatId: id, page: page + 1, limit }));
-    setShouldScrollToBottom(false); // Do not scroll to bottom when loading older messages
-    // 2. After DOM updates, restore scroll position
+    setShouldScrollToBottom(false);
     requestAnimationFrame(() => {
       if (container) {
         const newScrollHeight = container.scrollHeight;
@@ -163,6 +196,7 @@ export function useChat(id?: string) {
     avatarInitials,
     otherParticipant,
     isOnline,
+    onlineCount,
     message,
     setMessage,
     sending,

@@ -9,6 +9,7 @@ import {
 } from '@/components/RouteGuards';
 import UserPublicProfile from './pages/user/UserPublicProfile';
 import SingleChatPage from './pages/user/SingleChat';
+import GroupChat from './pages/user/GroupChat';
 
 // Lazy load pages
 const Landing = lazy(() => import('@/pages/public/Landing'));
@@ -119,6 +120,10 @@ export const router = createBrowserRouter([
           {
             path: '/profile',
             element: <Profile />,
+          },
+          {
+            path: '/group-chats/:id',
+            element: <GroupChat />,
           },
         ],
       },

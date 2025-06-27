@@ -10,6 +10,12 @@ export class ChatController {
     res.status(201).json(chat);
   }
 
+  async createGroupChat(req: Request, res: Response) {
+    const userId = (req.user as { id: string }).id;
+    const chat = await this.chatService.createGroupChat(userId, req.body);
+    res.status(201).json(chat);
+  }
+
   
   async getUserChats(req: Request, res: Response) {
     const userId = (req.user as { id: string }).id;
@@ -59,5 +65,11 @@ export class ChatController {
     const targetUserId = req.params.userId;
     const chat = await this.chatService.getOrCreatePrivateChat(userId, targetUserId);
     res.status(200).json({ id: chat.id });
+  }
+
+  async getUserGroupChats(req: Request, res: Response) {
+    const userId = (req.user as { id: string }).id;
+    const chats = await this.chatService.getUserGroupChats(userId);
+    res.status(200).json(chats);
   }
 } 

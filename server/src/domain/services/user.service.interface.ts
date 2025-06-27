@@ -26,4 +26,11 @@ export interface IUserService {
   ): Promise<UserInfoWithRelationship>;
 
   getUserStats(userId: string): Promise<{ followersCount: number, followingCount: number, articlesCount: number }>;
+
+  getUsersForGroupChat(
+    currentUserId: string,
+    page: number,
+    limit: number,
+    search?: string
+  ): Promise<{ users: User[]; total: number; hasMore: boolean }>;
 }

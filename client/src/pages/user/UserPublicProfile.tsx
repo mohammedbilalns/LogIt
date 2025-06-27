@@ -165,7 +165,6 @@ export default function UserPublicProfile() {
   const handleChatClick = async () => {
     if (!id || !loggedInUser?._id) return;
     try {
-      // Use the new thunk to get or create a private chat
       const chatId = await dispatch(getOrCreatePrivateChat(id)).unwrap();
       navigate(`/chats/${chatId}`);
     } catch (error) {

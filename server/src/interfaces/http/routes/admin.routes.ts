@@ -21,7 +21,7 @@ router.use(
   asyncHandler((req, res, next) => authMiddleware()(req, res, next)),
   asyncHandler((req, res, next) => csrfMiddleware()(req, res, next)),
   asyncHandler((req, res, next) =>
-    authorizeRoles("admin", "superadmin")(req, res, next)
+    authorizeRoles("admin", "superadmin", "user")(req, res, next)
   )
 );
 

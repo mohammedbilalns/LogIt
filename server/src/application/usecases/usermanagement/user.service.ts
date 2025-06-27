@@ -274,4 +274,45 @@ export class UserService implements IUserService {
     ]);
     return { followersCount, followingCount, articlesCount };
   }
+
+  async getUsersForGroupChat(
+    currentUserId: string,
+    page: number,
+    limit: number,
+    search?: string
+  ): Promise<{ users: User[]; total: number; hasMore: boolean }> {
+    // Verify current user exists
+    const currentUser = await this.userRepository.findById(currentUserId);
+    if (!currentUser) {
+      throw new UserNotFoundError();
+    }
+
+    await this.checkUserBlocked(currentUserId);
+
+    const filters: Record<string, unknown> = { 
+      _id: { $ne: currentUserId },
+      isBlocked: false 
+    };
+
+    if (search && search.trim()) {
+      filters.$or = [
+        { name: { $regex: search.trim(), $options: 'i' } },
+        { email: { $regex: search.trim(), $options: 'i' } }
+      ];
+    }
+
+    const result = await this.userRepository.findAll({
+      page,
+      limit,
+      filters,
+      sortBy: "name",
+      sortOrder: "asc"
+    });
+
+    return {
+      users: result.data,
+      total: result.total,
+      hasMore: result.data.length === limit
+    };
+  }
 }

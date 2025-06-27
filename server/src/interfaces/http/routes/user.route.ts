@@ -75,4 +75,9 @@ router.get(
   asyncHandler((req, res) => userController.getOnlineStatus(req, res))
 );
 
+router.get(
+  "/users",
+  asyncHandler((req, res) => userController.getUsersForGroupChat(req, res))
+);
+
 export default router;

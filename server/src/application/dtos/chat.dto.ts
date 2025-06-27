@@ -1,7 +1,12 @@
 export interface CreateChatDto {
   isGroup: boolean;
   name?: string;
-  participants: string[]; // array of user IDs
+  participants: string[]; 
+}
+
+export interface CreateGroupChatDto {
+  name: string;
+  participants: string[]; 
 }
 
 export interface SendMessageDto {

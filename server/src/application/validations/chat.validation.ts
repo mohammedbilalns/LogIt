@@ -6,6 +6,11 @@ export const createChatSchema = z.object({
   participants: z.array(z.string()).min(1),
 });
 
+export const createGroupChatSchema = z.object({
+  name: z.string().min(1, "Group name is required"),
+  participants: z.array(z.string()).min(1, "At least one participant is required"),
+});
+
 export const addParticipantSchema = z.object({
   userId: z.string(),
 });

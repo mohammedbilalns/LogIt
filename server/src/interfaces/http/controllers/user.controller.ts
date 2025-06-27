@@ -56,4 +56,18 @@ export class UserController {
     const isOnline = onlineUsers.has(targetUserId);
     return res.json({ online: isOnline });
   }
+
+  async getUsersForGroupChat(req: Request, res: Response) {
+    const currentUserId = req.user?.id;
+    if (!currentUserId) {
+      return res.status(HttpStatus.UNAUTHORIZED).json({ message: HttpResponse.AUTHENTICATION_REQUIRED });
+    }
+    
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const search = req.query.search as string || '';
+    
+    const users = await this.userService.getUsersForGroupChat(currentUserId, page, limit, search);
+    return res.status(HttpStatus.OK).json(users);
+  }
 }

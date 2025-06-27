@@ -3,25 +3,23 @@ import { Box, Stack, Title, Tabs, Avatar, Group, Text, Paper, Badge, Loader } fr
 import { useMediaQuery } from '@mantine/hooks';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
-import { fetchUserChats } from '@/store/slices/chatSlice';
+import { fetchUserChats, fetchUserGroupChats } from '@/store/slices/chatSlice';
 import UserSidebar from '@/components/user/UserSidebar';
+import CreateGroupButton from '@/components/user/CreateGroupButton';
+import CreateGroupModal from '@/components/chat/CreateGroupModal';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-
-const dummyGroupChats = [
-  { id: 'g1', name: 'Project Team', lastMessage: 'Deadline is next week!', avatar: '', members: 5, unread: 3 },
-  { id: 'g2', name: 'Family', lastMessage: 'Dinner at 7?', avatar: '', members: 4, unread: 0 },
-];
+import { useDisclosure } from '@mantine/hooks';
 
 function ChatCard({ chat, isGroup }: { chat: any; isGroup?: boolean }) {
   const navigate = useNavigate();
 
-  // For single chats, get the other participant's name and image
+  
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const otherParticipant = chat.participants?.find((p: any) => String(p.userId) !== String(currentUser?._id));
 
   const getChatName = () => {
-    if (isGroup) return chat.name;
+    if (isGroup) return chat.name || 'Group';
     return otherParticipant?.name || 'Unknown User';
   };
 
@@ -54,7 +52,7 @@ function ChatCard({ chat, isGroup }: { chat: any; isGroup?: boolean }) {
       radius="md"
       p="md"
       mb="sm"
-      onClick={() => navigate(`/chats/${chat.id}`)}
+      onClick={() => isGroup ? navigate(`/group-chats/${chat.id}`) : navigate(`/chats/${chat.id}`)}
       style={{ cursor: 'pointer', transition: 'box-shadow 0.2s', boxShadow: '0 0 0 rgba(0,0,0,0)' }}
       onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)')}
       onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 rgba(0,0,0,0)')}
@@ -64,21 +62,20 @@ function ChatCard({ chat, isGroup }: { chat: any; isGroup?: boolean }) {
           src={isGroup ? chat.avatar : otherParticipant?.profileImage || undefined}
           radius="xl"
           size={48}
-          color={isGroup ? 'teal' : 'blue'}
+          color={isGroup ? 'blue' : 'blue'}
         >
-          {chatName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+          {(chatName || 'Chat').split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
         </Avatar>
         <Stack gap={0} style={{ flex: 1 }}>
           <Group gap="xs" justify="space-between">
             <Text fw={600}>{chatName}</Text>
-            {isGroup && <Badge color="teal" size="xs">Group</Badge>}
             {lastMessageTime && (
               <Text size="xs" c="dimmed">{lastMessageTime}</Text>
             )}
           </Group>
           <Text size="sm" c="dimmed" lineClamp={1}>{lastMessage}</Text>
         </Stack>
-        {unreadCount > 0 && <Badge color="red" size="sm">{unreadCount}</Badge>}
+        {unreadCount > 0 && <Badge color="blue" size="sm">{unreadCount}</Badge>}
       </Group>
     </Paper>
   );
@@ -87,23 +84,24 @@ function ChatCard({ chat, isGroup }: { chat: any; isGroup?: boolean }) {
 export default function ChatsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
-  const { chats, loading, error } = useSelector((state: RootState) => state.chat);
+  const { singleChats, groupChats, loading, error } = useSelector((state: RootState) => state.chat);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [tab, setTab] = useState<string | null>('single');
+  const [groupModalOpened, { open: openGroupModal, close: closeGroupModal }] = useDisclosure(false);
   const containerClassName = `page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
 
-  // Filter chats by type
-  const singleChats = useMemo(() => chats.filter(chat => !chat.isGroup), [chats]);
-  const groupChats = useMemo(() => dummyGroupChats, []);
-
   useEffect(() => {
-    dispatch(fetchUserChats());
-  }, [dispatch]);
+    if (tab === 'single') {
+      dispatch(fetchUserChats());
+    } else if (tab === 'group') {
+      dispatch(fetchUserGroupChats());
+    }
+  }, [dispatch, tab]);
 
-  if (loading && chats.length === 0) {
+  if (loading && ((tab === 'single' && singleChats.length === 0) || (tab === 'group' && groupChats.length === 0))) {
     return (
       <>
-        <UserSidebar />
+        <UserSidebar isModalOpen={groupModalOpened} />
         <Box className={containerClassName} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
           <Loader size="lg" />
         </Box>
@@ -114,7 +112,7 @@ export default function ChatsPage() {
   if (error) {
     return (
       <>
-        <UserSidebar />
+        <UserSidebar isModalOpen={groupModalOpened} />
         <Box className={containerClassName} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
           <Text c="red">{error}</Text>
         </Box>
@@ -124,7 +122,7 @@ export default function ChatsPage() {
 
   return (
     <>
-      <UserSidebar />
+      <UserSidebar isModalOpen={groupModalOpened} />
       <Box className={containerClassName}>
         <Stack gap="md">
           <Title order={2}>Chats</Title>
@@ -146,6 +144,17 @@ export default function ChatsPage() {
           </Tabs>
         </Stack>
       </Box>
+
+      {/* Create Group Button */}
+      {tab === 'group' && (
+        <CreateGroupButton onClick={openGroupModal} />
+      )}
+
+      {/* Create Group Modal */}
+      <CreateGroupModal
+        opened={groupModalOpened}
+        onClose={closeGroupModal}
+      />
     </>
   );
 } 

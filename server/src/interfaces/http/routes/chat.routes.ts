@@ -9,6 +9,7 @@ import { asyncHandler } from "../../../utils/asyncHandler";
 import { validate } from "../middlewares/validation.middleware";
 import {
   createChatSchema,
+  createGroupChatSchema,
   addParticipantSchema,
   sendMessageSchema,
 } from "../../../application/validations/chat.validation";
@@ -33,6 +34,8 @@ export function createChatRouter(io: Server) {
   router.use(authMiddleware());
 
   router.post("/", validate(createChatSchema), asyncHandler((req, res) => chatController.createChat(req, res)));
+  router.post("/group", validate(createGroupChatSchema), asyncHandler((req, res) => chatController.createGroupChat(req, res)));
+  router.get("/group", asyncHandler((req, res) => chatController.getUserGroupChats(req, res)));
   router.get("/private/:userId", asyncHandler((req, res) => chatController.getOrCreatePrivateChat(req, res)));
   router.get("/", asyncHandler((req, res) => chatController.getUserChats(req, res)));
   router.get("/:chatId", asyncHandler((req, res) => chatController.getChatDetails(req, res)));
