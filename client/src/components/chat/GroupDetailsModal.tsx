@@ -22,6 +22,7 @@ import { useDispatch } from 'react-redux';
 import type { AppDispatch } from '@/store';
 import { removeParticipant, promoteParticipant, leaveGroup, addParticipants, fetchChatDetails, updateGroupName } from '@/store/slices/chatSlice';
 import { notifications } from '@mantine/notifications';
+import { ConfirmModal } from '../confirm';
 
 interface GroupDetailsModalProps {
   opened: boolean;
@@ -47,6 +48,8 @@ export default function GroupDetailsModal({ opened, onClose, chat, participants,
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [removedUserId, setRemovedUserId] = useState<string | null>(null);
   const [addMembersSuccess, setAddMembersSuccess] = useState<string | null>(null);
+  const [confirmLeaveOpen, setConfirmLeaveOpen] = useState(false);
+  const [confirmRemoveOpen, setConfirmRemoveOpen] = useState<{ open: boolean; userId: string | null }>({ open: false, userId: null });
 
   useEffect(() => {
     if (opened) {
@@ -58,16 +61,23 @@ export default function GroupDetailsModal({ opened, onClose, chat, participants,
     navigate(`/user/${userId}`);
   };
 
-  const handleRemoveUser = async (userId: string) => {
+  const handleRemoveUser = (userId: string) => {
+    setConfirmRemoveOpen({ open: true, userId });
+  };
+
+  const confirmRemoveUser = async () => {
+    if (!confirmRemoveOpen.userId) return;
     try {
-      setRemovedUserId(userId);
-      await dispatch(removeParticipant({ chatId: chat.id, userId })).unwrap();
+      setRemovedUserId(confirmRemoveOpen.userId);
+      await dispatch(removeParticipant({ chatId: chat.id, userId: confirmRemoveOpen.userId })).unwrap();
       notifications.show({ title: 'Removed', message: 'User removed from group', color: 'green' });
       dispatch(fetchChatDetails({ chatId: chat.id, page: 1, limit: 15 }));
       setTimeout(() => setRemovedUserId(null), 1500);
     } catch (e: any) {
       setRemovedUserId(null);
       notifications.show({ title: 'Error', message: e || 'Failed to remove user', color: 'red' });
+    } finally {
+      setConfirmRemoveOpen({ open: false, userId: null });
     }
   };
 
@@ -81,13 +91,19 @@ export default function GroupDetailsModal({ opened, onClose, chat, participants,
     }
   };
 
-  const handleLeaveGroup = async () => {
+  const handleLeaveGroup = () => {
+    setConfirmLeaveOpen(true);
+  };
+
+  const confirmLeaveGroup = async () => {
     try {
       await dispatch(leaveGroup(chat.id)).unwrap();
       notifications.show({ title: 'Left Group', message: 'You have left the group', color: 'green' });
       onClose();
     } catch (e: any) {
       notifications.show({ title: 'Error', message: e || 'Failed to leave group', color: 'red' });
+    } finally {
+      setConfirmLeaveOpen(false);
     }
   };
 
@@ -278,6 +294,28 @@ export default function GroupDetailsModal({ opened, onClose, chat, participants,
           <Button onClick={handleAddMembers} disabled={addingUsers.length === 0}>Add</Button>
         </Group>
       </Modal>
+
+      {/* Confirm Leave Group Modal */}
+      <ConfirmModal
+        opened={confirmLeaveOpen}
+        onClose={() => setConfirmLeaveOpen(false)}
+        onConfirm={confirmLeaveGroup}
+        title="Leave Group"
+        message="Are you sure you want to leave this group?"
+        confirmLabel="Leave"
+        confirmColor="red"
+      />
+      {/* Confirm Remove User Modal */}
+      <ConfirmModal
+        opened={confirmRemoveOpen.open}
+        onClose={() => setConfirmRemoveOpen({ open: false, userId: null })}
+        onConfirm={confirmRemoveUser}
+        title="Remove User"
+        message="Are you sure you want to remove this user from the group?"
+        confirmLabel="Remove"
+        confirmColor="red"
+        loading={removedUserId === confirmRemoveOpen.userId}
+      />
     </Modal>
   );
 } 

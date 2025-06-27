@@ -29,7 +29,7 @@ export function ConfirmModal({
       onClose={onClose}
       title={title}
       centered
-      zIndex={2000}
+      zIndex={4000}
       lockScroll
       radius="md" // Matched corner radius
     >
