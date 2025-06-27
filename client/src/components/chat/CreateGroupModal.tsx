@@ -4,16 +4,9 @@ import {
   Button,
   Group,
   Stack,
-  Text,
-  Avatar,
-  Checkbox,
-  ScrollArea,
-  Loader,
   useMantineColorScheme,
   useMantineTheme,
   rem,
-  Box,
-  ActionIcon,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useState, useEffect, useRef } from 'react';
@@ -84,7 +77,6 @@ export default function CreateGroupModal({
     },
   });
 
-  // Sync selectedUsers to form participants field for Mantine form validation
   useEffect(() => {
     form.setFieldValue('participants', selectedUsers);
   }, [selectedUsers]);
@@ -191,7 +183,7 @@ export default function CreateGroupModal({
         message: 'Group chat created successfully',
         color: 'green',
       });
-      dispatch(fetchUserChats());
+      dispatch(fetchUserChats({}));
       onClose();
       setSelectedUsers([]);
       setAllSelectedUsers([]);

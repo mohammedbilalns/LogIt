@@ -46,6 +46,7 @@ export default function GroupDetailsModal({ opened, onClose, chat, participants,
   const [updatingName, setUpdatingName] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [removedUserId, setRemovedUserId] = useState<string | null>(null);
+  const [addMembersSuccess, setAddMembersSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (opened) {
@@ -62,7 +63,7 @@ export default function GroupDetailsModal({ opened, onClose, chat, participants,
       setRemovedUserId(userId);
       await dispatch(removeParticipant({ chatId: chat.id, userId })).unwrap();
       notifications.show({ title: 'Removed', message: 'User removed from group', color: 'green' });
-      dispatch(fetchChatDetails(chat.id));
+      dispatch(fetchChatDetails({ chatId: chat.id, page: 1, limit: 15 }));
       setTimeout(() => setRemovedUserId(null), 1500);
     } catch (e: any) {
       setRemovedUserId(null);
@@ -74,7 +75,7 @@ export default function GroupDetailsModal({ opened, onClose, chat, participants,
     try {
       await dispatch(promoteParticipant({ chatId: chat.id, userId })).unwrap();
       notifications.show({ title: 'Promoted', message: 'User promoted to admin', color: 'green' });
-      dispatch(fetchChatDetails(chat.id));
+      dispatch(fetchChatDetails({ chatId: chat.id, page: 1, limit: 15 }));
     } catch (e: any) {
       notifications.show({ title: 'Error', message: e || 'Failed to promote user', color: 'red' });
     }
@@ -94,9 +95,11 @@ export default function GroupDetailsModal({ opened, onClose, chat, participants,
     setAddMembersError(null);
     try {
       await dispatch(addParticipants({ chatId: chat.id, participants: addingUsers })).unwrap();
-      notifications.show({ title: 'Added', message: 'Members added to group', color: 'green' });
+      setSuccessMessage('Members added to group successfully!');
       setAddMembersOpen(false);
-      dispatch(fetchChatDetails(chat.id));
+      setAddingUsers([]);
+      setTimeout(() => setSuccessMessage(null), 2000);
+      dispatch(fetchChatDetails({ chatId: chat.id, page: 1, limit: 15 }));
     } catch (e: any) {
       setAddMembersError(e || 'Failed to add members');
     }
