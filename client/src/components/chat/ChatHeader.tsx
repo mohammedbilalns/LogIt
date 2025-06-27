@@ -13,6 +13,7 @@ interface ChatHeaderProps {
   isMobile: boolean;
   onlineCount?: number;
   onTitleClick?: () => void;
+  hideCounts?: boolean;
 }
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
@@ -26,6 +27,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   isMobile,
   onlineCount,
   onTitleClick,
+  hideCounts = false,
 }) => (
   <>
     <Group justify="space-between" align="center" style={{ position: 'sticky', top: 0, zIndex: 2, background: 'inherit', paddingBottom: 12 }}>
@@ -55,8 +57,8 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             </Avatar>
             <Stack gap={0}>
               <Text fw={600} size={isMobile ? 'md' : 'lg'}>{chatName}</Text>
-              <Text size="xs" c="dimmed">{participants.length} members</Text>
-              <Text size="xs" c="green">{onlineCount ?? 0} online</Text>
+              {!hideCounts && <Text size="xs" c="dimmed">{participants.length} members</Text>}
+              {!hideCounts && <Text size="xs" c="green">{onlineCount ?? 0} online</Text>}
             </Stack>
           </Stack>
         </Box>

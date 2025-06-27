@@ -12,6 +12,9 @@ export default function GroupChatPage() {
   const { id } = useParams();
   const chat = useChat(id);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const myParticipant = chat.participants.find((p: any) => p.userId === chat.loggedInUser?._id);
+  const myRole = myParticipant?.role as string | undefined;
+  const isRemovedOrLeft = myRole === 'removed-user' || myRole === 'left-user';
   if (chat.loading && chat.page === 1 && chat.messages.length === 0) {
     return <><UserSidebar /><Box className={chat.containerClassName} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><Loader size="lg" /></Box></>;
   }
@@ -33,13 +36,21 @@ export default function GroupChatPage() {
       >
         <ChatHeader
           {...chat}
-          onlineCount={chat.onlineCount}
+          onlineCount={isRemovedOrLeft ? undefined : chat.onlineCount}
+          hideCounts={isRemovedOrLeft}
           onTitleClick={() => setDetailsOpen(true)}
         />
         <Box style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <ChatMessages {...chat} />
         </Box>
-        <ChatInput {...chat} />
+        {isRemovedOrLeft ? (
+          <Box p="md" style={{ textAlign: 'center', color: '#888', background: '#fffbe6', borderTop: '1px solid #ffe066' }}>
+            {myRole === 'removed-user' && 'You have been removed from this group. You can no longer send messages.'}
+            {myRole === 'left-user' && 'You have left this group. You can no longer send messages.'}
+          </Box>
+        ) : (
+          <ChatInput {...chat} />
+        )}
       </Box>
       <GroupDetailsModal
         opened={detailsOpen}

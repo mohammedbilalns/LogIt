@@ -70,5 +70,5 @@ export enum HttpResponse {
   BASE_PLAN_ARTICLES_LT_PLUS = 'Base article limit must be less than Plus.',
   REQUIRED_GROUP_NAME = "Group name is required",
   REQUIRED_PARTICIPANTS = "At least one participant is required",
-  
+  NO_PERMISSION_TO_MESSAGE = 'You are not allowed to send messages in this chat.'
 }
