@@ -229,13 +229,24 @@ export default function GroupDetailsModal({ opened, onClose, chat, participants,
                   )}
                   {user.userId === loggedInUser?._id && <Text size="xs" c="blue">(You)</Text>}
                 </Group>
-                {isAdmin && user.userId !== loggedInUser?._id && user.role !== 'admin' && (
-                  <Group>
+                <Group>
+                  {isAdmin && user.role !== 'admin' && user.userId !== loggedInUser?._id && (
+                    <Button
+                      size="xs"
+                      color="yellow"
+                      variant="light"
+                      onClick={() => handlePromoteUser(user.userId)}
+                      style={{ marginRight: 6 }}
+                    >
+                      Promote
+                    </Button>
+                  )}
+                  {isAdmin && user.userId !== loggedInUser?._id && user.role !== 'admin' && (
                     <ActionIcon color="red" variant="subtle" size="sm" onClick={() => handleRemoveUser(user.userId)} loading={removedUserId === user.userId}>
                       <XIcon width={16} />
                     </ActionIcon>
-                  </Group>
-                )}
+                  )}
+                </Group>
               </Group>
             ))}
           </Stack>
