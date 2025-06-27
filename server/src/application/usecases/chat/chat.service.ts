@@ -14,9 +14,12 @@ import { IChatParticipantRepository } from "../../../domain/repositories/chat-pa
 import { BadRequestError, UnauthorizedError } from "../../errors/http.errors";
 import { HttpResponse } from "../../../config/responseMessages";
 import { Chat } from "../../../domain/entities/chat.entity";
+import { ChatActionLogRepository } from "../../../infrastructure/repositories/chat-action-log.repository";
+import { Message } from '../../../domain/entities/message.entity';
 
 export class ChatService implements IChatService {
   private io: Server;
+  private chatActionLogRepository: ChatActionLogRepository;
 
   constructor(
     private chatRepository: IChatRepository,
@@ -25,11 +28,12 @@ export class ChatService implements IChatService {
     io: Server
   ) {
     this.io = io;
+    this.chatActionLogRepository = new ChatActionLogRepository();
   }
 
   async createChat(creatorId: string, data: CreateChatDto) {
     const { isGroup, name, participants } = data;
-
+    
     const allParticipants = [...new Set([creatorId, ...participants])];
 
     if (!isGroup) {
@@ -67,9 +71,9 @@ export class ChatService implements IChatService {
     }
 
     allParticipants.forEach((userId) => {
-      this.io.to(userId).emit("new_chat", newChat);
+        this.io.to(userId).emit("new_chat", newChat);
     });
-
+    
     return newChat;
   }
 
@@ -118,24 +122,46 @@ export class ChatService implements IChatService {
   async getUserChats(userId: string): Promise<ChatWithDetails[]> {
     // Only return non-group (single) chats
     const allChats = await this.chatRepository.findUserChats(userId);
-    return allChats.filter(chat => !chat.isGroup);
+    return allChats.filter((chat) => !chat.isGroup);
   }
 
   async getChatDetails(chatId: string, userId: string) {
     const chat = await this.chatRepository.findChatWithDetailsById(chatId);
     if (!chat) throw new BadRequestError(HttpResponse.CHAT_NOT_FOUND);
 
-    const participants = chat.participants;
-    const participantIds = participants.map((p) => p.userId.toString());
-    if (!participantIds.includes(userId)) {
+    // Find the participant record for the requesting user
+    const participantRecord = chat.participants.find(p => p.userId === userId);
+    if (!participantRecord) {
       throw new UnauthorizedError(HttpResponse.NOT_A_MEMBER);
     }
 
-    const messages = await this.getChatMessages(chatId, userId);
+    // Only allow if user is/was a participant
+    const allowedRoles = ['admin', 'member', 'removed-user', 'left-user'];
+    if (!allowedRoles.includes(participantRecord.role)) {
+      throw new UnauthorizedError(HttpResponse.NOT_A_MEMBER);
+    }
+
+    // Always filter participants to only admin/member for the response
+    const participants = chat.participants.filter(p => p.role === 'admin' || p.role === 'member');
+
+    let messages: Message[];
+    if (participantRecord.role === 'removed-user' || participantRecord.role === 'left-user') {
+      // Get the last removal/leave log for this user
+      const log = await this.chatActionLogRepository.getLastRemovalOrLeaveLog(chatId, userId);
+      if (log) {
+        // Fetch messages up to the removal/leave date
+        const allMessages = await this.getChatMessages(chatId, userId);
+        messages = allMessages.filter(m => new Date(m.createdAt) <= log.createdAt);
+      } else {
+        messages = [];
+      }
+    } else {
+      messages = await this.getChatMessages(chatId, userId);
+    }
     return { ...chat, participants, messages };
   }
 
-  async addParticipant(chatId: string, userId: string, requesterId: string) {
+  async addParticipant(chatId: string, participants: string[], requesterId: string) {
     const chat = await this.chatRepository.findById(chatId);
     if (!chat || !chat.isGroup)
       throw new BadRequestError(HttpResponse.CHAT_NOT_FOUND_OR_NOT_GROUP);
@@ -147,17 +173,33 @@ export class ChatService implements IChatService {
     if (!requester || requester.role !== "admin") {
       throw new UnauthorizedError(HttpResponse.NO_PERMISSION_ADD);
     }
-
-    const existingParticipant =
-      await this.chatParticipantRepository.findParticipant(chatId, userId);
-    if (existingParticipant) return existingParticipant;
-
-    return this.chatParticipantRepository.create({
-      chatId,
-      userId,
-      role: "member",
-      joinedAt: new Date(),
-    });
+    // Get current participants
+    const currentParticipants = await this.chatParticipantRepository.findChatParticipants(chatId);
+    const currentCount = currentParticipants.length;
+    // Only add users who are not already participants
+    const uniqueNewParticipants = participants.filter(userId => !currentParticipants.some(p => p.userId === userId));
+    const newCount = uniqueNewParticipants.length;
+    if (currentCount + newCount > 10) {
+      throw new BadRequestError('Group size cannot exceed 10 members (including the creator)');
+    }
+    const addedParticipants = [];
+    for (const userId of uniqueNewParticipants) {
+      const participant = await this.chatParticipantRepository.create({
+        chatId,
+        userId,
+        role: "member",
+        joinedAt: new Date(),
+      });
+      await this.chatActionLogRepository.createLog({
+        chatId,
+        actionBy: requesterId,
+        action: "added",
+        targetUser: userId,
+        message: `User added to group`,
+      });
+      addedParticipants.push(participant);
+    }
+    return addedParticipants;
   }
 
   async removeParticipant(chatId: string, userId: string, requesterId: string) {
@@ -178,12 +220,23 @@ export class ChatService implements IChatService {
       userId
     );
     if (!participant) throw new BadRequestError(HttpResponse.NOT_A_PARTICIPANT);
-
-    await this.chatParticipantRepository.delete(participant.id);
+    
+    await this.chatParticipantRepository.setRole(
+      chatId,
+      userId,
+      "removed-user"
+    );
+    await this.chatActionLogRepository.createLog({
+      chatId,
+      actionBy: requesterId,
+      action: "removed",
+      targetUser: userId,
+      message: `User removed from group`,
+    });
   }
-
+  
   async getChatParticipants(chatId: string) {
-    return this.chatParticipantRepository.findChatParticipants(chatId);
+      return this.chatParticipantRepository.findChatParticipants(chatId);
   }
 
   async sendMessage(chatId: string, senderId: string, data: SendMessageDto) {
@@ -194,13 +247,13 @@ export class ChatService implements IChatService {
     if (!participant) throw new UnauthorizedError(HttpResponse.NOT_A_MEMBER);
 
     const message = await this.messageRepository.create({
-      chatId,
-      senderId,
-      ...data,
-      deletedFor: [],
-      seenBy: [senderId],
+        chatId,
+        senderId,
+        ...data,
+        deletedFor: [],
+        seenBy: [senderId],
     });
-
+    
     await this.chatRepository.update(chatId, { lastMessage: message.id });
 
     // Emit the message to all participants in the chat room
@@ -230,10 +283,6 @@ export class ChatService implements IChatService {
     userId: string,
     targetUserId: string
   ): Promise<Chat> {
-  
-    if (userId === targetUserId) {
-      throw new BadRequestError("Cannot create a private chat with yourself.");
-    }
     const existingChat =
       await this.chatParticipantRepository.findPrivateChatBetweenUsers(
         userId,
@@ -262,7 +311,101 @@ export class ChatService implements IChatService {
   }
 
   async getUserGroupChats(userId: string): Promise<ChatWithDetails[]> {
-    // Fetch all user chats with details, but only return group chats
-    return (await this.chatRepository.findUserChats(userId)).filter(chat => chat.isGroup);
+    return (await this.chatRepository.findUserChats(userId)).filter(
+      (chat) => chat.isGroup
+    );
+  }
+
+  async updateGroupName(chatId: string, userId: string, name: string) {
+    const chat = await this.chatRepository.findById(chatId);
+    if (!chat || !chat.isGroup)
+      throw new BadRequestError(HttpResponse.CHAT_NOT_FOUND);
+    const participant = await this.chatParticipantRepository.findParticipant(
+      chatId,
+      userId
+    );
+    if (!participant || participant.role !== "admin")
+      throw new UnauthorizedError("Only admins can update group name");
+    await this.chatRepository.update(chatId, { name });
+    await this.chatActionLogRepository.createLog({
+      chatId,
+      actionBy: userId,
+      action: "renamed",
+      message: `Group chat name updated to "${name}"`,
+    });
+    return this.chatRepository.findChatWithDetailsById(chatId);
+  }
+
+  async promoteParticipant(
+    chatId: string,
+    userId: string,
+    requesterId: string
+  ) {
+    const chat = await this.chatRepository.findById(chatId);
+    if (!chat || !chat.isGroup)
+      throw new BadRequestError(HttpResponse.CHAT_NOT_FOUND_OR_NOT_GROUP);
+    const requester = await this.chatParticipantRepository.findParticipant(
+      chatId,
+      requesterId
+    );
+    if (!requester || requester.role !== "admin")
+      throw new UnauthorizedError("Only admins can promote");
+    const participant = await this.chatParticipantRepository.findParticipant(
+      chatId,
+      userId
+    );
+    if (!participant) throw new BadRequestError("User not a participant");
+    if (participant.role === "admin") return participant;
+    const result = await this.chatParticipantRepository.updateRole(
+      chatId,
+      userId,
+      "admin"
+    );
+    await this.chatActionLogRepository.createLog({
+      chatId,
+      actionBy: requesterId,
+      action: "promoted",
+      targetUser: userId,
+      message: `User promoted to admin`,
+    });
+    return result;
+  }
+
+  async leaveGroup(chatId: string, userId: string) {
+    const chat = await this.chatRepository.findById(chatId);
+    if (!chat || !chat.isGroup)
+      throw new BadRequestError(HttpResponse.CHAT_NOT_FOUND);
+    const participant = await this.chatParticipantRepository.findParticipant(
+      chatId,
+      userId
+    );
+    if (!participant) throw new BadRequestError("Not a participant");
+    const isAdmin = participant.role === "admin";
+    await this.chatParticipantRepository.setRole(chatId, userId, "left-user");
+    await this.chatActionLogRepository.createLog({
+      chatId,
+      actionBy: userId,
+      action: "left",
+      message: `User voluntarily left the group`,
+    });
+    if (isAdmin) {
+      // Check if any admins left
+      const all = await this.chatParticipantRepository.findChatParticipants(
+        chatId
+      );
+      const admins = all.filter((p) => p.role === "admin");
+      if (admins.length === 0 && all.length > 0) {
+        // Promote earliest joined member
+        const earliest = all.reduce((a, b) =>
+          a.joinedAt < b.joinedAt ? a : b
+        );
+        await this.chatParticipantRepository.updateRole(
+          chatId,
+          earliest.userId,
+          "admin"
+        );
+      }
+    }
+    return { left: true };
   }
 }

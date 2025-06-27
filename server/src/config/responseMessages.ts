@@ -69,5 +69,6 @@ export enum HttpResponse {
   BASE_PLAN_LOGS_LT_PLUS = 'Base log limit must be less than Plus.',
   BASE_PLAN_ARTICLES_LT_PLUS = 'Base article limit must be less than Plus.',
   REQUIRED_GROUP_NAME = "Group name is required",
-  REQUIRED_PARTICIPANTS = "At least one participant is required"
+  REQUIRED_PARTICIPANTS = "At least one participant is required",
+  
 }

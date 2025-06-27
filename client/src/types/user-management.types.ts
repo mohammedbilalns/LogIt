@@ -7,4 +7,9 @@ export interface UserManagementState {
   searchQuery: string;
   totalPages: number;
   success: boolean;
+  paginatedUsers: User[];
+  paginatedUsersLoading: boolean;
+  paginatedUsersHasMore: boolean;
+  paginatedUsersPage: number;
+  paginatedUsersError: string | null;
 }

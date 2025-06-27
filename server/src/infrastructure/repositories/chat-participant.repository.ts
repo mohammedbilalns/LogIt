@@ -141,4 +141,27 @@ export class ChatParticipantRepository
       updatedAt: chatDoc.updatedAt,
     };
   }
+
+  async updateRole(chatId: string, userId: string, role: string): Promise<ChatParticipants | null> {
+    const doc = await this.model.findOneAndUpdate(
+      { chatId, userId },
+      { $set: { role } },
+      { new: true }
+    );
+    return doc ? this.mapToEntity(doc) : null;
+  }
+
+  async findEarliestJoinedParticipant(chatId: string): Promise<ChatParticipants | null> {
+    const doc = await this.model.findOne({ chatId }).sort({ joinedAt: 1 });
+    return doc ? this.mapToEntity(doc) : null;
+  }
+
+  async setRole(chatId: string, userId: string, role: string): Promise<ChatParticipants | null> {
+    const doc = await this.model.findOneAndUpdate(
+      { chatId, userId },
+      { $set: { role } },
+      { new: true }
+    );
+    return doc ? this.mapToEntity(doc) : null;
+  }
 }

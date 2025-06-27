@@ -26,11 +26,14 @@ export interface IChatService {
   createGroupChat(creatorId: string, data: CreateGroupChatDto): Promise<Chat>;
   getUserChats(userId: string): Promise<ChatWithDetails[]>;
   getChatDetails(chatId: string, userId: string): Promise<ChatWithDetails & { participants: ChatWithDetails['participants']; messages: Message[] }>;
-  addParticipant(chatId: string, userId: string, requesterId: string): Promise<ChatParticipants>;
+  addParticipant(chatId: string, participants: string[], requesterId: string): Promise<ChatParticipants[]>;
   removeParticipant(chatId: string, userId: string, requesterId: string): Promise<void>;
   getChatParticipants(chatId: string): Promise<ChatParticipants[]>;
   sendMessage(chatId: string, senderId: string, data: SendMessageDto): Promise<Message>;
   getChatMessages(chatId: string, userId: string, page?: number, limit?: number): Promise<Message[]>;
   getOrCreatePrivateChat(userId: string, targetUserId: string): Promise<Chat>;
   getUserGroupChats(userId: string): Promise<ChatWithDetails[]>;
+  updateGroupName(chatId: string, userId: string, name: string): Promise<ChatWithDetails | null>;
+  promoteParticipant(chatId: string, userId: string, requesterId: string): Promise<import('../entities/chat-participants').ChatParticipants | null>;
+  leaveGroup(chatId: string, userId: string): Promise<{ left: boolean }>;
 } 

@@ -129,6 +129,7 @@ export const fetchChatDetails = createAsyncThunk(
   async (chatId: string, { rejectWithValue }) => {
     try {
       const response = await axios.get(`/chats/${chatId}`);
+      console.log("Chat details", response.data)
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch chat details');
@@ -181,12 +182,70 @@ export const fetchUserGroupChats = createAsyncThunk(
   'chat/fetchUserGroupChats',
   async (_, { rejectWithValue }) => {
     try {
-      console.log('triggered fetchuser group chats');
       const response = await axios.get('/chats/group');
-      console.log('Group chats ', response.data);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch group chats');
+    }
+  }
+);
+
+export const removeParticipant = createAsyncThunk(
+  'chat/removeParticipant',
+  async ({ chatId, userId }: { chatId: string; userId: string }, { rejectWithValue }) => {
+    try {
+      await axios.delete(`/chats/${chatId}/participants/${userId}`);
+      return { userId };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to remove user');
+    }
+  }
+);
+
+export const promoteParticipant = createAsyncThunk(
+  'chat/promoteParticipant',
+  async ({ chatId, userId }: { chatId: string; userId: string }, { rejectWithValue }) => {
+    try {
+      await axios.patch(`/chats/${chatId}/participants/${userId}/promote`);
+      return { userId };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to promote user');
+    }
+  }
+);
+
+export const leaveGroup = createAsyncThunk(
+  'chat/leaveGroup',
+  async (chatId: string, { rejectWithValue }) => {
+    try {
+      await axios.post(`/chats/${chatId}/leave`);
+      return { left: true };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to leave group');
+    }
+  }
+);
+
+export const addParticipants = createAsyncThunk(
+  'chat/addParticipants',
+  async ({ chatId, participants }: { chatId: string; participants: string[] }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`/chats/${chatId}/participants`, { participants });
+      return { participants: response.data };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to add members');
+    }
+  }
+);
+
+export const updateGroupName = createAsyncThunk(
+  'chat/updateGroupName',
+  async ({ chatId, name }: { chatId: string; name: string }, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch(`/chats/${chatId}/name`, { name });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update group name');
     }
   }
 );
@@ -336,6 +395,11 @@ const chatSlice = createSlice({
       .addCase(fetchUserGroupChats.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      .addCase(updateGroupName.fulfilled, (state, action) => {
+        if (state.currentChat && state.currentChat.id === action.payload.id) {
+          state.currentChat.name = action.payload.name;
+        }
       });
   },
 });

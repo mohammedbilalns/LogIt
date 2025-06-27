@@ -3,6 +3,7 @@ import { RootState } from '@/store';
 import axiosInstance from '@axios';
 import { API_ROUTES } from '@/constants/routes';
 import { UserManagementState } from '@/types/user-management.types';
+import axios from '@/api/axios';
 
 
 
@@ -14,6 +15,11 @@ const initialState: UserManagementState = {
   searchQuery: '',
   totalPages: 0,
   success: false,
+  paginatedUsers: [],
+  paginatedUsersLoading: false,
+  paginatedUsersHasMore: true,
+  paginatedUsersPage: 1,
+  paginatedUsersError: null,
 };
 
 export const fetchUsers = createAsyncThunk(
@@ -86,6 +92,25 @@ export const changePassword = createAsyncThunk(
   }
 );
 
+export const fetchUsersPaginated = createAsyncThunk(
+  'userManagement/fetchUsersPaginated',
+  async (
+    { page = 1, search = '' }: { page?: number; search?: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await axios.get(`/user/users?page=${page}&limit=10&search=${encodeURIComponent(search)}`);
+      return {
+        users: response.data.users,
+        hasMore: response.data.hasMore,
+        page,
+      };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch users');
+    }
+  }
+);
+
 const userManagementSlice = createSlice({
   name: 'userManagement',
   initialState,
@@ -111,6 +136,12 @@ const userManagementSlice = createSlice({
       state.loading = false;
       state.error = null;
       state.success = false;
+    },
+    clearPaginatedUsers(state) {
+      state.paginatedUsers = [];
+      state.paginatedUsersPage = 1;
+      state.paginatedUsersHasMore = true;
+      state.paginatedUsersError = null;
     },
   },
   extraReducers: (builder) => {
@@ -183,9 +214,27 @@ const userManagementSlice = createSlice({
       .addCase(changePassword.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string || 'Failed to change password';
+      })
+      .addCase(fetchUsersPaginated.pending, (state) => {
+        state.paginatedUsersLoading = true;
+        state.paginatedUsersError = null;
+      })
+      .addCase(fetchUsersPaginated.fulfilled, (state, action) => {
+        state.paginatedUsersLoading = false;
+        if (action.payload.page === 1) {
+          state.paginatedUsers = action.payload.users;
+        } else {
+          state.paginatedUsers = [...state.paginatedUsers, ...action.payload.users];
+        }
+        state.paginatedUsersHasMore = action.payload.hasMore;
+        state.paginatedUsersPage = action.payload.page;
+      })
+      .addCase(fetchUsersPaginated.rejected, (state, action) => {
+        state.paginatedUsersLoading = false;
+        state.paginatedUsersError = action.payload as string;
       });
   },
 });
 
-export const { setSearchQuery, resetState, clearError, clearUserManagementState } = userManagementSlice.actions;
+export const { setSearchQuery, resetState, clearError, clearUserManagementState, clearPaginatedUsers } = userManagementSlice.actions;
 export default userManagementSlice.reducer; 

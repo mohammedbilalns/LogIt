@@ -10,11 +10,12 @@ import CreateGroupModal from '@/components/chat/CreateGroupModal';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { useDisclosure } from '@mantine/hooks';
+import GroupChatListSkeleton from '@/components/skeletons/GroupChatListSkeleton';
 
 function ChatCard({ chat, isGroup }: { chat: any; isGroup?: boolean }) {
   const navigate = useNavigate();
 
-  
+
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const otherParticipant = chat.participants?.find((p: any) => String(p.userId) !== String(currentUser?._id));
 
@@ -98,12 +99,34 @@ export default function ChatsPage() {
     }
   }, [dispatch, tab]);
 
-  if (loading && ((tab === 'single' && singleChats.length === 0) || (tab === 'group' && groupChats.length === 0))) {
+  if (loading && ((tab === 'single' && singleChats.length === 0))) {
     return (
       <>
         <UserSidebar isModalOpen={groupModalOpened} />
         <Box className={containerClassName} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
           <Loader size="lg" />
+        </Box>
+      </>
+    );
+  }
+
+  if (loading && tab === 'group' && groupChats.length === 0) {
+    return (
+      <>
+        <UserSidebar isModalOpen={groupModalOpened} />
+        <Box className={containerClassName}>
+          <Stack gap="md">
+            <Title order={2}>Chats</Title>
+            <Tabs value={tab} onChange={setTab} variant="outline" radius="md">
+              <Tabs.List>
+                <Tabs.Tab value="single">Single Chats ({singleChats.length})</Tabs.Tab>
+                <Tabs.Tab value="group">Group Chats ({groupChats.length})</Tabs.Tab>
+              </Tabs.List>
+              <Tabs.Panel value="group" pt="md">
+                <GroupChatListSkeleton />
+              </Tabs.Panel>
+            </Tabs>
+          </Stack>
         </Box>
       </>
     );

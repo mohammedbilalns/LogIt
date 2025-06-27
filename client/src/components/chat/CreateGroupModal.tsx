@@ -25,6 +25,7 @@ import axios from '@/api/axios';
 import { SearchIcon } from '../icons/SearchIcon';
 import { useDebouncedValue } from '@mantine/hooks';
 import { XIcon } from '../icons/XIcon';
+import UserSearchList from './UserSearchList';
 
 interface User {
   _id: string;
@@ -245,125 +246,13 @@ export default function CreateGroupModal({
             {...form.getInputProps('name')}
           />
 
-          <Text size="sm" fw={500}>
-            Select Participants ({selectedUsers.length}/9 selected)
-          </Text>
-
-          <TextInput
-            placeholder="Search users by name or email"
-            leftSection={<SearchIcon width={16} />}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.currentTarget.value)}
-            styles={{
-              input: {
-                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-                border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
-              },
-            }}
+          <UserSearchList
+            opened={opened}
+            selectedUsers={selectedUsers}
+            setSelectedUsers={setSelectedUsers}
+            maxSelected={9}
+            label="Select Participants"
           />
-
-          {/* Selected Users Section */}
-          {allSelectedUsers.length > 0 && (
-            <Box>
-              <Text size="sm" fw={500} mb="xs">
-                Selected Users ({allSelectedUsers.length}/9)
-              </Text>
-              <Group gap="xs" wrap="wrap">
-                {allSelectedUsers.map((user) => (
-                  <Group key={user._id} gap="xs" style={{ 
-                    backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)',
-                    padding: '4px 8px',
-                    borderRadius: '6px',
-                    border: `1px solid ${isDark ? 'rgba(59, 130, 246, 0.3)' : 'rgba(59, 130, 246, 0.2)'}`
-                  }}>
-                    <Avatar
-                      src={user.profileImage}
-                      size="xs"
-                      radius="xl"
-                    >
-                      {getInitials(user.name)}
-                    </Avatar>
-                    <Text size="xs" fw={500} style={{ maxWidth: '120px' }} lineClamp={1}>
-                      {user.name}
-                    </Text>
-                    <ActionIcon
-                      size="xs"
-                      variant="subtle"
-                      color="red"
-                      onClick={() => handleUserToggle(user._id)}
-                      style={{ marginLeft: 'auto' }}
-                    >
-                      <XIcon width={12} />
-                    </ActionIcon>
-                  </Group>
-                ))}
-              </Group>
-            </Box>
-          )}
-
-          <ScrollArea h={300} type="auto" offsetScrollbars>
-            <Stack gap="xs" pr="xs">
-              {users
-                .filter(user => !selectedUsers.includes(user._id))
-                .map((user) => (
-                  <Group key={user._id} justify="space-between" wrap="nowrap">
-                    <Group gap="sm" wrap="nowrap">
-                      <Avatar
-                        src={user.profileImage}
-                        size="md"
-                        radius="xl"
-                      >
-                        {getInitials(user.name)}
-                      </Avatar>
-                      <Stack gap={0}>
-                        <Text size="sm" fw={500} lineClamp={1}>
-                          {user.name}
-                        </Text>
-                        <Text size="xs" c="dimmed" lineClamp={1}>
-                          {user.email}
-                        </Text>
-                      </Stack>
-                    </Group>
-                    <Checkbox
-                      checked={selectedUsers.includes(user._id)}
-                      onChange={() => handleUserToggle(user._id)}
-                      color="blue"
-                      disabled={selectedUsers.length >= 9}
-                    />
-                  </Group>
-                ))}
-              
-              {loadingUsers && (
-                <Group justify="center" py="md">
-                  <Loader size="sm" />
-                  <Text size="sm" c="dimmed">Loading users...</Text>
-                </Group>
-              )}
-              
-              {hasMore && !loadingUsers && (
-                <Button
-                  variant="light"
-                  size="sm"
-                  onClick={handleLoadMore}
-                  fullWidth
-                >
-                  Load More Users
-                </Button>
-              )}
-
-              {!loadingUsers && users.filter(user => !selectedUsers.includes(user._id)).length === 0 && (
-                <Text c="dimmed" ta="center" py="md">
-                  {selectedUsers.length > 0 ? 'All users are selected' : 'No users found'}
-                </Text>
-              )}
-
-              {selectedUsers.length >= 9 && (
-                <Text c="blue" size="sm" ta="center" py="xs">
-                  Maximum participants reached (9/9)
-                </Text>
-              )}
-            </Stack>
-          </ScrollArea>
 
           <Group justify="flex-end" mt="md">
             <Button variant="default" onClick={onClose}>
