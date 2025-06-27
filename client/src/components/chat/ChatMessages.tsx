@@ -82,16 +82,6 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                     {formatMessageTime(msg.createdAt)}
                   </Text>
                 </Paper>
-                {isMine && (
-                  <Avatar
-                    size={32}
-                    color="gray"
-                    style={{ cursor: loggedInUser?._id ? 'pointer' : undefined }}
-                    onClick={() => loggedInUser?._id && handleProfileClick(loggedInUser._id)}
-                  >
-                    {(loggedInUser?.name || 'You').split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
-                  </Avatar>
-                )}
               </Group>
             );
           })
