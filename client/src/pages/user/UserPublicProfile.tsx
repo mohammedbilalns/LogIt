@@ -18,7 +18,10 @@ import { RootState, AppDispatch } from '@/store';
 import UserSidebar from '@/components/user/UserSidebar';
 import axios from '@/api/axios';
 import { fetchArticles } from '@/store/slices/articleSlice';
-import { IconUserPlus, IconUserMinus, IconMessage, IconBan } from '@tabler/icons-react';
+import { UserPlusIcon } from '@/components/icons/UserPlusIcon';
+import { UserMinusIcon } from '@/components/icons/UserMinusIcon';
+import { MessageIcon } from '@/components/icons/MessageIcon';
+import { BanIcon } from '@/components/icons/BanIcon';
 import { followUser, unfollowUser, blockUser, unblockUser, clearConnectionState } from '@/store/slices/connectionSlice';
 import UserStats from '@/components/user/UserStats';
 import { ConfirmModal } from '@/components/confirm';
@@ -36,7 +39,7 @@ export const FollowButton = memo(function FollowButton({ userId, isLoading, onSu
     onSuccess?.();
   };
   return (
-    <Button color="blue" leftSection={<IconUserPlus size={18} />} onClick={handleFollow} loading={isLoading || loading} disabled={isLoading || loading}>
+    <Button color="blue" leftSection={<UserPlusIcon width={18} />} onClick={handleFollow} loading={isLoading || loading} disabled={isLoading || loading}>
       Follow
     </Button>
   );
@@ -54,7 +57,7 @@ export const UnfollowButton = memo(function UnfollowButton({ userId, isLoading, 
     onSuccess?.();
   };
   return (
-    <Button color="blue" leftSection={<IconUserMinus size={18} />} onClick={handleUnfollow} loading={isLoading || loading} disabled={isLoading || loading}>
+    <Button color="blue" leftSection={<UserMinusIcon width={18} />} onClick={handleUnfollow} loading={isLoading || loading} disabled={isLoading || loading}>
       Unfollow
     </Button>
   );
@@ -215,7 +218,7 @@ export default function UserPublicProfile() {
                   {!isOwnProfile && !isBlockedByYou && !isBlocked && (
                     <Button 
                       variant="outline" 
-                      leftSection={<IconMessage size={18} />} 
+                      leftSection={<MessageIcon width={18} />} 
                       onClick={handleChatClick}
                       loading={actionLoading === 'chat'}
                       disabled={actionLoading !== null}
@@ -224,12 +227,12 @@ export default function UserPublicProfile() {
                     </Button>
                   )}
                   {!isOwnProfile && !isBlockedByYou && !isBlocked && (
-                    <Button color="red" leftSection={<IconBan size={18} />} onClick={() => setBlockModalOpen(true)} loading={actionLoading === 'block'} disabled={actionLoading !== null}>
+                    <Button color="red" leftSection={<BanIcon width={18} />} onClick={() => setBlockModalOpen(true)} loading={actionLoading === 'block'} disabled={actionLoading !== null}>
                       Block
                     </Button>
                   )}
                   {!isOwnProfile && isBlockedByYou && (
-                    <Button color="gray" leftSection={<IconBan size={18} />} onClick={handleUnblock} loading={actionLoading === 'unblock'} disabled={actionLoading !== null}>
+                    <Button color="gray" leftSection={<BanIcon width={18} />} onClick={handleUnblock} loading={actionLoading === 'unblock'} disabled={actionLoading !== null}>
                       Unblock
                     </Button>
                   )}

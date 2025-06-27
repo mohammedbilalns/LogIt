@@ -1,7 +1,14 @@
-import { Box, Group, Button } from '@mantine/core';
-import { useMantineColorScheme } from '@mantine/core';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { IconFileText } from '@tabler/icons-react';
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { Box, Button, Group, useMantineColorScheme } from '@mantine/core';
+import { FileTextIcon } from '../icons/FileTextIcon';
 import { createChartStyles } from './ActivityChart.styles';
 
 interface ChartDataItem {
@@ -21,10 +28,10 @@ export default function ActivityChart({ data, onNewLog, onWriteArticle }: Activi
   const isDark = colorScheme === 'dark';
   const styles = createChartStyles(isDark);
 
-  const chartData = data.map(item => ({
+  const chartData = data.map((item) => ({
     day: new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }),
     logs: item.logs,
-    articles: item.articles
+    articles: item.articles,
   }));
 
   return (
@@ -54,16 +61,12 @@ export default function ActivityChart({ data, onNewLog, onWriteArticle }: Activi
         </ResponsiveContainer>
       </Box>
       <Group mt="md" justify="space-between">
-        <Button 
-          variant="default" 
-          leftSection={<IconFileText size={18} />} 
-          onClick={onNewLog}
-        >
+        <Button variant="default" leftSection={<FileTextIcon width={18} />} onClick={onNewLog}>
           New Log
         </Button>
-        <Button 
-          variant="default" 
-          leftSection={<IconFileText size={18} />} 
+        <Button
+          variant="default"
+          leftSection={<FileTextIcon width={18} />}
           onClick={onWriteArticle}
         >
           Write Article
@@ -71,4 +74,4 @@ export default function ActivityChart({ data, onNewLog, onWriteArticle }: Activi
       </Group>
     </>
   );
-} 
+}

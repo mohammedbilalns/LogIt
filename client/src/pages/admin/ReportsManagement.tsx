@@ -17,7 +17,10 @@ import {
   Divider,
   Select,
 } from '@mantine/core';
-import { IconArticle, IconUser, IconCalendar, IconFlag } from '@tabler/icons-react';
+import { ArticleIcon } from '@/components/icons/ArticleIcon';
+import { UserIcon } from '@/components/icons/UserIcon';
+import { CalendarIcon } from '@/components/icons/CalendarIcon';
+import { FlagIcon } from '@/components/icons/FlagIcon';
 import { AppDispatch, RootState } from '@/store';
 import { fetchReports, updateReportStatus, blockArticle } from '@/store/slices/reportSlice';
 import { Report } from '@/types/report.types';
@@ -146,7 +149,7 @@ export default function ReportsManagement() {
         <Group justify="space-between" align="flex-start">
           <Stack gap={4}>
             <Group gap="xs">
-              <IconUser size={14} />
+              <UserIcon width={14} />
               <Text fw={600} size="sm">
                 {report.reportedBy.name}
               </Text>
@@ -173,7 +176,7 @@ export default function ReportsManagement() {
         
         <Stack gap="xs">
           <Group gap="xs">
-            <IconFlag size={14} />
+            <FlagIcon width={14} />
             <Text size="sm" fw={500}>Reason:</Text>
           </Group>
           <Text size="sm" c="dimmed">
@@ -182,7 +185,7 @@ export default function ReportsManagement() {
         </Stack>
         
         <Group gap="xs">
-          <IconCalendar size={14} />
+          <CalendarIcon width={14} />
           <Text size="xs" c="dimmed">
             {formatDate(report.createdAt)}
           </Text>
@@ -190,7 +193,7 @@ export default function ReportsManagement() {
         
         {report.targetType === 'article' && (
           <Group gap="xs">
-            <IconArticle size={14} />
+            <ArticleIcon width={14} />
             <Text size="sm" fw={500}>Target: Article</Text>
           </Group>
         )}
@@ -203,7 +206,7 @@ export default function ReportsManagement() {
                   variant="subtle"
                   color="blue"
                   size="xs"
-                  leftSection={<IconArticle size={14} />}
+                  leftSection={<ArticleIcon width={14} height={14}/>}
                   onClick={() => handleViewArticle(report.targetId)}
                 >
                   View Article
@@ -351,7 +354,7 @@ export default function ReportsManagement() {
                                   onClick={() => handleViewArticle(report.targetId)} 
                                   size="md"
                                 >
-                                  <IconArticle size={18} />
+                                  <ArticleIcon width={18} />
                                 </ActionIcon>
                               </Tooltip>
                               {report.status !== 'resolved' && report.status !== 'blocked' && (

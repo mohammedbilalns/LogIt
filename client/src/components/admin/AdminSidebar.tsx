@@ -10,17 +10,15 @@ import {
   Portal,
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import {
-  IconDashboard,
-  IconUsers,
-  IconReportAnalytics,
-  IconTags,
-  IconSubscript,
-  IconChartBar,
-  IconShield,
-  IconMenu2,
-  IconChevronLeft,
-} from '@tabler/icons-react';
+import { DashboardIcon } from '../icons/DashboardIcon';
+import { UsersIcon } from '../icons/UsersIcon';
+import { ReportAnalyticsIcon } from '../icons/ReportAnalyticsIcon';
+import { TagsIcon } from '../icons/TagsIcon';
+import { SubscriptionIcon } from '../icons/SubscriptionIcon';
+import { ChartBarIcon } from '../icons/ChartBarIcon';
+import { ShieldIcon } from '../icons/ShieldIcon';
+import { Menu2Icon } from '../icons/Menu2Icon';
+import { ChevronLeftIcon } from '../icons/ChevronLeftIcon';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store';
@@ -37,17 +35,17 @@ export default function AdminSidebar() {
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const sidebarItems = [
-    { icon: IconDashboard, label: 'Dashboard', path: '/admin' },
-    { icon: IconUsers, label: 'User Management', path: '/admin/users' },
-    { icon: IconReportAnalytics, label: 'Reports Management', path: '/admin/reports' },
-    { icon: IconTags, label: 'Tag Management', path: '/admin/tags' },
-    { icon: IconSubscript, label: 'Subscription Settings', path: '/admin/subscriptions' },
-    { icon: IconChartBar, label: 'Analytics', path: '/admin/analytics' },
+    { icon: DashboardIcon, label: 'Dashboard', path: '/admin' },
+    { icon: UsersIcon, label: 'User Management', path: '/admin/users' },
+    { icon: ReportAnalyticsIcon, label: 'Reports Management', path: '/admin/reports' },
+    { icon: TagsIcon, label: 'Tag Management', path: '/admin/tags' },
+    { icon: SubscriptionIcon, label: 'Subscription Settings', path: '/admin/subscriptions' },
+    { icon: ChartBarIcon, label: 'Analytics', path: '/admin/analytics' },
   ];
 
   if (user?.role === 'superadmin') {
     sidebarItems.push({
-      icon: IconShield,
+      icon: ShieldIcon,
       label: 'Admin Management',
       path: '/admin/manage-admins',
     });
@@ -82,7 +80,7 @@ export default function AdminSidebar() {
               boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
             }}
           >
-            <IconMenu2 size={20} />
+            <Menu2Icon width={20} height={20} />
           </ActionIcon>
         </Portal>
       )}
@@ -162,7 +160,7 @@ export default function AdminSidebar() {
                         color="blue"
                         radius="md"
                       >
-                        <item.icon size={20} />
+                        <item.icon width={20} height={20} />
                       </ActionIcon>
                       <Text
                         size="sm"
@@ -192,7 +190,7 @@ export default function AdminSidebar() {
                         marginLeft: '0.5rem',
                       }}
                     >
-                      <IconChevronLeft size={16} />
+                      <ChevronLeftIcon width={16} height={16} />
                     </ActionIcon>
                   )}
                 </Group>

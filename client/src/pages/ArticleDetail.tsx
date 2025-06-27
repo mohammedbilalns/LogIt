@@ -1,7 +1,9 @@
 import  { useEffect, useState } from 'react';
 import { fetchArticle, deleteArticle, setArticleReported } from '@slices/articleSlice';
 import { clearReportState, createReport } from '@slices/reportSlice';
-import { IconAlertTriangle, IconEdit, IconTrash } from '@tabler/icons-react';
+import { AlertTriangleIcon } from '@/components/icons/AlertTriangleIcon';
+import { EditIcon } from '@/components/icons/EditIcon';
+import { TrashIcon } from '@/components/icons/TrashIcon';
 import ReactMarkdown, { Components } from 'react-markdown';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -350,14 +352,14 @@ export default function ArticleDetailPage() {
                 {isAuthor && (
                   <>
                     <Button
-                      leftSection={<IconEdit size={16} />}
+                      leftSection={<EditIcon width={16} />}
                       onClick={() => navigate(`/articles/${article._id}/edit`)}
                       size={isMobile ? 'sm' : 'md'}
                     >
                       Edit Article
                     </Button>
                     <Button
-                      leftSection={<IconTrash size={16} />}
+                      leftSection={<TrashIcon width={16} />}
                       onClick={() => setDeleteModalOpen(true)}
                       size={isMobile ? 'sm' : 'md'}
                       color="red"
@@ -369,7 +371,7 @@ export default function ArticleDetailPage() {
                 )}
                 {!isAuthor && !isAdmin && (
                   <Button
-                    leftSection={<IconAlertTriangle size={16} />}
+                    leftSection={<AlertTriangleIcon width={16} />}
                     onClick={() => setReportModalOpen(true)}
                     size={isMobile ? 'sm' : 'md'}
                     variant="outline"

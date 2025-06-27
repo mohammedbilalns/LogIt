@@ -1,5 +1,5 @@
-import { Paper, Stack, Title, TextInput, Group, Select, useMantineTheme, useMantineColorScheme } from '@mantine/core';
-import { IconSearch } from '@tabler/icons-react';
+import { Paper, Stack, Title, TextInput, Group, useMantineTheme, useMantineColorScheme } from '@mantine/core';
+import { SearchIcon } from '../icons/SearchIcon';
 import { useMediaQuery } from '@mantine/hooks';
 import { ReactNode } from 'react';
 
@@ -39,7 +39,7 @@ export default function AdminPageHeader({
         <Group align="flex-end" wrap="wrap" gap="md">
           <TextInput
             placeholder={searchPlaceholder}
-            leftSection={<IconSearch size={16} />}
+            leftSection={<SearchIcon width={16} height={16} />}
             value={searchValue}
             onChange={onSearchChange}
             style={{ 

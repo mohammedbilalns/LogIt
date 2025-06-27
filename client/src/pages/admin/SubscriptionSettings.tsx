@@ -22,7 +22,7 @@ import {
   ScrollArea,
   Group,
 } from '@mantine/core';
-import { IconEdit, IconTrash, IconPlus } from '@tabler/icons-react';
+import { EditIcon } from '@/components/icons/EditIcon';
 import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import AdminPageContainer from '@/components/admin/AdminPageContainer';
@@ -138,7 +138,7 @@ export default function SubscriptionSettings() {
             <Text size="sm" fw={500}>{sub.maxArticlesPerMonth === -1 ? 'Unlimited' : sub.maxArticlesPerMonth}</Text>
           </Group>
           <Group gap="xs">
-            <Button size="xs" leftSection={<IconEdit size={16} />} onClick={() => handleOpenEdit(sub)}>
+            <Button size="xs" leftSection={<EditIcon width={16} />} onClick={() => handleOpenEdit(sub)}>
               Edit
             </Button>
           </Group>
@@ -185,7 +185,7 @@ export default function SubscriptionSettings() {
                         <Text size="sm" fw={500}>{sub.maxArticlesPerMonth === -1 ? 'Unlimited' : sub.maxArticlesPerMonth}</Text>
                       </Group>
                       <Group gap="xs">
-                        <Button size="xs" leftSection={<IconEdit size={16} />} onClick={() => handleOpenEdit(sub)}>
+                        <Button size="xs" leftSection={<EditIcon width={16} />} onClick={() => handleOpenEdit(sub)}>
                           Edit
                         </Button>
                       </Group>
@@ -222,7 +222,7 @@ export default function SubscriptionSettings() {
                         <Table.Td>
                           <Group gap="xs">
                             <ActionIcon color="blue" onClick={() => handleOpenEdit(sub)}>
-                              <IconEdit size={18} />
+                              <EditIcon width={18} />
                             </ActionIcon>
                           </Group>
                         </Table.Td>

@@ -12,7 +12,7 @@ import {
     rem,
   } from '@mantine/core';
   import { useForm } from '@mantine/form';
-  import { IconPhoto } from '@tabler/icons-react';
+  import { PhotoIcon } from '../icons/PhotoIcon';
   import { useState, useRef, useEffect } from 'react';
   import Cropper, { ReactCropperElement } from 'react-cropper';
   import 'cropperjs/dist/cropper.css';
@@ -259,7 +259,7 @@ import {
                       transition: 'opacity 0.2s ease',
                     }}
                   >
-                    <IconPhoto size={20} />
+                    <PhotoIcon width={20} />
                   </ActionIcon>
                 </Box>
               </Center>

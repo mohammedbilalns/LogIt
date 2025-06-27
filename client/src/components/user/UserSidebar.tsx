@@ -1,12 +1,10 @@
-import {
-  IconArticle,
-  IconChevronLeft,
-  IconHome,
-  IconMenu2,
-  IconMessage,
-  IconNetwork,
-  IconNotes,
-} from '@tabler/icons-react';
+
+import { ChevronLeftIcon } from '../icons/ChevronLeftIcon';
+import { HomeIcon } from '../icons/HomeIcon';
+import { Menu2Icon } from '../icons/Menu2Icon';
+import { MessageIcon } from '../icons/MessageIcon';
+import { NetworkIcon } from '../icons/NetworkIcon';
+import { NotesIcon } from '../icons/NotesIcon';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -25,6 +23,7 @@ import {
 import { useMediaQuery } from '@mantine/hooks';
 import { RootState } from '@/store';
 import { toggleSidebar } from '@/store/slices/uiSlice';
+import { ArticleIcon } from '../icons/ArticleIcon';
 
 interface UserSidebarProps {
   isModalOpen?: boolean;
@@ -45,11 +44,11 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
   if (!shouldRenderSidebar) return null;
 
   const sidebarItems = [
-    { icon: IconHome, label: 'Home', path: '/home' },
-    { icon: IconArticle, label: 'Articles', path: '/articles' },
-    { icon: IconNotes, label: 'Logs', path: '/logs' },
-    { icon: IconMessage, label: 'Chats', path: '/chats' },
-    { icon: IconNetwork, label: 'Network', path: '/network' },
+    { icon: HomeIcon, label: 'Home', path: '/home' },
+    { icon: ArticleIcon, label: 'Articles', path: '/articles' },
+    { icon: NotesIcon, label: 'Logs', path: '/logs' },
+    { icon: MessageIcon, label: 'Chats', path: '/chats' },
+    { icon: NetworkIcon, label: 'Network', path: '/network' },
   ];
 
   const getInitials = (name?: string) => {
@@ -83,7 +82,7 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
               boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
             }}
           >
-            <IconMenu2 size={20} />
+            <Menu2Icon width={20} />
           </ActionIcon>
         </Portal>
       )}
@@ -169,7 +168,7 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
                           color: isActive ? 'white' : 'var(--mantine-color-blue-6)',
                         }}
                       >
-                        <item.icon size={20} />
+                        <item.icon width={20} />
                       </Box>
                       <Text
                         size="sm"
@@ -195,7 +194,7 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
                         marginLeft: '0.5rem',
                       }}
                     >
-                      <IconChevronLeft size={16} />
+                      <ChevronLeftIcon width={16} />
                     </ActionIcon>
                   )}
                 </Group>

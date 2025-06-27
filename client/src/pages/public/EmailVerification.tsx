@@ -6,7 +6,7 @@ import {
   Button,
   Stack,
 } from '@mantine/core';
-import { IconMailCheck } from '@tabler/icons-react';
+import { MailCheckIcon } from '@/components/icons/MailCheckIcon';
 import { AppDispatch, RootState } from '@/store';
 import {
   verifyEmail,
@@ -108,7 +108,7 @@ export default function EmailVerification() {
   return (
     <AuthContainer my={100} withBorder>
       <AuthHeader
-        icon={<IconMailCheck size={50} color="var(--mantine-color-blue-6)" />}
+        icon={<MailCheckIcon width={50} color="var(--mantine-color-blue-6)" />}
         title="Verify Your Email"
         description={
           <>

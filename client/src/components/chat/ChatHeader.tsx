@@ -1,5 +1,5 @@
 import { Group, Avatar, Stack, Text, ActionIcon, Divider } from '@mantine/core';
-import { IconDotsVertical } from '@tabler/icons-react';
+import { DotsVerticalIcons } from '@/components/icons/DotsVerticalIcons';
 import React from 'react';
 
 interface ChatHeaderProps {
@@ -45,7 +45,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
         </Stack>
       </Group>
       <ActionIcon variant="subtle" color="gray" size="lg">
-        <IconDotsVertical size={20} />
+        <DotsVerticalIcons width={20} height={20} />
       </ActionIcon>
     </Group>
     <Divider mb={12} />

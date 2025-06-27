@@ -1,5 +1,7 @@
 import { Box, Group, ActionIcon, Textarea, Button } from '@mantine/core';
-import { IconSend, IconPhoto, IconFile } from '@tabler/icons-react';
+import { SendIcon } from '../icons/SendIcon';
+import { PhotoIcon } from '../icons/PhotoIcon';
+import { FileIcon } from '../icons/FileIcon';
 import React from 'react';
 
 interface ChatInputProps {
@@ -28,10 +30,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   >
     <Group align="flex-end" gap="xs">
       <ActionIcon variant="subtle" color="blue" size="lg">
-        <IconPhoto size={20} />
+        <PhotoIcon width={20} />
       </ActionIcon>
       <ActionIcon variant="subtle" color="blue" size="lg">
-        <IconFile size={20} />
+        <FileIcon width={20} />
       </ActionIcon>
       <Textarea
         value={message}
@@ -54,7 +56,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         variant="filled"
         color="blue"
         radius="xl"
-        leftSection={<IconSend size={18} />}
+        leftSection={<SendIcon width={18} />}
         loading={sending}
         disabled={!message.trim() || !socketConnected || sending}
         style={{ boxShadow: '0 2px 8px rgba(34,139,230,0.08)' }}

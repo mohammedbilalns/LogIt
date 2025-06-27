@@ -6,7 +6,8 @@ import {
 } from '@mantine/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { IconLock, IconMailCheck } from '@tabler/icons-react';
+import { LockIcon } from '@/components/icons/LockIcon';
+import { MailCheckIcon } from '@/components/icons/MailCheckIcon';
 import { AppDispatch, RootState } from '@/store';
 import {
   initiatePasswordReset,
@@ -169,7 +170,7 @@ export default function ResetPassword() {
   const getHeaderContent = () => {
     if (!resetPasswordEmail) {
       return {
-        icon: <IconLock size={50} color="var(--mantine-color-blue-6)" />,
+        icon: <LockIcon width={50} color="var(--mantine-color-blue-6)" />,
         title: 'Reset Password',
         description: 'Enter your email to reset your password',
       };
@@ -177,7 +178,7 @@ export default function ResetPassword() {
     
     if (!resetPasswordVerified) {
       return {
-        icon: <IconMailCheck size={50} color="var(--mantine-color-blue-6)" />,
+        icon: <MailCheckIcon width={50} color="var(--mantine-color-blue-6)" />,
         title: 'Verify OTP',
         description: (
           <>
@@ -191,7 +192,7 @@ export default function ResetPassword() {
     }
     
     return {
-      icon: <IconLock size={50} color="var(--mantine-color-blue-6)" />,
+      icon: <LockIcon width={50} color="var(--mantine-color-blue-6)" />,
       title: 'Create New Password',
       description: 'Enter your new password',
     };

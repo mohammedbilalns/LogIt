@@ -18,7 +18,8 @@ import {
 } from '@mantine/core';
 import { DateTimePicker } from '@mantine/dates';
 import { useForm, isNotEmpty } from '@mantine/form';
-import { IconPhotoPlus, IconX } from '@tabler/icons-react';
+import { PhotoPlus } from '../icons/PhotoPlus';
+import { XIcon } from '../icons/XIcon';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -411,7 +412,7 @@ export default function LogEditorForm({
             <FileInput
               label="Upload Media (Max 4 files)"
               placeholder="Pick files"
-              leftSection={<IconPhotoPlus size={18} />}
+              leftSection={<PhotoPlus width={18} />}
               multiple
               accept="image/png,image/jpeg,image/gif,video/mp4,video/quicktime"
               onChange={(files) => {
@@ -472,7 +473,7 @@ export default function LogEditorForm({
                         }}
                         onClick={() => handleRemoveImage(index)}
                       >
-                        <IconX size={14} />
+                        <XIcon width={14} />
                       </ActionIcon>
                     </Box>
                   ))}

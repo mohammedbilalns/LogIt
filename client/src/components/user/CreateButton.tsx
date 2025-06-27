@@ -1,14 +1,25 @@
 import { Button } from '@mantine/core';
-import { IconPlus } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
-import React, { MouseEventHandler } from 'react';
+import { MouseEventHandler } from 'react';
+import PlusIcon from '../icons/PlusIcon';
 
 interface CreateButtonProps {
   position?: 'right' | 'left';
   onClick?: MouseEventHandler<HTMLButtonElement>;
+  text?: string;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  color?: string;
+  disabled?: boolean;
 }
 
-export default function CreateButton({ position = 'right', onClick }: CreateButtonProps) {
+export default function CreateButton({ 
+  position = 'right', 
+  onClick, 
+  text = 'Create',
+  size = 'lg',
+  color = 'blue',
+  disabled = false
+}: CreateButtonProps) {
   const navigate = useNavigate();
 
   const handleClick: MouseEventHandler<HTMLButtonElement> = (event) => {
@@ -21,10 +32,11 @@ export default function CreateButton({ position = 'right', onClick }: CreateButt
 
   return (
     <Button
-      leftSection={<IconPlus size={20} />}
-      size="lg"
-      color="blue"
+      leftSection={<PlusIcon size={20} />}
+      size={size}
+      color={color}
       radius="xl"
+      disabled={disabled}
       style={{
         position: 'fixed',
         bottom: '2rem',
@@ -34,7 +46,7 @@ export default function CreateButton({ position = 'right', onClick }: CreateButt
       }}
       onClick={handleClick}
     >
-      Create
+      {text}
     </Button>
   );
 } 

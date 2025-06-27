@@ -1,10 +1,4 @@
-import {
-  IconBell,
-  IconMoon,
-  IconSearch,
-  IconSun,
-  IconLogout,
-} from '@tabler/icons-react';
+
 import {
   ActionIcon,
   Group,
@@ -23,6 +17,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { logout } from '@slices/authSlice';
 import { useMediaQuery } from '@mantine/hooks';
+import { BellIcon } from './icons/BellIcon';
+import { MoonIcon } from './icons/MoonIcon';
+import { SunIcon } from './icons/SunIcon';
+import { SearchIcon } from './icons/SearchIcon';
+import { LogoutIcon } from './icons/LogoutIcon';
 
 export default function Navbar() {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
@@ -84,7 +83,7 @@ export default function Navbar() {
           {isAuthenticated && !isMobile && (
             <TextInput
               placeholder="Search LogIt"
-              leftSection={<IconSearch size={16} />}
+              leftSection={<SearchIcon width={16} height={16} />}
               radius="xl"
               w={rem(300)}
               size="sm"
@@ -108,11 +107,11 @@ export default function Navbar() {
               <>
                 {isMobile && (
                   <ActionIcon variant="light" size="md" color="blue" radius="xl">
-                    <IconSearch size={20} />
+                    <SearchIcon width={20} height={20} />
                   </ActionIcon>
                 )}
                 <ActionIcon variant="light" size="md" radius="xl">
-                  <IconBell size={20} />
+                  <BellIcon width={20} height={20} />
                 </ActionIcon>
                 <ActionIcon
                   variant="light"
@@ -120,7 +119,7 @@ export default function Navbar() {
                   radius="xl"
                   onClick={handleLogout}
                 >
-                  <IconLogout size={20} />
+                  <LogoutIcon width={20} height={20} />
                 </ActionIcon>
               </>
             ) : (
@@ -148,8 +147,8 @@ export default function Navbar() {
             {/* Theme Toggle */}
             <Switch
               size="md"
-              onLabel={<IconSun size={14} />}
-              offLabel={<IconMoon size={14} />}
+              onLabel={<SunIcon width={14} height={14} />}
+              offLabel={<MoonIcon width={14} height={14} />}
               checked={isDark}
               onChange={() => toggleColorScheme()}
               color="blue"

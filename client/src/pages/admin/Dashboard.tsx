@@ -1,5 +1,7 @@
 import { Container, Grid, Paper, Text, Title, Group, useMantineTheme, useMantineColorScheme } from '@mantine/core';
-import { IconUsers, IconNotes, IconSettings } from '@tabler/icons-react';
+import { UsersIcon } from '@/components/icons/UsersIcon';
+import { NotesIcon } from '@/components/icons/NotesIcon';
+import { SettingsIcon } from '@/components/icons/SettingsIcon';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { useMediaQuery } from '@mantine/hooks';
@@ -26,7 +28,7 @@ export default function AdminDashboard() {
       }}
     >
       <Group>
-        <Icon size={24} color={theme.colors.blue[6]} />
+        <Icon width={24} height={24} color={theme.colors.blue[6]} />
         <div>
           <Text size="xs" c="dimmed">
             {title}
@@ -59,13 +61,13 @@ export default function AdminDashboard() {
       {/* Statistics */}
       <Grid mb="xl">
         <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
-          <StatCard title="Total Users" value={10} icon={IconUsers} />
+          <StatCard title="Total Users" value={10} icon={UsersIcon} />
         </Grid.Col>
         <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
-          <StatCard title="Total Posts" value="156" icon={IconNotes} />
+          <StatCard title="Total Posts" value="156" icon={NotesIcon} />
         </Grid.Col>
         <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
-          <StatCard title="System Status" value="Healthy" icon={IconSettings} />
+          <StatCard title="System Status" value="Healthy" icon={SettingsIcon} />
         </Grid.Col>
       </Grid>
     </Container>

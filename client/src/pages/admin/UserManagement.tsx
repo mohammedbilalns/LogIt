@@ -16,7 +16,12 @@ import {
   Card,
   Divider,
 } from '@mantine/core';
-import { IconLock, IconLockOpen, IconMail, IconUser, IconCalendar, IconBriefcase } from '@tabler/icons-react';
+import { LockIcon } from '@/components/icons/LockIcon';
+import { LockOpenIcon } from '@/components/icons/LockOpenIcon';
+import { MailIcon } from '@/components/icons/MailIcon';
+import { UserIcon } from '@/components/icons/UserIcon';
+import { CalendarIcon } from '@/components/icons/CalendarIcon';
+import { BriefCaseIcon } from '@/components/icons/BriefCaseIcon';
 import { AppDispatch, RootState } from '@/store';
 import { fetchUsers, setSearchQuery, blockUser, unblockUser } from '@slices/userManagementSlice';
 import { UserManagementState } from '@/types/user-management.types';
@@ -138,7 +143,7 @@ export default function UserManagement() {
                 {user.name}
               </Text>
               <Group gap="xs">
-                <IconMail size={14} />
+                <MailIcon width={14} />
                 <Text size="xs" c="dimmed" lineClamp={1} style={{ maxWidth: '150px' }}>
                   {user.email}
                 </Text>
@@ -152,7 +157,7 @@ export default function UserManagement() {
               variant="light"
               size="sm"
             >
-              {user.isBlocked ? <IconLockOpen size={16} /> : <IconLock size={16} />}
+              {user.isBlocked ? <LockOpenIcon width={16} /> : <LockIcon width={16} />}
             </ActionIcon>
           </Tooltip>
         </Group>
@@ -161,14 +166,14 @@ export default function UserManagement() {
 
         <Group gap="lg" wrap="wrap">
           <Group gap="xs">
-            <IconBriefcase size={14} />
+            <BriefCaseIcon width={14} />
             <Text size="xs" c="dimmed">
               {user.profession || 'Not specified'}
             </Text>
           </Group>
 
           <Group gap="xs">
-            <IconUser size={14} />
+            <UserIcon width={14} />
             <Badge
               variant="light"
               color={user.provider === 'google' ? 'blue' : 'gray'}
@@ -179,7 +184,7 @@ export default function UserManagement() {
           </Group>
 
           <Group gap="xs">
-            <IconCalendar size={14} />
+            <CalendarIcon width={14} />
             <Text size="xs" c="dimmed">
               {formatDate(user.createdAt)}
             </Text>
@@ -299,7 +304,7 @@ export default function UserManagement() {
                               color={user.isBlocked ? 'green' : 'red'}
                               variant="light"
                             >
-                              {user.isBlocked ? <IconLockOpen size={16} /> : <IconLock size={16} />}
+                              {user.isBlocked ? <LockOpenIcon width={16} /> : <LockIcon width={16} />}
                             </ActionIcon>
                           </Tooltip>
                         </Table.Td>

@@ -1,13 +1,12 @@
 import { useForm } from '@mantine/form';
 import {
-  Text,
   Button,
   Stack,
   Divider,
 } from '@mantine/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import { IconUserPlus } from '@tabler/icons-react';
+import { UserPlusIcon } from '@/components/icons/UserPlusIcon';
 import { AppDispatch, RootState } from '@/store';
 import { signup } from '@slices/authSlice';
 import { useEffect } from 'react';
@@ -74,7 +73,7 @@ export default function Signup() {
   return (
     <AuthContainer my={20} mt={100}>
       <AuthHeader
-        icon={<IconUserPlus size={42} color="var(--mantine-color-blue-6)" />}
+        icon={<UserPlusIcon width={42} color="var(--mantine-color-blue-6)" />}
         title="Create your account"
         description="Fill in your details to get started with LogIt"
       />

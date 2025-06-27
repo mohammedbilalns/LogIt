@@ -1,44 +1,42 @@
 import { Box, Paper, Button, Container, Group, Stack, Text, Title, useMantineColorScheme, Image, Grid, Card, Badge, useComputedColorScheme } from '@mantine/core';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import {
-  IconArrowRight,
-  IconBook,
-  IconShare,
-  IconTarget,
-  IconRocket,
-  IconUsers,
-  IconMessageCircle,
-  IconLock,
-  IconWorld
-} from '@tabler/icons-react';
+import { ArrowRightIcon } from '@/components/icons/ArrowRightIcon';
+import { BookIcon } from '@/components/icons/BookIcon';
+import { ShareIcon } from '@/components/icons/ShareIcon';
+import { TargetIcon } from '@/components/icons/TargetIcon';
+import { RocketIcon } from '@/components/icons/RocketIcon';
+import { UsersIcon } from '@/components/icons/UsersIcon';
+import { MessageCircleIcon } from '@/components/icons/MessageCircleIcon';
+import { LockIcon } from '@/components/icons/LockIcon';
+import { WorldIcon } from '@/components/icons/WorldIcon';
 
 const MotionDiv = motion.div;
 
 const features = [
   {
-    icon: <IconTarget size={32} />,
+    icon: <TargetIcon width={32} height={32} />,
     title: 'Personal Logs',
     description: 'Keep track of your daily experiences, technical challenges, and personal growth. Document your journey with private logs that only you can access.',
     color: 'blue',
     image: '/logs.png'
   },
   {
-    icon: <IconShare size={32} />,
+    icon: <ShareIcon width={32} height={32} />,
     title: 'Public Articles',
     description: 'Share your knowledge and experiences with the community through well-crafted articles. Help others learn from your insights and discoveries.',
     color: 'green',
     image: '/share.png'
   },
   {
-    icon: <IconMessageCircle size={32} />,
+    icon: <MessageCircleIcon width={32} height={32} />,
     title: 'Real-time Communication',
     description: 'Connect with other users through chat, audio, and video calls. Collaborate, discuss, and learn together in a secure environment.',
     color: 'violet',
     image: '/communicate.png'
   },
   {
-    icon: <IconLock size={32} />,
+    icon: <LockIcon width={32} height={32} />,
     title: 'Privacy First',
     description: 'Your personal logs are private by default. Choose what to share and with whom. Maintain complete control over your content and privacy.',
     color: 'orange',
@@ -47,10 +45,10 @@ const features = [
 ];
 
 const stats = [
-  { value: '10K+', label: 'Personal Logs', icon: <IconBook size={24} /> },
-  { value: '5K+', label: 'Public Articles', icon: <IconWorld size={24} /> },
-  { value: '2K+', label: 'Active Users', icon: <IconUsers size={24} /> },
-  { value: '100%', label: 'Privacy Guaranteed', icon: <IconLock size={24} /> }
+  { value: '10K+', label: 'Personal Logs', icon: <BookIcon width={24} height={24} /> },
+  { value: '5K+', label: 'Public Articles', icon: <WorldIcon width={24} height={24} /> },
+  { value: '2K+', label: 'Active Users', icon: <UsersIcon width={24} height={24} /> },
+  { value: '100%', label: 'Privacy Guaranteed', icon: <LockIcon width={24} height={24} /> }
 ];
 
 const GradientTitle = () => {
@@ -151,7 +149,7 @@ export default function LandingPage() {
                         size="lg"
                         radius="md"
                         onClick={() => navigate('/logs')}
-                        rightSection={<IconArrowRight size={20} />}
+                        rightSection={<ArrowRightIcon width={20} height={20} />}
                         variant="gradient"
                         gradient={{ from: 'blue', to: 'violet' }}
                       >
@@ -381,7 +379,7 @@ export default function LandingPage() {
                     size="lg"
                     radius="md"
                     onClick={() => navigate('/signup')}
-                    rightSection={<IconRocket size={20} />}
+                    rightSection={<RocketIcon width={20} height={20} />}
                     variant="gradient"
                     gradient={{ from: 'blue', to: 'violet' }}
                   >

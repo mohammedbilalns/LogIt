@@ -10,7 +10,8 @@ import {
   Modal,
   rem,
 } from '@mantine/core';
-import { IconPencil, IconTrash } from '@tabler/icons-react';
+import { PencilIcon } from '../icons/PencilIcon';
+import { TrashIcon } from '../icons/TrashIcon';
 import TagList from '../tags/TagList';
 
 interface Tag {
@@ -119,12 +120,12 @@ export default function LogRow({ log, onEdit, onDelete }: LogRowProps) {
           <Group gap="xs" justify="flex-end" mt="xs">
             {onEdit && (
               <ActionIcon variant="subtle" color="gray" onClick={() => onEdit(log)}>
-                <IconPencil size={16} />
+                <PencilIcon width={16} />
               </ActionIcon>
             )}
             {onDelete && (
               <ActionIcon variant="subtle" color="red" onClick={() => onDelete(log._id)}>
-                <IconTrash size={16} />
+                <TrashIcon width={16} />
               </ActionIcon>
             )}
           </Group>

@@ -7,7 +7,7 @@ import {
   Text,
   useMantineColorScheme,
 } from '@mantine/core';
-import { IconArticle } from '@tabler/icons-react';
+import { ArticleIcon } from '@/components/icons/ArticleIcon';
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
@@ -116,7 +116,7 @@ export default function ArticleRow({ article }: ArticleRowProps) {
           backdropFilter: 'blur(10px)',
         }}
       >
-        <IconArticle size={isMobile ? 24 : 32} color={isDark ? '#aaa' : '#555'} />
+        <ArticleIcon width={isMobile ? 24 : 32} height={isMobile ? 24 : 32} color={isDark ? '#aaa' : '#555'} />
       </Box>
     );
   };

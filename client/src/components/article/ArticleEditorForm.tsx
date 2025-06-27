@@ -7,7 +7,7 @@ import Image from '@tiptap/extension-image';
 import Underline from '@tiptap/extension-underline';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { createLowlight } from 'lowlight';
-import { IconUpload } from '@tabler/icons-react';
+import { UploadIcon } from '@/components/icons/UploadIcon';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { createArticle, updateArticle, fetchArticle, clearCurrentArticle } from '@/store/slices/articleSlice';
@@ -345,7 +345,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
               <Button
                 variant="subtle"
                 size="xs"
-                leftSection={<IconUpload size={16} />}
+                leftSection={<UploadIcon width={16} height={16} />}
                 onClick={() => {
                   const input = document.createElement('input');
                   input.type = 'file';

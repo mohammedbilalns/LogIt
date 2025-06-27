@@ -9,7 +9,9 @@ import { fetchHomeData, selectHomeData, selectHomeLoading, selectHomeError } fro
 import LogRow from '@components/log/LogRow';
 import ArticleRow from '@components/article/ArticleRow';
 import { useNavigate } from 'react-router-dom';
-import { IconFileText, IconMessages, IconUsers } from '@tabler/icons-react';
+import { FileTextIcon } from '@/components/icons/FileTextIcon';
+import { MessageIcon } from '@/components/icons/MessageIcon';
+import { UsersIcon } from '@/components/icons/UsersIcon';
 import { notifications } from '@mantine/notifications';
 import { HomeSkeleton } from '@components/skeletons/HomeSkeleton';
 import StatsCard from '@components/home/StatsCard';
@@ -57,22 +59,22 @@ export default function Home() {
     {
       label: 'Total Logs',
       value: homeData?.logsCount.toString() || '0',
-      icon: <IconFileText size={28} />
+      icon: <FileTextIcon width={28} />
     },
     {
       label: 'Articles Written',
       value: homeData?.articlesCount.toString() || '0',
-      icon: <IconFileText size={28} />
+      icon: <FileTextIcon width={28} />
     },
     {
       label: 'Messages',
       value: homeData?.messagesCount.toString() || '0',
-      icon: <IconMessages size={28} />
+      icon: <MessageIcon width={28} />
     },
     {
       label: 'Followers',
       value: homeData?.followersCount.toString() || '0',
-      icon: <IconUsers size={28} />
+      icon: <UsersIcon width={28} />
     },
   ], [homeData]);
 

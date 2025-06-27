@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useForm } from '@mantine/form';
 import {
-  Text,
   Button,
   Stack,
   Group,
@@ -10,7 +9,8 @@ import {
 } from '@mantine/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { IconLock, IconAlertCircle } from '@tabler/icons-react';
+import { LockIcon } from '@/components/icons/LockIcon';
+import { AlertCircleIcon } from '@/components/icons/AlertCircleIcon';
 import { AppDispatch, RootState } from '@/store';
 import { login, clearError } from '@slices/authSlice';
 import { GoogleButton } from '@components/user/GoogleButton';
@@ -71,14 +71,14 @@ export default function Login() {
   return (
     <AuthContainer>
       <AuthHeader
-        icon={<IconLock size={42} color="var(--mantine-color-blue-6)" />}
+        icon={<LockIcon width={42} height={42} color="var(--mantine-color-blue-6)" />}
         title="Welcome back to LogIt"
         description="Enter your credentials to access your account"
       />
 
       {isBlocked && (
         <Alert
-          icon={<IconAlertCircle size={16} />}
+          icon={<AlertCircleIcon width={16} height={16} />}
           title="Account Blocked"
           color="red"
           mb="lg"
