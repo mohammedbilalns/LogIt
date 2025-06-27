@@ -71,10 +71,6 @@ export function createChatRouter(io: Server) {
     "/:chatId/participants/:userId",
     asyncHandler((req, res) => chatController.removeParticipant(req, res))
   );
-  router.get(
-    "/:chatId/messages",
-    asyncHandler((req, res) => chatController.getChatMessages(req, res))
-  );
   router.post(
     "/:chatId/messages",
     validate(sendMessageSchema),

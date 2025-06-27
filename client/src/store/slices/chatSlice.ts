@@ -126,11 +126,10 @@ export const createGroupChat = createAsyncThunk(
 
 export const fetchChatDetails = createAsyncThunk(
   'chat/fetchChatDetails',
-  async (chatId: string, { rejectWithValue }) => {
+  async ({ chatId, page = 1, limit = 15 }: { chatId: string; page?: number; limit?: number }, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`/chats/${chatId}`);
-      console.log("Chat details", response.data)
-      return response.data;
+      const response = await axios.get(`/chats/${chatId}?page=${page}&limit=${limit}`);
+      return { ...response.data, page };
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch chat details');
     }
@@ -145,21 +144,6 @@ export const sendMessage = createAsyncThunk(
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to send message');
-    }
-  }
-);
-
-export const fetchChatMessages = createAsyncThunk(
-  'chat/fetchChatMessages',
-  async (
-    { chatId, page = 1, limit = 15 }: { chatId: string; page?: number; limit?: number },
-    { rejectWithValue }
-  ) => {
-    try {
-      const response = await axios.get(`/chats/${chatId}/messages?page=${page}&limit=${limit}`);
-      return { data: response.data, page };
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch messages');
     }
   }
 );
@@ -348,7 +332,13 @@ const chatSlice = createSlice({
         state.messagesLoading = false;
         state.currentChat = action.payload;
         state.participants = action.payload.participants;
-        state.messages = action.payload.messages;
+        if (action.payload.page > 1) {
+          state.messages = [...action.payload.messages, ...state.messages];
+        } else {
+          state.messages = action.payload.messages;
+        }
+        state.page = action.payload.page;
+        state.hasMore = action.payload.hasMore;
       })
       .addCase(fetchChatDetails.rejected, (state, action) => {
         state.messagesLoading = false;
@@ -360,28 +350,6 @@ const chatSlice = createSlice({
       })
       .addCase(sendMessage.fulfilled, (state, action) => {})
       .addCase(sendMessage.rejected, (state, action) => {
-        state.error = action.payload as string;
-      })
-      // Fetch chat messages
-      .addCase(fetchChatMessages.pending, (state) => {
-        state.messagesLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchChatMessages.fulfilled, (state, action) => {
-        state.messagesLoading = false;
-        const { data, page } = action.payload;
-        if (page > 1) {
-          // Prepend older messages
-          state.messages = [...data, ...state.messages];
-        } else {
-          // First page, replace
-          state.messages = data;
-        }
-        state.page = page;
-        state.hasMore = data.length === state.limit;
-      })
-      .addCase(fetchChatMessages.rejected, (state, action) => {
-        state.messagesLoading = false;
         state.error = action.payload as string;
       })
       // Fetch user group chats

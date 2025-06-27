@@ -26,7 +26,9 @@ export class ChatController {
 
   async getChatDetails(req: Request, res: Response) {
     const userId = (req.user as { id: string }).id;
-    const chatDetails = await this.chatService.getChatDetails(req.params.chatId, userId);
+    const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 15;
+    const chatDetails = await this.chatService.getChatDetails(req.params.chatId, userId, page, limit);
     res.status(HttpStatus.OK).json(chatDetails);
   }
 
@@ -52,14 +54,6 @@ export class ChatController {
     const userId = (req.user as { id: string }).id;
     const message = await this.chatService.sendMessage(req.params.chatId, userId, req.body);
     res.status(HttpStatus.CREATED).json(message);
-  }
-
-  async getChatMessages(req: Request, res: Response) {
-    const userId = (req.user as { id: string }).id;
-    const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
-    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
-    const messages = await this.chatService.getChatMessages(req.params.chatId, userId, page, limit);
-    res.json(messages);
   }
 
   async getOrCreatePrivateChat(req: Request, res: Response) {

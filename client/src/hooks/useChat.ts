@@ -7,7 +7,6 @@ import { AppDispatch, RootState } from '@/store';
 import {
   clearMessages,
   fetchChatDetails,
-  fetchChatMessages,
   sendMessage,
   setCurrentChat,
 } from '@/store/slices/chatSlice';
@@ -70,7 +69,7 @@ export function useChat(id?: string) {
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchChatDetails(id));
+      dispatch(fetchChatDetails({ chatId: id, page: 1, limit }));
     }
   }, [id, dispatch]);
 
@@ -143,7 +142,7 @@ export function useChat(id?: string) {
   // Fetch initial messages
   useEffect(() => {
     if (id) {
-      dispatch(fetchChatMessages({ chatId: id, page: 1, limit }));
+      // No longer needed, handled by fetchChatDetails
     }
   }, [id, dispatch, limit]);
 
@@ -153,7 +152,7 @@ export function useChat(id?: string) {
     const container = messagesContainerRef.current;
     const prevScrollHeight = container ? container.scrollHeight : 0;
     const prevScrollTop = container ? container.scrollTop : 0;
-    await dispatch(fetchChatMessages({ chatId: id, page: page + 1, limit }));
+    await dispatch(fetchChatDetails({ chatId: id, page: page + 1, limit }));
     setShouldScrollToBottom(false);
     requestAnimationFrame(() => {
       if (container) {

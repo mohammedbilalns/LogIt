@@ -25,12 +25,11 @@ export interface IChatService {
   createChat(creatorId: string, data: CreateChatDto): Promise<Chat>;
   createGroupChat(creatorId: string, data: CreateGroupChatDto): Promise<Chat>;
   getUserChats(userId: string): Promise<ChatWithDetails[]>;
-  getChatDetails(chatId: string, userId: string): Promise<ChatWithDetails & { participants: ChatWithDetails['participants']; messages: Message[] }>;
+  getChatDetails(chatId: string, userId: string, page?: number, limit?: number): Promise<ChatWithDetails & { participants: ChatWithDetails['participants']; messages: Message[]; page: number; limit: number; hasMore: boolean }>;
   addParticipant(chatId: string, participants: string[], requesterId: string): Promise<ChatParticipants[]>;
   removeParticipant(chatId: string, userId: string, requesterId: string): Promise<void>;
   getChatParticipants(chatId: string): Promise<ChatParticipants[]>;
   sendMessage(chatId: string, senderId: string, data: SendMessageDto): Promise<Message>;
-  getChatMessages(chatId: string, userId: string, page?: number, limit?: number): Promise<Message[]>;
   getOrCreatePrivateChat(userId: string, targetUserId: string): Promise<Chat>;
   getUserGroupChats(userId: string): Promise<ChatWithDetails[]>;
   updateGroupName(chatId: string, userId: string, name: string): Promise<ChatWithDetails | null>;
