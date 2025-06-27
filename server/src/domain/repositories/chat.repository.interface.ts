@@ -20,7 +20,7 @@ export interface ChatWithDetails extends Chat {
 }
 
 export interface IChatRepository extends IBaseRepository<Chat> {
-  findUserChats(userId: string): Promise<ChatWithDetails[]>;
+  findUserChats(userId: string, page?: number, limit?: number, filterIsGroup?: boolean): Promise<{ data: ChatWithDetails[]; total: number }>;
   findPrivateChat(userId1: string, userId2: string): Promise<Chat | null>;
   findChatWithDetailsById(chatId: string): Promise<ChatWithDetails | null>;
 } 

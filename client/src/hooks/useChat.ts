@@ -15,7 +15,7 @@ export function useChat(id?: string) {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
-  const isMobile = false; 
+  const isMobile = false;
   const { user: loggedInUser } = useSelector((state: RootState) => state.auth);
   const { currentChat, messages, participants, loading, messagesLoading, error, socketConnected } =
     useSelector((state: RootState) => state.chat);
@@ -138,13 +138,6 @@ export function useChat(id?: string) {
       socket.off('user_offline', handleOffline);
     };
   }, [currentChat?.isGroup, participants, socket, socket?.connected, loggedInUser?._id]);
-
-  // Fetch initial messages
-  useEffect(() => {
-    if (id) {
-      // No longer needed, handled by fetchChatDetails
-    }
-  }, [id, dispatch, limit]);
 
   // Fetch previous messages (older)
   const fetchPreviousMessages = async () => {

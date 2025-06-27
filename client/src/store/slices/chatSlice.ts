@@ -66,6 +66,7 @@ interface ChatState {
   page: number;
   hasMore: boolean;
   limit: number;
+  total: number;
 }
 
 const initialState: ChatState = {
@@ -81,16 +82,16 @@ const initialState: ChatState = {
   page: 1,
   hasMore: true,
   limit: 15,
+  total: 0,
 };
 
 // Async thunks
 export const fetchUserChats = createAsyncThunk(
   'chat/fetchUserChats',
-  async (_, { rejectWithValue }) => {
+  async ({ page = 1, limit = 10 }: { page?: number; limit?: number } = {}, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/chats');
-      console.log('Fetched chats', response.data);
-      return response.data;
+      const response = await axios.get(`/chats?page=${page}&limit=${limit}`);
+      return { ...response.data, page };
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch chats');
     }
@@ -164,11 +165,10 @@ export const getOrCreatePrivateChat = createAsyncThunk(
 
 export const fetchUserGroupChats = createAsyncThunk(
   'chat/fetchUserGroupChats',
-  async (_, { rejectWithValue }) => {
+  async ({ page = 1, limit = 10 }: { page?: number; limit?: number } = {}, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/chats/group');
-      console.log("Group chat list", response.data)
-      return response.data;
+      const response = await axios.get(`/chats/group?page=${page}&limit=${limit}`);
+      return { ...response.data, page };
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch group chats');
     }
@@ -276,7 +276,14 @@ const chatSlice = createSlice({
       })
       .addCase(fetchUserChats.fulfilled, (state, action) => {
         state.loading = false;
-        state.singleChats = action.payload;
+        if (action.payload.page > 1) {
+          state.singleChats = [...state.singleChats, ...action.payload.data];
+        } else {
+          state.singleChats = action.payload.data;
+        }
+        state.page = action.payload.page;
+        state.hasMore = action.payload.hasMore;
+        state.total = action.payload.total;
       })
       .addCase(fetchUserChats.rejected, (state, action) => {
         state.loading = false;
@@ -359,7 +366,14 @@ const chatSlice = createSlice({
       })
       .addCase(fetchUserGroupChats.fulfilled, (state, action) => {
         state.loading = false;
-        state.groupChats = action.payload;
+        if (action.payload.page > 1) {
+          state.groupChats = [...state.groupChats, ...action.payload.data];
+        } else {
+          state.groupChats = action.payload.data;
+        }
+        state.page = action.payload.page;
+        state.hasMore = action.payload.hasMore;
+        state.total = action.payload.total;
       })
       .addCase(fetchUserGroupChats.rejected, (state, action) => {
         state.loading = false;

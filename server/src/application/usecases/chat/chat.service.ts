@@ -4,10 +4,7 @@ import {
   CreateGroupChatDto,
   SendMessageDto,
 } from "../../../application/dtos/chat.dto";
-import {
-  IChatService,
-  ChatWithDetails,
-} from "../../../domain/services/chat.service.interface";
+import { IChatService } from "../../../domain/services/chat.service.interface";
 import { IChatRepository } from "../../../domain/repositories/chat.repository.interface";
 import { IMessageRepository } from "../../../domain/repositories/message.repository.interface";
 import { IChatParticipantRepository } from "../../../domain/repositories/chat-participant.repository.interface";
@@ -119,16 +116,23 @@ export class ChatService implements IChatService {
     return newChat;
   }
 
-  async getUserChats(userId: string): Promise<ChatWithDetails[]> {
-    // Only return non-group (single) chats
-    const allChats = await this.chatRepository.findUserChats(userId);
-    return allChats.filter((chat) => !chat.isGroup);
+  async getUserChats(userId: string, page = 1, limit = 10) {
+    const { data, total } = await this.chatRepository.findUserChats(userId, page, limit, false);
+    return {
+      data,
+      total,
+      page,
+      limit,
+      hasMore: page * limit < total,
+    };
   }
 
   async getChatDetails(chatId: string, userId: string, page = 1, limit = 15) {
     const chat = await this.chatRepository.findChatWithDetailsById(chatId);
     if (!chat) throw new BadRequestError(HttpResponse.CHAT_NOT_FOUND);
-    const participantRecord = chat.participants.find((p) => p.userId === userId);
+    const participantRecord = chat.participants.find(
+      (p) => p.userId === userId
+    );
     if (!participantRecord) {
       throw new UnauthorizedError(HttpResponse.NOT_A_MEMBER);
     }
@@ -136,25 +140,34 @@ export class ChatService implements IChatService {
     if (!allowedRoles.includes(participantRecord.role)) {
       throw new UnauthorizedError(HttpResponse.NOT_A_MEMBER);
     }
-    let participants = chat.participants.filter((p) => p.role === "admin" || p.role === "member");
+    let participants = chat.participants.filter(
+      (p) => p.role === "admin" || p.role === "member"
+    );
     const myParticipant = chat.participants.find((p) => p.userId === userId);
     if (myParticipant && !participants.some((p) => p.userId === userId)) {
       participants = [...participants, myParticipant];
     }
     let messages: Message[] = [];
     let hasMore = false;
-    if (participantRecord.role === "removed-user" || participantRecord.role === "left-user") {
-      const log = await this.chatActionLogRepository.getLastRemovalOrLeaveLog(chatId, userId);
+    if (
+      participantRecord.role === "removed-user" ||
+      participantRecord.role === "left-user"
+    ) {
+      const log = await this.chatActionLogRepository.getLastRemovalOrLeaveLog(
+        chatId,
+        userId
+      );
       if (log) {
-        // Fetch all messages up to the removal/leave date, then paginate in-memory
         const allMessages = await this.messageRepository.findAll({
           filters: { chatId },
           sortBy: "createdAt",
           sortOrder: "desc",
           page: 1,
-          limit: 1000, // large enough to get all
+          limit: 1000,
         });
-        const filtered = allMessages.data.filter((m) => new Date(m.createdAt) <= log.createdAt);
+        const filtered = allMessages.data.filter(
+          (m) => new Date(m.createdAt) <= log.createdAt
+        );
         const start = (page - 1) * limit;
         messages = filtered.slice(start, start + limit).reverse();
         hasMore = start + limit < filtered.length;
@@ -320,10 +333,15 @@ export class ChatService implements IChatService {
     return newChat;
   }
 
-  async getUserGroupChats(userId: string): Promise<ChatWithDetails[]> {
-    return (await this.chatRepository.findUserChats(userId)).filter(
-      (chat) => chat.isGroup
-    );
+  async getUserGroupChats(userId: string, page = 1, limit = 10) {
+    const { data, total } = await this.chatRepository.findUserChats(userId, page, limit, true);
+    return {
+      data,
+      total,
+      page,
+      limit,
+      hasMore: page * limit < total,
+    };
   }
 
   async updateGroupName(chatId: string, userId: string, name: string) {

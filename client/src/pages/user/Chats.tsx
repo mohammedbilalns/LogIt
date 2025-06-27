@@ -85,19 +85,35 @@ function ChatCard({ chat, isGroup }: { chat: any; isGroup?: boolean }) {
 export default function ChatsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
-  const { singleChats, groupChats, loading, error } = useSelector((state: RootState) => state.chat);
+  const { singleChats, groupChats, loading, error, hasMore, page } = useSelector((state: RootState) => state.chat);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [tab, setTab] = useState<string | null>('single');
   const [groupModalOpened, { open: openGroupModal, close: closeGroupModal }] = useDisclosure(false);
   const containerClassName = `page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
+  const [singlePage, setSinglePage] = useState(1);
+  const [groupPage, setGroupPage] = useState(1);
 
   useEffect(() => {
     if (tab === 'single') {
-      dispatch(fetchUserChats());
+      dispatch(fetchUserChats({ page: 1, limit: 10 }));
+      setSinglePage(1);
     } else if (tab === 'group') {
-      dispatch(fetchUserGroupChats());
+      dispatch(fetchUserGroupChats({ page: 1, limit: 10 }));
+      setGroupPage(1);
     }
   }, [dispatch, tab]);
+
+  const handleViewMore = () => {
+    if (tab === 'single') {
+      const nextPage = singlePage + 1;
+      dispatch(fetchUserChats({ page: nextPage, limit: 10 }));
+      setSinglePage(nextPage);
+    } else if (tab === 'group') {
+      const nextPage = groupPage + 1;
+      dispatch(fetchUserGroupChats({ page: nextPage, limit: 10 }));
+      setGroupPage(nextPage);
+    }
+  };
 
   if (loading && ((tab === 'single' && singleChats.length === 0))) {
     return (
@@ -158,11 +174,21 @@ export default function ChatsPage() {
               {singleChats.length > 0 ? singleChats.map((chat) => (
                 <ChatCard key={chat.id} chat={chat} />
               )) : <Text c="dimmed">No single chats found.</Text>}
+              {tab === 'single' && hasMore && (
+                <Box style={{ textAlign: 'center', marginTop: 16 }}>
+                  <button onClick={handleViewMore} style={{ padding: '8px 16px', borderRadius: 4, border: '1px solid #ccc', background: '#f8f9fa', cursor: 'pointer' }}>View More</button>
+                </Box>
+              )}
             </Tabs.Panel>
             <Tabs.Panel value="group" pt="md">
               {groupChats.length > 0 ? groupChats.map((chat) => (
                 <ChatCard key={chat.id} chat={chat} isGroup />
               )) : <Text c="dimmed">No group chats found.</Text>}
+              {tab === 'group' && hasMore && (
+                <Box style={{ textAlign: 'center', marginTop: 16 }}>
+                  <button onClick={handleViewMore} style={{ padding: '8px 16px', borderRadius: 4, border: '1px solid #ccc', background: '#f8f9fa', cursor: 'pointer' }}>View More</button>
+                </Box>
+              )}
             </Tabs.Panel>
           </Tabs>
         </Stack>

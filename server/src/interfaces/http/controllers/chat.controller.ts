@@ -20,8 +20,10 @@ export class ChatController {
   
   async getUserChats(req: Request, res: Response) {
     const userId = (req.user as { id: string }).id;
-    const chats = await this.chatService.getUserChats(userId);
-    res.status(HttpStatus.OK).json(chats);
+    const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
+    const result = await this.chatService.getUserChats(userId, page, limit);
+    res.status(HttpStatus.OK).json(result);
   }
 
   async getChatDetails(req: Request, res: Response) {
@@ -65,8 +67,10 @@ export class ChatController {
 
   async getUserGroupChats(req: Request, res: Response) {
     const userId = (req.user as { id: string }).id;
-    const chats = await this.chatService.getUserGroupChats(userId);
-    res.json(chats);
+    const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
+    const result = await this.chatService.getUserGroupChats(userId, page, limit);
+    res.json(result);
   }
 
   async updateGroupName(req: Request, res: Response) {
