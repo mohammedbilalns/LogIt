@@ -275,7 +275,6 @@ export class UserService implements IUserService {
       this.articleRepository.count({ authorId: userId })
     ]);
 
-    // Get current subscription and plan
     const currentPlan = await this.userSubscriptionService.getUserCurrentPlan(userId);
     const activeSubscription = await this.userSubscriptionService.findActiveSubscriptionByUserId(userId);
 

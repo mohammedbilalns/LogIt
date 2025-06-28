@@ -13,4 +13,5 @@ export interface IUserSubscriptionService {
   deactivateSubscription(id: string): Promise<UserSubscription | null>;
   findExpiredSubscriptions(): Promise<UserSubscription[]>;
   getUserCurrentPlan(userId: string): Promise<SubscriptionPlan>;
+  getNextPlan(currentPlanId: string): Promise<SubscriptionPlan | null>;
 } 

@@ -30,7 +30,7 @@ export const initializeSocket = (server: HTTPServer): SocketConfig => {
   const subClient = pubClient.duplicate();
 
   io.adapter(createAdapter(pubClient, subClient));
-  logger.green("SOCKET_IO", "Redis adapter initialized");
+  logger.green("SOCKET_IO", "Socket IO  initialized");
 
   io.on("connection", (socket) => {
     logger.yellow("SOCKET", `Client connected: ${socket.id}`);

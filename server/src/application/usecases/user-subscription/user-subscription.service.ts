@@ -60,4 +60,15 @@ export class UserSubscriptionServiceImpl implements IUserSubscriptionService {
 
     return basePlan;
   }
+
+  async getNextPlan(currentPlanId: string): Promise<import('../../../domain/entities/subscription.entity').SubscriptionPlan | null> {
+    const { data: plans } = await this.subscriptionRepository.findAll();
+    const currentPlanIndex = plans.findIndex(p => p.id === currentPlanId);
+    
+    if (currentPlanIndex === -1 || currentPlanIndex === plans.length - 1) {
+      return null; // No next plan available
+    }
+    
+    return plans[currentPlanIndex + 1];
+  }
 } 

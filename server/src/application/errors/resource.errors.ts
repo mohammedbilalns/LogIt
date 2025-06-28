@@ -14,9 +14,35 @@ export class ResourceConflictError extends HttpError {
         this.name = 'ResourceConflictError'
     }
 }   
+
+export interface SubscriptionLimitData {
+    currentPlan: {
+        id: string;
+        name: string;
+        price: number;
+        maxLogsPerMonth: number;
+        maxArticlesPerMonth: number;
+        description: string;
+    };
+    nextPlan?: {
+        id: string;
+        name: string;
+        price: number;
+        maxLogsPerMonth: number;
+        maxArticlesPerMonth: number;
+        description: string;
+    };
+    currentUsage: number;
+    limit: number;
+    exceededResource: 'logs' | 'articles';
+}
+
 export class ResourceLimitExceededError extends HttpError {
-    constructor(message: string = "Maximum number of resource exceeded"){
+    public subscriptionData?: SubscriptionLimitData;
+
+    constructor(message: string = "Maximum number of resource exceeded", subscriptionData?: SubscriptionLimitData){
         super(HttpStatus.FORBIDDEN, message)
         this.name = 'ResourceLimitExceededError'
+        this.subscriptionData = subscriptionData;
     }
 }

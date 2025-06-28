@@ -7,6 +7,10 @@ import { MongoTagRepository } from "../../../infrastructure/repositories/tag.rep
 import { MongoArticleTagRepository } from "../../../infrastructure/repositories/article-tag.repository";
 import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
 import { MongoReportRepository } from "../../../infrastructure/repositories/report.repository";
+import { UserSubscriptionServiceImpl } from "../../../application/usecases/user-subscription/user-subscription.service";
+import { UserSubscriptionRepository } from "../../../infrastructure/repositories/user-subscription.repository";
+import { MongoSubscriptionRepository } from "../../../infrastructure/repositories/subscription.repository";
+import { IUserSubscriptionService } from "../../../domain/services/user-subscription.service.interface";
 import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
 import { asyncHandler } from "../../../utils/asyncHandler";
@@ -23,13 +27,21 @@ const tagRepository = new MongoTagRepository();
 const articleTagRepository = new MongoArticleTagRepository();
 const userRepository = new MongoUserRepository();
 const reportRepository = new MongoReportRepository();
+const userSubscriptionRepository = new UserSubscriptionRepository();
+const subscriptionRepository = new MongoSubscriptionRepository();
+
+const userSubscriptionService: IUserSubscriptionService = new UserSubscriptionServiceImpl(
+  userSubscriptionRepository,
+  subscriptionRepository
+);
 
 const articleService: IArticleService = new ArticleService(
   articleRepository,
   tagRepository,
   articleTagRepository,
   userRepository,
-  reportRepository
+  reportRepository,
+  userSubscriptionService
 );
 
 const articleController = new ArticleController(articleService);

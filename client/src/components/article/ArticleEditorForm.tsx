@@ -36,6 +36,27 @@ interface ArticleEditorFormProps {
   mode: 'create' | 'edit';
   articleId?: string;
   onClose: () => void;
+  onSubscriptionLimitError?: (error: {
+    currentPlan: {
+      id: string;
+      name: string;
+      price: number;
+      maxLogsPerMonth: number;
+      maxArticlesPerMonth: number;
+      description: string;
+    };
+    nextPlan?: {
+      id: string;
+      name: string;
+      price: number;
+      maxLogsPerMonth: number;
+      maxArticlesPerMonth: number;
+      description: string;
+    };
+    currentUsage: number;
+    limit: number;
+    exceededResource: 'logs' | 'articles';
+  }) => void;
 }
 
 interface FormErrors {
@@ -46,7 +67,7 @@ interface FormErrors {
 const lowlight = createLowlight();
 lowlight.register({ts, javascript, html, css, python, ruby, java, csharp, php, go, swift, kotlin});
 
-export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleEditorFormProps) {
+export default function ArticleEditorForm({ mode, articleId, onClose, onSubscriptionLimitError }: ArticleEditorFormProps) {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -223,7 +244,27 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
       navigate('/articles');
     } catch (error: any) {
       console.error('Failed to save article:', error);
-     
+      
+      // Check if it's a subscription limit error
+      if (error?.currentPlan && error?.exceededResource === 'articles') {
+        if (onSubscriptionLimitError) {
+          onSubscriptionLimitError({
+            currentPlan: error.currentPlan,
+            nextPlan: error.nextPlan,
+            currentUsage: error.currentUsage,
+            limit: error.limit,
+            exceededResource: 'articles'
+          });
+        }
+        return; // Don't show the error notification, let the modal handle it
+      }
+      
+      // Show generic error notification
+      notifications.show({
+        title: 'Error',
+        message: error?.message || 'Failed to save article. Please try again.',
+        color: 'red',
+      });
     }
   };
 
@@ -475,7 +516,9 @@ export default function ArticleEditorForm({ mode, articleId, onClose }: ArticleE
             marginBottom: '1rem'
           }}
         >
-          {articleError || tagError || uploadError}
+          {typeof articleError === 'string' ? articleError : (articleError as any)?.message || ''}
+          {typeof tagError === 'string' ? tagError : (tagError as any)?.message || ''}
+          {typeof uploadError === 'string' ? uploadError : (uploadError as any)?.message || ''}
         </Text>
       )}
 

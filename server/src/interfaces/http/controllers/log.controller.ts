@@ -2,23 +2,39 @@ import { Request, Response } from "express";
 import { ILogService } from "../../../domain/services/log.service.interface";
 import { HttpStatus } from "../../../config/statusCodes";
 import { HttpResponse } from "../../../config/responseMessages";
+import { ResourceLimitExceededError } from "../../../application/errors/resource.errors";
 
 export class LogController {
   constructor(private logService: ILogService) {}
 
   createLog = async (req: Request, res: Response): Promise<void> => {
-    const { title, content, tags, mediaUrls, createdAt } = req.body;
-    const userId = req.user?.id;
+    try {
+      const { title, content, tags, mediaUrls, createdAt } = req.body;
+      const userId = req.user?.id;
 
-    const log = await this.logService.createLog(userId, {
-      title,
-      content,
-      tags,
-      mediaUrls,
-      createdAt: createdAt ? new Date(createdAt) : new Date(),
-    });
+      const log = await this.logService.createLog(userId, {
+        title,
+        content,
+        tags,
+        mediaUrls,
+        createdAt: createdAt ? new Date(createdAt) : new Date(),
+      });
 
-    res.status(HttpStatus.CREATED).json(log);
+      res.status(HttpStatus.CREATED).json(log);
+    } catch (error) {
+      if (error instanceof ResourceLimitExceededError) {
+        res.status(HttpStatus.FORBIDDEN).json({
+          message: error.message,
+          currentPlan: error.subscriptionData?.currentPlan,
+          nextPlan: error.subscriptionData?.nextPlan,
+          currentUsage: error.subscriptionData?.currentUsage,
+          limit: error.subscriptionData?.limit,
+          exceededResource: error.subscriptionData?.exceededResource
+        });
+        return;
+      }
+      throw error;
+    }
   };
 
   getLogs = async (req: Request, res: Response): Promise<void> => {

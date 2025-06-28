@@ -14,8 +14,9 @@ import {
 } from "../../dtos";
 
 import { MissingFieldsError } from "../../errors/form.errors";
-import { ResourceNotFoundError } from "../../errors/resource.errors";
+import { ResourceNotFoundError, ResourceLimitExceededError } from "../../errors/resource.errors";
 import { HttpResponse } from "../../../config/responseMessages";
+import { IUserSubscriptionService } from "../../../domain/services/user-subscription.service.interface";
 
 export class ArticleService implements IArticleService {
   constructor(
@@ -23,7 +24,8 @@ export class ArticleService implements IArticleService {
     private tagRepository: ITagRepository,
     private articleTagRepository: IArticleTagRepository,
     private userRepository: IUserRepository,
-    private reportRepository: IReportRepository
+    private reportRepository: IReportRepository,
+    private userSubscriptionService: IUserSubscriptionService
   ) {}
 
   private extractImagesFromContent(content: string): string[] {
@@ -33,7 +35,6 @@ export class ArticleService implements IArticleService {
       return images;
     }
 
-    // Extract from HTML img tags
     const imgTagRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
     let match;
     while ((match = imgTagRegex.exec(content)) !== null) {
@@ -70,6 +71,50 @@ export class ArticleService implements IArticleService {
     if (!article.authorId || !article.title || !article.content) {
       throw new MissingFieldsError();
     }
+
+    // Check subscription limits
+    const currentPlan = await this.userSubscriptionService.getUserCurrentPlan(article.authorId);
+    
+    if (currentPlan.maxArticlesPerMonth !== -1) {
+      // Get current month's article count
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      
+      const endOfMonth = new Date();
+      endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+      endOfMonth.setDate(0);
+      endOfMonth.setHours(23, 59, 59, 999);
+
+      const currentMonthArticles = await this.articleRepository.findAll({
+        filters: {
+          authorId: article.authorId
+        }
+      });
+
+      // Filter articles by date manually since createdAt is not in filters
+      const filteredArticles = currentMonthArticles.data.filter(art => {
+        const articleDate = new Date(art.createdAt);
+        return articleDate >= startOfMonth && articleDate <= endOfMonth;
+      });
+
+      if (filteredArticles.length >= currentPlan.maxArticlesPerMonth) {
+        // Get next plan for upgrade suggestion
+        const nextPlan = await this.userSubscriptionService.getNextPlan(currentPlan.id);
+
+        throw new ResourceLimitExceededError(
+          `You've reached your ${currentPlan.name} plan limit of ${currentPlan.maxArticlesPerMonth} articles per month.`,
+          {
+            currentPlan,
+            nextPlan: nextPlan || undefined,
+            currentUsage: filteredArticles.length,
+            limit: currentPlan.maxArticlesPerMonth,
+            exceededResource: 'articles'
+          }
+        );
+      }
+    }
+
     const createData = { ...article };
 
     if (!createData.featured_image) {
@@ -77,6 +122,7 @@ export class ArticleService implements IArticleService {
     }
 
     const newArticle = await this.articleRepository.create(createData);
+    
     // Create article-tag relationships
     for (const tagId of tagIds) {
       const tag = await this.tagRepository.findById(tagId);
@@ -88,6 +134,7 @@ export class ArticleService implements IArticleService {
         await this.tagRepository.incrementUsageCount(tagId);
       }
     }
+    
     return this.getArticleWithTags(newArticle.id!);
   }
 

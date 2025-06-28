@@ -7,6 +7,7 @@ import { LogTag } from "../../../domain/entities/log-tag.entity";
 import { ILogService } from "../../../domain/services/log.service.interface";
 import { UnauthorizedError } from "../../errors/auth.errors";
 import { InternalServerError } from "../../errors/internal.errors";
+import { ResourceLimitExceededError } from "../../errors/resource.errors";
 import { HttpResponse } from "../../../config/responseMessages";
 import {
   CreateLogData,
@@ -14,23 +15,67 @@ import {
   GetLogsOptions,
   LogWithRelations,
 } from "../../dtos";
+import { IUserSubscriptionService } from "../../../domain/services/user-subscription.service.interface";
 
 export class LogService implements ILogService {
   constructor(
     private logRepository: ILogRepository,
     private logTagRepository: ILogTagRepository,
     private logMediaRepository: ILogMediaRepository,
-    private tagRepository: ITagRepository
+    private tagRepository: ITagRepository,
+    private userSubscriptionService: IUserSubscriptionService
   ) {}
 
   async createLog(
     userId: string | undefined,
     data: CreateLogData
   ): Promise<LogWithRelations> {
-    try {
       if (!userId) {
         throw new UnauthorizedError();
       }
+
+    // Check subscription limits
+    const currentPlan = await this.userSubscriptionService.getUserCurrentPlan(userId);
+    
+    if (currentPlan.maxLogsPerMonth !== -1) {
+      // Get current month's log count
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      
+      const endOfMonth = new Date();
+      endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+      endOfMonth.setDate(0);
+      endOfMonth.setHours(23, 59, 59, 999);
+
+      const currentMonthLogs = await this.logRepository.findMany(userId, {
+        sortBy: "createdAt",
+        sortOrder: "asc"
+      });
+
+      // Filter logs by date manually
+      const filteredLogs = currentMonthLogs.filter(log => {
+        const logDate = new Date(log.createdAt);
+        return logDate >= startOfMonth && logDate <= endOfMonth;
+      });
+
+      if (filteredLogs.length >= currentPlan.maxLogsPerMonth) {
+        // Get next plan for upgrade suggestion
+        const nextPlan = await this.userSubscriptionService.getNextPlan(currentPlan.id);
+
+        throw new ResourceLimitExceededError(
+          `You've reached your ${currentPlan.name} plan limit of ${currentPlan.maxLogsPerMonth} logs per month.`,
+          {
+            currentPlan,
+            nextPlan: nextPlan || undefined,
+            currentUsage: filteredLogs.length,
+            limit: currentPlan.maxLogsPerMonth,
+            exceededResource: 'logs'
+          }
+        );
+      }
+    }
+
       const log = await this.logRepository.create({
         userId,
         title: data.title,
@@ -74,13 +119,6 @@ export class LogService implements ILogService {
         throw new InternalServerError();
       }
       return logWithRelations;
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : HttpResponse.FAILED_TO_CREATE_LOG;
-      throw new InternalServerError(message);
-    }
   }
 
   async getLogs(

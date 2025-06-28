@@ -78,7 +78,6 @@ export default function SingleChatPage() {
         </Box>
         <ChatInput {...chat} />
       </Box>
-      Add commentMore actions
     </>
   );
 }

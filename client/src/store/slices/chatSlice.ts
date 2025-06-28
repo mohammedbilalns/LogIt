@@ -427,7 +427,7 @@ const chatSlice = createSlice({
         state.messagesLoading = false;
     
         if (!state.currentChat && !state.participants.length) {
-          state.error = action.payload as string;
+        state.error = action.payload as string;
         }
       })
       // Send message

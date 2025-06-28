@@ -5,28 +5,43 @@ import {
   UpdateArticleData,
 } from "../../../application/dtos";
 import { HttpStatus } from "../../../config/statusCodes";
+import { ResourceLimitExceededError } from "../../../application/errors/resource.errors";
 
 export class ArticleController {
   constructor(private articleService: IArticleService) {}
 
   async createArticle(req: Request, res: Response) {
-    const { title, content, tagIds, featured_image } = req.body;
-    const authorId = req.user?.id || "";
+    try {
+      const { title, content, tagIds, featured_image } = req.body;
+      const authorId = req.user?.id || "";
 
-    const articleData: CreateArticleData = {
-      authorId,
-      title,
-      content,
-      isActive: true,
-      featured_image,
-    };
+      const articleData: CreateArticleData = {
+        authorId,
+        title,
+        content,
+        isActive: true,
+        featured_image,
+      };
 
-    const article = await this.articleService.createArticle(
-      articleData,
-      tagIds || []
-    );
+      const article = await this.articleService.createArticle(
+        articleData,
+        tagIds || []
+      );
 
-    return res.status(HttpStatus.CREATED).json(article);
+      return res.status(HttpStatus.CREATED).json(article);
+    } catch (error) {
+      if (error instanceof ResourceLimitExceededError) {
+        return res.status(HttpStatus.FORBIDDEN).json({
+          message: error.message,
+          currentPlan: error.subscriptionData?.currentPlan,
+          nextPlan: error.subscriptionData?.nextPlan,
+          currentUsage: error.subscriptionData?.currentUsage,
+          limit: error.subscriptionData?.limit,
+          exceededResource: error.subscriptionData?.exceededResource
+        });
+      }
+      throw error;
+    }
   }
 
   async updateArticle(req: Request, res: Response) {

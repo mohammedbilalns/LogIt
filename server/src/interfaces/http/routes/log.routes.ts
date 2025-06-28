@@ -6,6 +6,10 @@ import { MongoLogRepository } from "../../../infrastructure/repositories/log.rep
 import { MongoLogTagRepository } from "../../../infrastructure/repositories/log-tag.repository";
 import { MongoLogMediaRepository } from "../../../infrastructure/repositories/log-media.repository";
 import { MongoTagRepository } from "../../../infrastructure/repositories/tag.repository";
+import { UserSubscriptionServiceImpl } from "../../../application/usecases/user-subscription/user-subscription.service";
+import { UserSubscriptionRepository } from "../../../infrastructure/repositories/user-subscription.repository";
+import { MongoSubscriptionRepository } from "../../../infrastructure/repositories/subscription.repository";
+import { IUserSubscriptionService } from "../../../domain/services/user-subscription.service.interface";
 import { asyncHandler } from "../../../utils/asyncHandler";
 import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
@@ -21,12 +25,20 @@ const logRepository = new MongoLogRepository();
 const logTagRepository = new MongoLogTagRepository();
 const logMediaRepository = new MongoLogMediaRepository();
 const tagRepository = new MongoTagRepository();
+const userSubscriptionRepository = new UserSubscriptionRepository();
+const subscriptionRepository = new MongoSubscriptionRepository();
+
+const userSubscriptionService: IUserSubscriptionService = new UserSubscriptionServiceImpl(
+  userSubscriptionRepository,
+  subscriptionRepository
+);
 
 const logService: ILogService = new LogService(
   logRepository,
   logTagRepository,
   logMediaRepository,
-  tagRepository
+  tagRepository,
+  userSubscriptionService
 );
 
 const logController = new LogController(logService);

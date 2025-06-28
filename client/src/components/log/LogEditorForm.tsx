@@ -1,20 +1,20 @@
 import { useEffect, useState, useRef } from 'react';
 import {
-    TextInput,
-    Textarea,
-    Button,
-    Group,
-    Stack,
-    Title,
-    FileInput,
-    Text,
-    Image,
-    SimpleGrid,
-    ActionIcon,
-    Modal,
-    Box,
-    Paper,
-    useMantineColorScheme,
+  TextInput,
+  Textarea,
+  Button,
+  Group,
+  Stack,
+  Title,
+  FileInput,
+  Text,
+  Image,
+  SimpleGrid,
+  ActionIcon,
+  Modal,
+  Box,
+  Paper,
+  useMantineColorScheme,
 } from '@mantine/core';
 import { DateTimePicker } from '@mantine/dates';
 import { useForm, isNotEmpty } from '@mantine/form';
@@ -36,12 +36,33 @@ import { notifications } from '@mantine/notifications';
 import Cropper, { ReactCropperElement } from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
 import UserSidebar from '@components/user/UserSidebar';
-import axios from 'axios'; 
+import axios from 'axios';
 
 interface LogEditorFormProps {
   mode: 'create' | 'edit';
   logId?: string;
   onClose: () => void;
+  onSubscriptionLimitError?: (error: {
+    currentPlan: {
+      id: string;
+      name: string;
+      price: number;
+      maxLogsPerMonth: number;
+      maxArticlesPerMonth: number;
+      description: string;
+    };
+    nextPlan?: {
+      id: string;
+      name: string;
+      price: number;
+      maxLogsPerMonth: number;
+      maxArticlesPerMonth: number;
+      description: string;
+    };
+    currentUsage: number;
+    limit: number;
+    exceededResource: 'logs' | 'articles';
+  }) => void;
   initialValues?: {
     _id?: string;
     title: string;
@@ -56,6 +77,7 @@ export default function LogEditorForm({
   mode,
   logId,
   onClose,
+  onSubscriptionLimitError,
   initialValues,
 }: LogEditorFormProps) {
   const dispatch = useDispatch<AppDispatch>();
@@ -80,14 +102,14 @@ export default function LogEditorForm({
       createdAt: initialValues?.createdAt || new Date(),
     },
     validate: {
-      title:(value)=>{
-        if(!value){
+      title: (value) => {
+        if (!value) {
           console.log("Title not found")
         }
-        if(!value.trim()){
+        if (!value.trim()) {
           return "Title cannot be empty"
         }
-        if(value.length >50 || value.length < 5 ){
+        if (value.length > 50 || value.length < 5) {
           return "Title length must be between 5- 50 characters"
         }
       },
@@ -99,7 +121,7 @@ export default function LogEditorForm({
 
   // Fetch tags and log data
   useEffect(() => {
-    dispatch(fetchTags({ 
+    dispatch(fetchTags({
       page: 1,
       limit: 10,
       search: '',
@@ -142,7 +164,7 @@ export default function LogEditorForm({
     if (files.length === 0) {
       return;
     }
-    
+
 
     if (files.length === 1) {
       setCurrentImage(files[0]);
@@ -152,34 +174,34 @@ export default function LogEditorForm({
       try {
         const uploadPromises = files.map(file => dispatch(uploadImage(file)).unwrap());
         const uploadedUrls = await Promise.all(uploadPromises);
-        
+
         form.setFieldValue('mediaUrls', [...form.values.mediaUrls, ...uploadedUrls]);
-        
+
         notifications.show({
           title: 'Success',
           message: 'Images uploaded successfully',
           color: 'green',
         });
       } catch (error: unknown) {
-         if (axios.isAxiosError(error)) {
-            notifications.show({
-              title: 'Error',
-              message: error.response?.data?.message || error.message,
-              color: 'red',
-            });
-          } else if (error instanceof Error) {
-            notifications.show({
-              title: 'Error',
-              message: error.message,
-              color: 'red',
-            });
-          } else {
-             notifications.show({
-              title: 'Error',
-              message: 'Failed to upload images',
-              color: 'red',
-            });
-          }
+        if (axios.isAxiosError(error)) {
+          notifications.show({
+            title: 'Error',
+            message: error.response?.data?.message || error.message,
+            color: 'red',
+          });
+        } else if (error instanceof Error) {
+          notifications.show({
+            title: 'Error',
+            message: error.message,
+            color: 'red',
+          });
+        } else {
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to upload images',
+            color: 'red',
+          });
+        }
       } finally {
         setUploadingImages(false);
       }
@@ -194,7 +216,7 @@ export default function LogEditorForm({
     try {
       setUploadingImages(true);
       const cropper = cropperRef.current.cropper;
-      
+
       if (!cropper) {
         throw new Error('Cropper not initialized');
       }
@@ -228,9 +250,9 @@ export default function LogEditorForm({
       });
 
       const uploadedUrl = await dispatch(uploadImage(croppedFile)).unwrap();
-      
+
       form.setFieldValue('mediaUrls', [...form.values.mediaUrls, uploadedUrl]);
-      
+
       notifications.show({
         title: 'Success',
         message: 'Image uploaded successfully',
@@ -238,25 +260,25 @@ export default function LogEditorForm({
       });
     } catch (error: unknown) {
       console.error('Crop error:', error);
-       if (axios.isAxiosError(error)) {
-            notifications.show({
-              title: 'Error',
-              message: error.response?.data?.message || error.message,
-              color: 'red',
-            });
-          } else if (error instanceof Error) {
-            notifications.show({
-              title: 'Error',
-              message: error.message,
-              color: 'red',
-            });
-          } else {
-             notifications.show({
-              title: 'Error',
-              message: 'Failed to upload image',
-              color: 'red',
-            });
-          }
+      if (axios.isAxiosError(error)) {
+        notifications.show({
+          title: 'Error',
+          message: error.response?.data?.message || error.message,
+          color: 'red',
+        });
+      } else if (error instanceof Error) {
+        notifications.show({
+          title: 'Error',
+          message: error.message,
+          color: 'red',
+        });
+      } else {
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to upload image',
+          color: 'red',
+        });
+      }
     } finally {
       setUploadingImages(false);
       setCropperOpen(false);
@@ -299,6 +321,21 @@ export default function LogEditorForm({
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const errorMessage = error.response?.data?.message;
+        const errorData = error.response?.data;
+
+        if (errorData && errorData.currentPlan && errorData.exceededResource === 'logs') {
+          if (onSubscriptionLimitError) {
+            onSubscriptionLimitError({
+              currentPlan: errorData.currentPlan,
+              nextPlan: errorData.nextPlan,
+              currentUsage: errorData.currentUsage,
+              limit: errorData.limit,
+              exceededResource: 'logs'
+            });
+          }
+          return;
+        }
+
         if (errorMessage) {
           notifications.show({
             title: 'Error',
@@ -306,6 +343,28 @@ export default function LogEditorForm({
             color: 'red',
           });
         }
+      } else {
+        const errorData = error as any;
+
+        // Check if it's a subscription limit error
+        if (errorData?.currentPlan && errorData?.exceededResource === 'logs') {
+          if (onSubscriptionLimitError) {
+            onSubscriptionLimitError({
+              currentPlan: errorData.currentPlan,
+              nextPlan: errorData.nextPlan,
+              currentUsage: errorData.currentUsage,
+              limit: errorData.limit,
+              exceededResource: 'logs'
+            });
+          }
+          return;
+        }
+
+        notifications.show({
+          title: 'Error',
+          message: errorData?.message || 'Failed to create log. Please try again.',
+          color: 'red',
+        });
       }
     }
   };
@@ -327,7 +386,7 @@ export default function LogEditorForm({
       >
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack gap="md">
-            <Title 
+            <Title
               order={2}
               c={isDark ? 'white' : 'var(--mantine-color-dark-9)'}
             >
@@ -482,23 +541,25 @@ export default function LogEditorForm({
             )}
 
             {(logError || tagError || formError) && (
-              <Text 
-                c="red" 
-                size="sm" 
-                ta="center" 
-                style={{ 
+              <Text
+                c="red"
+                size="sm"
+                ta="center"
+                style={{
                   padding: '0.5rem',
                   backgroundColor: isDark ? 'rgba(255,0,0,0.1)' : 'rgba(255,0,0,0.05)',
                   borderRadius: '4px',
                   border: '1px solid rgba(255,0,0,0.2)'
                 }}
               >
-                {logError || tagError || formError}
+                {typeof logError === 'string' ? logError : (logError as any)?.message || ''}
+                {typeof tagError === 'string' ? tagError : (tagError as any)?.message || ''}
+                {formError}
               </Text>
             )}
 
             <Group justify="flex-end" mt="xl">
-              <Button 
+              <Button
                 variant="light"
                 onClick={onClose}
                 styles={{
@@ -514,8 +575,8 @@ export default function LogEditorForm({
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 loading={logLoading || tagsLoading || uploadingImages}
                 disabled={uploadingImages}
                 styles={{
@@ -594,7 +655,7 @@ export default function LogEditorForm({
               </Box>
             )}
             <Group justify="flex-end">
-              <Button 
+              <Button
                 variant="light"
                 onClick={() => {
                   setCropperOpen(false);
@@ -613,8 +674,8 @@ export default function LogEditorForm({
               >
                 Cancel
               </Button>
-              <Button 
-                onClick={handleCrop} 
+              <Button
+                onClick={handleCrop}
                 loading={uploadingImages}
                 styles={{
                   root: {
@@ -635,4 +696,3 @@ export default function LogEditorForm({
     </>
   );
 }
-  

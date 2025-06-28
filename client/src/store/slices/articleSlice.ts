@@ -32,7 +32,7 @@ export const createArticle = createAsyncThunk(
       return response.data;
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        return rejectWithValue(error.response?.data?.message || error.message);
+        return rejectWithValue(error.response?.data || error.message);
       } else if (error instanceof Error) {
         return rejectWithValue(error.message);
       } else {
