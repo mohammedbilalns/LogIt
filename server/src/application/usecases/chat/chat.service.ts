@@ -442,8 +442,29 @@ export class ChatService implements IChatService {
       chatId,
       userId
     );
-    if (!participant) throw new BadRequestError("Not a participant");
+    if (!participant) throw new BadRequestError(HttpResponse.NOT_A_PARTICIPANT);
     const isAdmin = participant.role === "admin";
+    
+    if (isAdmin) {
+      const allParticipants = await this.chatParticipantRepository.findChatParticipants(
+        chatId
+      );
+      const otherAdmins = allParticipants.filter((p) => p.role === "admin" && p.userId !== userId);
+      if (otherAdmins.length === 0 && allParticipants.length > 1) {
+        // No other admins left, promote earliest joined member (excluding the leaving admin)
+        const otherMembers = allParticipants.filter((p) => p.userId !== userId && p.role === "member");
+        if (otherMembers.length > 0) {
+          const earliest = otherMembers.reduce((a, b) =>
+            a.joinedAt < b.joinedAt ? a : b
+          );
+          await this.chatParticipantRepository.updateRole(
+            chatId,
+            earliest.userId,
+            "admin"
+          );
+        }
+      }
+    }
     
     await this.chatParticipantRepository.setRole(chatId, userId, "left-user");
     
@@ -468,24 +489,6 @@ export class ChatService implements IChatService {
 
     this.io.to(userId).emit("force_leave_chat_room", chatId);
 
-    if (isAdmin) {
-      // Check if any admins left
-      const all = await this.chatParticipantRepository.findChatParticipants(
-        chatId
-      );
-      const admins = all.filter((p) => p.role === "admin");
-      if (admins.length === 0 && all.length > 0) {
-        // Promote earliest joined member
-        const earliest = all.reduce((a, b) =>
-          a.joinedAt < b.joinedAt ? a : b
-        );
-        await this.chatParticipantRepository.updateRole(
-          chatId,
-          earliest.userId,
-          "admin"
-        );
-      }
-    }
     return { left: true };
   }
 }

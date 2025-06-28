@@ -66,7 +66,7 @@ export default function GroupChatPage() {
         onClose={() => setDetailsOpen(false)}
         chat={chat.currentChat}
         participants={chat.participants}
-        isAdmin={chat.currentChat?.participants?.find((p: any) => p.userId === chat.loggedInUser?._id)?.role === 'admin'}
+        isAdmin={chat.participants.find((p: any) => p.userId === chat.loggedInUser?._id)?.role === 'admin'}
         loggedInUser={chat.loggedInUser}
         isRemovedOrLeft={isRemovedOrLeft}
       />
