@@ -7,6 +7,10 @@ import { MongoArticleRepository } from "../../../infrastructure/repositories/art
 import { MongoLogRepository } from "../../../infrastructure/repositories/log.repository";
 import { MongoConnectionRepository } from "../../../infrastructure/repositories/connection.repository";
 import { BcryptCryptoProvider } from "../../../application/providers/crypto.provider";
+import { UserSubscriptionServiceImpl } from "../../../application/usecases/user-subscription/user-subscription.service";
+import { UserSubscriptionRepository } from "../../../infrastructure/repositories/user-subscription.repository";
+import { MongoSubscriptionRepository } from "../../../infrastructure/repositories/subscription.repository";
+import { IUserSubscriptionService } from "../../../domain/services/user-subscription.service.interface";
 import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
 import { validate } from "../middlewares/validation.middleware";
@@ -23,13 +27,21 @@ const articleRepository = new MongoArticleRepository();
 const logRepository = new MongoLogRepository();
 const connectionRepository = new MongoConnectionRepository();
 const cryptoProvider = new BcryptCryptoProvider();
+const userSubscriptionRepository = new UserSubscriptionRepository();
+const subscriptionRepository = new MongoSubscriptionRepository();
+
+const userSubscriptionService: IUserSubscriptionService = new UserSubscriptionServiceImpl(
+  userSubscriptionRepository,
+  subscriptionRepository
+);
 
 const userService: IUserService = new UserService(
   userRepository,
   articleRepository,
   logRepository,
   cryptoProvider,
-  connectionRepository
+  connectionRepository,
+  userSubscriptionService
 );
 const userController = new UserController(userService);
 

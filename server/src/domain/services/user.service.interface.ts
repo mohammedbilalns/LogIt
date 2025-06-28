@@ -4,6 +4,8 @@ import {
   ChangePasswordData,
   HomeData,
 } from "../../application/dtos";
+import { SubscriptionPlan } from "../entities/subscription.entity";
+import { UserSubscriptionWithPlan } from "./user-subscription.service.interface";
 
 export interface IUserService {
   checkUserBlocked(userId: string): Promise<void>;
@@ -25,7 +27,13 @@ export interface IUserService {
     targetUserId: string
   ): Promise<UserInfoWithRelationship>;
 
-  getUserStats(userId: string): Promise<{ followersCount: number, followingCount: number, articlesCount: number }>;
+  getUserStats(userId: string): Promise<{ 
+    followersCount: number, 
+    followingCount: number, 
+    articlesCount: number,
+    currentPlan: SubscriptionPlan,
+    activeSubscription: UserSubscriptionWithPlan | null
+  }>;
 
   getUsersForGroupChat(
     currentUserId: string,

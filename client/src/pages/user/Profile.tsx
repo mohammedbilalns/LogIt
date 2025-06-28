@@ -8,6 +8,7 @@ import {
   Stack,
   Text,
   Title,
+  Badge,
 } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -37,6 +38,23 @@ interface UpdateProfileForm {
   profileImage: File | string | null;
 }
 
+interface SubscriptionPlan {
+  id: string;
+  name: string;
+  price: number;
+  maxLogsPerMonth: number;
+  maxArticlesPerMonth: number;
+  description: string;
+}
+
+interface UserStats {
+  followersCount: number;
+  followingCount: number;
+  articlesCount: number;
+  currentPlan: SubscriptionPlan;
+  activeSubscription: any;
+}
+
 export default function ProfilePage() {
   const dispatch = useDispatch<AppDispatch>();
   const [page, setPage] = useState(1);
@@ -52,7 +70,7 @@ export default function ProfilePage() {
   const [profileOpened, { open: openProfile, close: closeProfile }] = useDisclosure(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  const [stats, setStats] = useState<{ followersCount: number, followingCount: number, articlesCount: number } | null>(null);
+  const [stats, setStats] = useState<UserStats | null>(null);
 
   useEffect(() => {
     dispatch(fetchUserArticles({ page: 1, limit: 5 }));
@@ -151,6 +169,62 @@ export default function ProfilePage() {
   const renderSkeletons = () =>
     Array.from({ length: 3 }, (_, i) => <ArticleRowSkeleton key={i} />);
 
+  const getUpgradeButton = () => {
+    if (!stats?.currentPlan) return null;
+
+    const currentPlanName = stats.currentPlan.name.toLowerCase();
+    
+    if (currentPlanName === 'base') {
+      return (
+        <Button variant="outline" leftSection={<Avatar size={18} radius="xl" />}>
+          Upgrade to Plus
+        </Button>
+      );
+    } else if (currentPlanName === 'plus') {
+      return (
+        <Button variant="outline" leftSection={<Avatar size={18} radius="xl" />}>
+          Upgrade to Pro
+        </Button>
+      );
+    } else if (currentPlanName === 'pro') {
+      return (
+        <Badge color="green" size="lg" variant="filled">
+          Pro Plan Active
+        </Badge>
+      );
+    }
+    
+    return null;
+  };
+
+  const getPlanInfo = () => {
+    if (!stats?.currentPlan) return null;
+
+    const plan = stats.currentPlan;
+    const isActive = stats.activeSubscription?.isActive;
+    const expiryDate = stats.activeSubscription?.expiryDate;
+
+    return (
+      <Stack gap="xs" align="center">
+        <Badge 
+          color={plan.name.toLowerCase() === 'pro' ? 'green' : plan.name.toLowerCase() === 'plus' ? 'blue' : 'gray'} 
+          size="md"
+        >
+          {plan.name} Plan
+        </Badge>
+        {isActive && expiryDate && (
+          <Text size="xs" c="dimmed">
+            Expires: {new Date(expiryDate).toLocaleDateString()}
+          </Text>
+        )}
+        <Text size="xs" c="dimmed" ta="center">
+          {plan.maxLogsPerMonth === -1 ? 'Unlimited' : plan.maxLogsPerMonth} logs/month • {' '}
+          {plan.maxArticlesPerMonth === -1 ? 'Unlimited' : plan.maxArticlesPerMonth} articles/month
+        </Text>
+      </Stack>
+    );
+  };
+
   return (
     <>
       <UserSidebar isModalOpen={passwordOpened || profileOpened} />
@@ -166,15 +240,14 @@ export default function ProfilePage() {
             <Text size="sm" ta="center" maw={600}>
               {user?.bio}
             </Text>
-            {stats && <UserStats {...stats} />}
+            {stats && <UserStats followersCount={stats.followersCount} followingCount={stats.followingCount} articlesCount={stats.articlesCount} />}
+            {getPlanInfo()}
             <Group mt="sm" wrap="wrap" justify="center">
               <Button onClick={openProfile}>Edit Profile</Button>
               <Button variant="default" onClick={openPassword}>
                 Change Password
               </Button>
-              <Button variant="outline" leftSection={<Avatar size={18} radius="xl" />}>
-                Upgrade to Pro
-              </Button>
+              {getUpgradeButton()}
             </Group>
           </Stack>
         </Box>

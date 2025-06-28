@@ -25,6 +25,7 @@ import {
 } from "../../dtos";
 import { UserInfoWithRelationship } from "../../../domain/entities/user.entity";
 import { IConnectionRepository } from "../../../domain/repositories/connection.repository.interface";
+import { IUserSubscriptionService } from "../../../domain/services/user-subscription.service.interface";
 
 export class UserService implements IUserService {
   constructor(
@@ -32,7 +33,8 @@ export class UserService implements IUserService {
     private articleRepository: IArticleRepository,
     private logsRepository: ILogRepository,
     private cryptoProvider: ICryptoProvider,
-    private connectionRepository: IConnectionRepository
+    private connectionRepository: IConnectionRepository,
+    private userSubscriptionService: IUserSubscriptionService
   ) {}
 
   async checkUserBlocked(userId: string): Promise<void> {
@@ -272,7 +274,18 @@ export class UserService implements IUserService {
       this.connectionRepository.count({ userId: userId, connectionType: "following" }),
       this.articleRepository.count({ authorId: userId })
     ]);
-    return { followersCount, followingCount, articlesCount };
+
+    // Get current subscription and plan
+    const currentPlan = await this.userSubscriptionService.getUserCurrentPlan(userId);
+    const activeSubscription = await this.userSubscriptionService.findActiveSubscriptionByUserId(userId);
+
+    return { 
+      followersCount, 
+      followingCount, 
+      articlesCount,
+      currentPlan,
+      activeSubscription
+    };
   }
 
   async getUsersForGroupChat(
