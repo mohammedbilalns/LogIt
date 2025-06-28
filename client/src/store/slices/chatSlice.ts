@@ -69,6 +69,8 @@ interface ChatState {
   groupHasMore: boolean;
   limit: number;
   total: number;
+  singleTotal: number;
+  groupTotal: number;
 }
 
 const initialState: ChatState = {
@@ -87,6 +89,8 @@ const initialState: ChatState = {
   groupHasMore: true,
   limit: 15,
   total: 0,
+  singleTotal: 0,
+  groupTotal: 0,
 };
 
 // Async thunks
@@ -325,11 +329,13 @@ const chatSlice = createSlice({
         const existingGroup = state.groupChats.find((c) => c.id === newChat.id);
         if (!existingGroup) {
           state.groupChats.unshift(newChat);
+          state.groupTotal += 1;
         }
       } else {
         const existingSingle = state.singleChats.find((c) => c.id === newChat.id);
         if (!existingSingle) {
           state.singleChats.unshift(newChat);
+          state.singleTotal += 1;
         }
       }
     },
@@ -350,7 +356,7 @@ const chatSlice = createSlice({
         }
         state.page = action.payload.page;
         state.singleHasMore = action.payload.hasMore;
-        state.total = action.payload.total;
+        state.singleTotal = action.payload.total;
       })
       .addCase(fetchUserChats.rejected, (state, action) => {
         state.loading = false;
@@ -367,11 +373,13 @@ const chatSlice = createSlice({
           const existingGroup = state.groupChats.find((c) => c.id === action.payload.id);
           if (!existingGroup) {
             state.groupChats.unshift(action.payload);
+            state.groupTotal += 1;
           }
         } else {
           const existingSingle = state.singleChats.find((c) => c.id === action.payload.id);
           if (!existingSingle) {
             state.singleChats.unshift(action.payload);
+            state.singleTotal += 1;
           }
         }
         state.currentChat = action.payload;
@@ -390,6 +398,7 @@ const chatSlice = createSlice({
         const existingGroup = state.groupChats.find((c) => c.id === action.payload.id);
         if (!existingGroup) {
           state.groupChats.unshift(action.payload);
+          state.groupTotal += 1;
         }
         state.currentChat = action.payload;
       })
@@ -443,7 +452,7 @@ const chatSlice = createSlice({
         }
         state.page = action.payload.page;
         state.groupHasMore = action.payload.hasMore;
-        state.total = action.payload.total;
+        state.groupTotal = action.payload.total;
       })
       .addCase(fetchUserGroupChats.rejected, (state, action) => {
         state.loading = false;

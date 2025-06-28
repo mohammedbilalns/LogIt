@@ -102,7 +102,7 @@ export default function ChatsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
-  const { singleChats, groupChats, loading, error, singleHasMore, groupHasMore, page } = useSelector((state: RootState) => state.chat);
+  const { singleChats, groupChats, loading, error, singleHasMore, groupHasMore, page, singleTotal, groupTotal } = useSelector((state: RootState) => state.chat);
   const { user: currentUser } = useSelector((state: RootState) => state.auth);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const searchParams = useSearchParams()[0];
@@ -185,8 +185,8 @@ export default function ChatsPage() {
             <Title order={2}>Chats</Title>
             <Tabs value={tab} onChange={handleTabChange} variant="outline" radius="md">
               <Tabs.List>
-                <Tabs.Tab value="single">Single Chats ({singleChats.length})</Tabs.Tab>
-                <Tabs.Tab value="group">Group Chats ({groupChats.length})</Tabs.Tab>
+                <Tabs.Tab value="single">Single Chats ({singleTotal || 0})</Tabs.Tab>
+                <Tabs.Tab value="group">Group Chats ({groupTotal || 0})</Tabs.Tab>
               </Tabs.List>
               <Tabs.Panel value="group" pt="md">
                 <GroupChatListSkeleton />
@@ -217,8 +217,8 @@ export default function ChatsPage() {
           <Title order={2}>Chats</Title>
           <Tabs value={tab} onChange={handleTabChange} variant="outline" radius="md">
             <Tabs.List>
-              <Tabs.Tab value="single">Single Chats ({singleChats.length})</Tabs.Tab>
-              <Tabs.Tab value="group">Group Chats ({groupChats.length})</Tabs.Tab>
+              <Tabs.Tab value="single">Single Chats ({singleTotal || 0})</Tabs.Tab>
+              <Tabs.Tab value="group">Group Chats ({groupTotal || 0})</Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="single" pt="md">
               {singleChats.length > 0 ? singleChats.map((chat) => (

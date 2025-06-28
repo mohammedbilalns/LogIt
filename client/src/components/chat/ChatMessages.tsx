@@ -141,42 +141,44 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                 </Badge>
               </Group>
 
-              {/* Messages for this date */}
-              {group.messages.map((msg) => {
-                const isMine = msg.senderId === loggedInUser?._id;
-                const sender = participants.find(p => p.userId === msg.senderId);
-                return (
-                  <Group key={msg.id} id={`msg-${msg.id}`} align="flex-end" justify={isMine ? 'flex-end' : 'flex-start'}>
-                    {!isMine && (
-                      <Avatar
-                        size={32}
-                        color="blue"
-                        src={sender?.profileImage}
-                        style={{ cursor: sender?.userId ? 'pointer' : undefined }}
-                        onClick={() => sender?.userId && handleProfileClick(sender.userId)}
+              <Stack gap="lg">
+                {group.messages.map((msg) => {
+                  const isMine = msg.senderId === loggedInUser?._id;
+                  const sender = participants.find(p => p.userId === msg.senderId);
+                  return (
+                    <Group key={msg.id} id={`msg-${msg.id}`} align="flex-end" justify={isMine ? 'flex-end' : 'flex-start'} style={{ padding: '0 16px' }}>
+                      {!isMine && (
+                        <Avatar
+                          size={36}
+                          color="blue"
+                          src={sender?.profileImage}
+                          style={{ cursor: sender?.userId ? 'pointer' : undefined }}
+                          onClick={() => sender?.userId && handleProfileClick(sender.userId)}
+                        >
+                          {sender ? (sender.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()) : 'U'}
+                        </Avatar>
+                      )}
+                      <Paper
+                        radius="lg"
+                        p="sm"
+                        withBorder
+                        style={{
+                          background: isMine ? '#e7f5ff' : '#f1f3f5',
+                          maxWidth: 320,
+                          minWidth: 120,
+                          boxShadow: isMine ? '0 2px 8px rgba(34,139,230,0.08)' : '0 2px 8px rgba(0,0,0,0.04)',
+                          border: isMine ? '1px solid #4dabf7' : '1px solid #dee2e6',
+                        }}
                       >
-                        {sender ? (sender.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()) : 'U'}
-                      </Avatar>
-                    )}
-                    <Paper
-                      radius="lg"
-                      p="sm"
-                      withBorder
-                      style={{
-                        background: isMine ? '#e7f5ff' : '#f1f3f5',
-                        maxWidth: 320,
-                        boxShadow: isMine ? '0 2px 8px rgba(34,139,230,0.08)' : '0 2px 8px rgba(0,0,0,0.04)',
-                        border: isMine ? '1px solid #4dabf7' : '1px solid #dee2e6',
-                      }}
-                    >
-                      <Text size="sm">{msg.content}</Text>
-                      <Text size="xs" c="dimmed" ta={isMine ? 'right' : 'left'}>
-                        {formatMessageTime(msg.createdAt)}
-                      </Text>
-                    </Paper>
-                  </Group>
-                );
-              })}
+                        <Text size="sm" style={{ lineHeight: 1.4 }}>{msg.content}</Text>
+                        <Text size="xs" c="dimmed" ta={isMine ? 'right' : 'left'} mt={4}>
+                          {formatMessageTime(msg.createdAt)}
+                        </Text>
+                      </Paper>
+                    </Group>
+                  );
+                })}
+              </Stack>
             </div>
           ))
         ) : (

@@ -1,7 +1,5 @@
-import { Box, Group, ActionIcon, Textarea, Button } from '@mantine/core';
+import { Box, Group, Textarea, Button } from '@mantine/core';
 import { SendIcon } from '../icons/SendIcon';
-import { PhotoIcon } from '../icons/PhotoIcon';
-import { FileIcon } from '../icons/FileIcon';
 import React from 'react';
 
 interface ChatInputProps {
@@ -31,12 +29,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     }}
   >
     <Group align="flex-end" gap="xs">
-      <ActionIcon variant="subtle" color="blue" size="lg" disabled={isRemovedOrLeft}>
-        <PhotoIcon width={20} />
-      </ActionIcon>
-      <ActionIcon variant="subtle" color="blue" size="lg" disabled={isRemovedOrLeft}>
-        <FileIcon width={20} />
-      </ActionIcon>
       <Textarea
         value={message}
         onChange={(e) => setMessage(e.currentTarget.value)}
