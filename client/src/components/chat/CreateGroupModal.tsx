@@ -1,23 +1,21 @@
+import { useEffect, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
-  Modal,
-  TextInput,
   Button,
   Group,
+  Modal,
+  rem,
   Stack,
+  TextInput,
   useMantineColorScheme,
   useMantineTheme,
-  rem,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useState, useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '@/store';
-import { createGroupChat, fetchUserChats } from '@/store/slices/chatSlice';
+import { useDebouncedValue } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import axios from '@/api/axios';
-import { SearchIcon } from '../icons/SearchIcon';
-import { useDebouncedValue } from '@mantine/hooks';
-import { XIcon } from '../icons/XIcon';
+import { AppDispatch, RootState } from '@/store';
+import { createGroupChat, fetchUserChats } from '@/store/slices/chatSlice';
 import UserSearchList from './UserSearchList';
 
 interface User {
@@ -37,10 +35,7 @@ interface CreateGroupModalProps {
   onClose: () => void;
 }
 
-export default function CreateGroupModal({
-  opened,
-  onClose,
-}: CreateGroupModalProps) {
+export default function CreateGroupModal({ opened, onClose }: CreateGroupModalProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { colorScheme } = useMantineColorScheme();
   const theme = useMantineTheme();
@@ -84,12 +79,14 @@ export default function CreateGroupModal({
   const fetchUsers = async (pageNum: number = 1, search: string = '') => {
     try {
       setLoadingUsers(true);
-      const response = await axios.get(`/user/users?page=${pageNum}&limit=10&search=${encodeURIComponent(search)}`);
+      const response = await axios.get(
+        `/user/users?page=${pageNum}&limit=10&search=${encodeURIComponent(search)}`
+      );
       const newUsers = response.data.users;
       if (pageNum === 1) {
         setUsers(newUsers);
       } else {
-        setUsers(prev => [...prev, ...newUsers]);
+        setUsers((prev) => [...prev, ...newUsers]);
       }
       setHasMore(response.data.hasMore);
       setPage(pageNum);
@@ -105,9 +102,9 @@ export default function CreateGroupModal({
   };
 
   useEffect(() => {
-    const selectedUserObjects = users.filter(user => selectedUsers.includes(user._id));
-    setAllSelectedUsers(prev => {
-      const existingSelected = prev.filter(user => !users.some(u => u._id === user._id));
+    const selectedUserObjects = users.filter((user) => selectedUsers.includes(user._id));
+    setAllSelectedUsers((prev) => {
+      const existingSelected = prev.filter((user) => !users.some((u) => u._id === user._id));
       return [...existingSelected, ...selectedUserObjects];
     });
   }, [selectedUsers, users]);
@@ -132,30 +129,6 @@ export default function CreateGroupModal({
     }
   }, [debouncedSearch, opened]);
 
-  const handleLoadMore = () => {
-    if (!loadingUsers && hasMore) {
-      fetchUsers(page + 1, debouncedSearch);
-    }
-  };
-
-  const handleUserToggle = (userId: string) => {
-    setSelectedUsers(prev => {
-      if (prev.includes(userId)) {
-        return prev.filter(id => id !== userId);
-      } else {
-        if (prev.length >= 9) {
-          notifications.show({
-            title: 'Limit Reached',
-            message: 'Maximum 9 participants allowed for group chats',
-            color: 'red',
-          });
-          return prev;
-        }
-        return [...prev, userId];
-      }
-    });
-  };
-
   const handleSubmit = async (values: CreateGroupForm) => {
     if (selectedUsers.length === 0) {
       notifications.show({
@@ -174,10 +147,12 @@ export default function CreateGroupModal({
       return;
     }
     try {
-      await dispatch(createGroupChat({
-        name: values.name,
-        participants: selectedUsers,
-      })).unwrap();
+      await dispatch(
+        createGroupChat({
+          name: values.name,
+          participants: selectedUsers,
+        })
+      ).unwrap();
       notifications.show({
         title: 'Success',
         message: 'Group chat created successfully',
@@ -200,7 +175,11 @@ export default function CreateGroupModal({
   const getInitials = (name: string) => {
     if (!name) return '?';
     const parts = name.trim().split(' ');
-    return parts.map(p => p[0]).join('').slice(0, 2).toUpperCase();
+    return parts
+      .map((p) => p[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
   };
 
   return (
@@ -253,7 +232,12 @@ export default function CreateGroupModal({
             <Button
               type="submit"
               loading={loading}
-              disabled={loading || selectedUsers.length === 0 || !!form.errors.name || selectedUsers.length > 9}
+              disabled={
+                loading ||
+                selectedUsers.length === 0 ||
+                !!form.errors.name ||
+                selectedUsers.length > 9
+              }
             >
               Create Group
             </Button>
@@ -262,4 +246,4 @@ export default function CreateGroupModal({
       </form>
     </Modal>
   );
-} 
+}
