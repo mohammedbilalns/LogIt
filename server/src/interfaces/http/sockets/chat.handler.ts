@@ -29,6 +29,11 @@ export const chatHandler = (_: Server, socket: Socket) => {
     logger.blue("SOCKET_ROOM", `Socket ${socket.id} left chat room: ${chatId}`);
   });
 
+  socket.on("force_leave_chat_room", (chatId: string) => {
+    socket.leave(chatId);
+    logger.blue("SOCKET_ROOM", `Socket ${socket.id} forcefully left chat room: ${chatId}`);
+  });
+
   socket.on(
     "get_group_online_count",
     (userIds: string[], callback: (count: number) => void) => {

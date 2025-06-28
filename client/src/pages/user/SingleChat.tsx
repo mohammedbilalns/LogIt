@@ -1,5 +1,5 @@
 import UserSidebar from '@/components/user/UserSidebar';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Loader } from '@mantine/core';
 import { useChat } from '@/hooks/useChat';
 import { ChatHeader } from '@/components/chat/ChatHeader';
@@ -8,7 +8,13 @@ import { ChatInput } from '../../components/chat/ChatInput';
 
 export default function SingleChatPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const chat = useChat(id);
+
+  const handleBackToChats = () => {
+    navigate('/chats?tab=single');
+  };
+
   if (chat.loading && chat.page === 1 && chat.messages.length === 0) {
     return <><UserSidebar /><Box className={chat.containerClassName} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><Loader size="lg" /></Box></>;
   }
@@ -28,7 +34,7 @@ export default function SingleChatPage() {
           overflow: 'hidden',
         }}
       >
-        <ChatHeader {...chat} />
+        <ChatHeader {...chat} onBackClick={handleBackToChats} />
         <Box style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <ChatMessages {...chat} />
         </Box>

@@ -44,7 +44,7 @@ export interface ChatParticipant {
   id: string;
   chatId: string;
   userId: string;
-  role: 'admin' | 'member';
+  role: 'admin' | 'member' | 'removed-user' | 'left-user';
   joinedAt: string;
   isMuted?: boolean;
   isBlocked?: boolean;
@@ -65,6 +65,8 @@ interface ChatState {
   socketConnected: boolean;
   page: number;
   hasMore: boolean;
+  singleHasMore: boolean;
+  groupHasMore: boolean;
   limit: number;
   total: number;
 }
@@ -81,6 +83,8 @@ const initialState: ChatState = {
   socketConnected: false,
   page: 1,
   hasMore: true,
+  singleHasMore: true,
+  groupHasMore: true,
   limit: 15,
   total: 0,
 };
@@ -266,6 +270,69 @@ const chatSlice = createSlice({
         chat.lastMessage = action.payload.messageId;
       }
     },
+    handleUserRemoved: (state, action: PayloadAction<{ chatId: string; removedUserId: string }>) => {
+      const { chatId, removedUserId } = action.payload;
+      
+      // Update participants in current chat
+      if (state.currentChat?.id === chatId) {
+        const participant = state.participants.find(p => p.userId === removedUserId);
+        if (participant) {
+          participant.role = 'removed-user';
+        }
+      }
+      
+      // Update the specific chat in groupChats list
+      const groupChat = state.groupChats.find(chat => chat.id === chatId);
+      if (groupChat) {
+        const participant = groupChat.participants.find(p => p.userId === removedUserId);
+        if (participant) {
+          participant.role = 'removed-user';
+        }
+      }
+    },
+    handleUserLeft: (state, action: PayloadAction<{ chatId: string; leftUserId: string }>) => {
+      const { chatId, leftUserId } = action.payload;
+      
+      // Update participants in current chat
+      if (state.currentChat?.id === chatId) {
+        const participant = state.participants.find(p => p.userId === leftUserId);
+        if (participant) {
+          participant.role = 'left-user';
+        }
+      }
+      
+      // Update the specific chat in groupChats list
+      const groupChat = state.groupChats.find(chat => chat.id === chatId);
+      if (groupChat) {
+        const participant = groupChat.participants.find(p => p.userId === leftUserId);
+        if (participant) {
+          participant.role = 'left-user';
+        }
+      }
+    },
+    resetChatState: (state) => {
+      state.currentChat = null;
+      state.messages = [];
+      state.participants = [];
+      state.page = 1;
+      state.hasMore = true;
+      state.error = null;
+      state.messagesLoading = false;
+    },
+    addNewChat: (state, action: PayloadAction<Chat>) => {
+      const newChat = action.payload;
+      if (newChat.isGroup) {
+        const existingGroup = state.groupChats.find((c) => c.id === newChat.id);
+        if (!existingGroup) {
+          state.groupChats.unshift(newChat);
+        }
+      } else {
+        const existingSingle = state.singleChats.find((c) => c.id === newChat.id);
+        if (!existingSingle) {
+          state.singleChats.unshift(newChat);
+        }
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -282,7 +349,7 @@ const chatSlice = createSlice({
           state.singleChats = action.payload.data;
         }
         state.page = action.payload.page;
-        state.hasMore = action.payload.hasMore;
+        state.singleHasMore = action.payload.hasMore;
         state.total = action.payload.total;
       })
       .addCase(fetchUserChats.rejected, (state, action) => {
@@ -299,12 +366,12 @@ const chatSlice = createSlice({
         if (action.payload.isGroup) {
           const existingGroup = state.groupChats.find((c) => c.id === action.payload.id);
           if (!existingGroup) {
-            state.groupChats.push(action.payload);
+            state.groupChats.unshift(action.payload);
           }
         } else {
           const existingSingle = state.singleChats.find((c) => c.id === action.payload.id);
           if (!existingSingle) {
-            state.singleChats.push(action.payload);
+            state.singleChats.unshift(action.payload);
           }
         }
         state.currentChat = action.payload;
@@ -322,7 +389,7 @@ const chatSlice = createSlice({
         state.loading = false;
         const existingGroup = state.groupChats.find((c) => c.id === action.payload.id);
         if (!existingGroup) {
-          state.groupChats.push(action.payload);
+          state.groupChats.unshift(action.payload);
         }
         state.currentChat = action.payload;
       })
@@ -349,7 +416,10 @@ const chatSlice = createSlice({
       })
       .addCase(fetchChatDetails.rejected, (state, action) => {
         state.messagesLoading = false;
-        state.error = action.payload as string;
+    
+        if (!state.currentChat && !state.participants.length) {
+          state.error = action.payload as string;
+        }
       })
       // Send message
       .addCase(sendMessage.pending, (state) => {
@@ -372,7 +442,7 @@ const chatSlice = createSlice({
           state.groupChats = action.payload.data;
         }
         state.page = action.payload.page;
-        state.hasMore = action.payload.hasMore;
+        state.groupHasMore = action.payload.hasMore;
         state.total = action.payload.total;
       })
       .addCase(fetchUserGroupChats.rejected, (state, action) => {
@@ -394,6 +464,10 @@ export const {
   clearMessages,
   clearError,
   updateChatLastMessage,
+  handleUserRemoved,
+  handleUserLeft,
+  resetChatState,
+  addNewChat,
 } = chatSlice.actions;
 
 export default chatSlice.reducer; 

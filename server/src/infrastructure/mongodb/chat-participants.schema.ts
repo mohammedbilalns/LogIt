@@ -7,7 +7,7 @@ export interface ChatParticipantsDocument extends Document, ChatParticipantsWith
 const chatParticipantsSchema = new Schema<ChatParticipantsDocument>({
   chatId: { type: String, required: true },
   userId: { type: String, required: true },
-  role: { type: String, enum: ["admin", "member"], required: true },
+  role: { type: String, enum: ["admin", "member", "removed-user", "left-user"], required: true },
   joinedAt: { type: Date, required: true },
   isMuted: { type: Boolean, default: false },
   isBlocked: { type: Boolean, default: false },

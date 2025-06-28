@@ -11,6 +11,7 @@ interface ChatInputProps {
   sending: boolean;
   socketConnected: boolean;
   isMobile: boolean;
+  isRemovedOrLeft?: boolean;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -20,6 +21,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   sending,
   socketConnected,
   isMobile,
+  isRemovedOrLeft = false,
 }) => (
   <Box
     p={isMobile ? 'sm' : 'md'}
@@ -29,21 +31,21 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     }}
   >
     <Group align="flex-end" gap="xs">
-      <ActionIcon variant="subtle" color="blue" size="lg">
+      <ActionIcon variant="subtle" color="blue" size="lg" disabled={isRemovedOrLeft}>
         <PhotoIcon width={20} />
       </ActionIcon>
-      <ActionIcon variant="subtle" color="blue" size="lg">
+      <ActionIcon variant="subtle" color="blue" size="lg" disabled={isRemovedOrLeft}>
         <FileIcon width={20} />
       </ActionIcon>
       <Textarea
         value={message}
         onChange={(e) => setMessage(e.currentTarget.value)}
-        placeholder="Type a message..."
+        placeholder={isRemovedOrLeft ? "You can no longer send messages" : "Type a message..."}
         autosize
         minRows={1}
         maxRows={4}
         style={{ flex: 1, borderRadius: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}
-        disabled={!socketConnected || sending}
+        disabled={!socketConnected || sending || isRemovedOrLeft}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -58,7 +60,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         radius="xl"
         leftSection={<SendIcon width={18} />}
         loading={sending}
-        disabled={!message.trim() || !socketConnected || sending}
+        disabled={!message.trim() || !socketConnected || sending || isRemovedOrLeft}
         style={{ boxShadow: '0 2px 8px rgba(34,139,230,0.08)' }}
       >
         Send

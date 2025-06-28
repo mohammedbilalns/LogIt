@@ -31,7 +31,7 @@ export function ConfirmModal({
       centered
       zIndex={4000}
       lockScroll
-      radius="md" // Matched corner radius
+      radius="md" 
     >
       <Stack gap="md">
         <Text>{message}</Text>

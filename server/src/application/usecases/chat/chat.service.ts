@@ -140,13 +140,17 @@ export class ChatService implements IChatService {
     if (!allowedRoles.includes(participantRecord.role)) {
       throw new UnauthorizedError(HttpResponse.NOT_A_MEMBER);
     }
-    let participants = chat.participants.filter(
-      (p) => p.role === "admin" || p.role === "member"
-    );
-    const myParticipant = chat.participants.find((p) => p.userId === userId);
-    if (myParticipant && !participants.some((p) => p.userId === userId)) {
-      participants = [...participants, myParticipant];
+    
+    // For removed/left users, include all participants including themselves
+    let participants = chat.participants;
+    
+    // For active users, filter to show only active participants
+    if (participantRecord.role === "admin" || participantRecord.role === "member") {
+      participants = chat.participants.filter(
+        (p) => p.role === "admin" || p.role === "member"
+      );
     }
+    
     let messages: Message[] = [];
     let hasMore = false;
     if (
@@ -270,10 +274,29 @@ export class ChatService implements IChatService {
       targetUser: userId,
       message: `User removed from group`,
     });
+
+   
+    this.io.to(userId).emit("user_removed_from_group", {
+      chatId,
+      message: HttpResponse.REMOVED_FROM_GROUP
+    });
+
+    this.io.to(chatId).emit("participant_removed", {
+      chatId,
+      removedUserId: userId,
+      removedBy: requesterId
+    });
+
+    this.io.to(userId).emit("force_leave_chat_room", chatId);
   }
 
   async getChatParticipants(chatId: string) {
     return this.chatParticipantRepository.findChatParticipants(chatId);
+  }
+
+  private async isUserRemovedOrLeft(chatId: string, userId: string): Promise<boolean> {
+    const participant = await this.chatParticipantRepository.findParticipant(chatId, userId);
+    return participant?.role === "removed-user" || participant?.role === "left-user";
   }
 
   async sendMessage(chatId: string, senderId: string, data: SendMessageDto) {
@@ -283,6 +306,11 @@ export class ChatService implements IChatService {
     );
     if (!participant) throw new UnauthorizedError(HttpResponse.NOT_A_MEMBER);
     if (participant.role !== "admin" && participant.role !== "member") {
+      throw new UnauthorizedError(HttpResponse.NO_PERMISSION_TO_MESSAGE);
+    }
+
+    const isRemovedOrLeft = await this.isUserRemovedOrLeft(chatId, senderId);
+    if (isRemovedOrLeft) {
       throw new UnauthorizedError(HttpResponse.NO_PERMISSION_TO_MESSAGE);
     }
 
@@ -296,7 +324,6 @@ export class ChatService implements IChatService {
 
     await this.chatRepository.update(chatId, { lastMessage: message.id });
 
-    // Emit the message to all participants in the chat room
     this.io.to(chatId).emit("new_message", message);
 
     return message;
@@ -416,6 +443,20 @@ export class ChatService implements IChatService {
       action: "left",
       message: `User voluntarily left the group`,
     });
+
+   
+    this.io.to(userId).emit("user_left_group", {
+      chatId,
+      message: "You have left this group"
+    });
+
+    this.io.to(chatId).emit("participant_left", {
+      chatId,
+      leftUserId: userId
+    });
+
+    this.io.to(userId).emit("force_leave_chat_room", chatId);
+
     if (isAdmin) {
       // Check if any admins left
       const all = await this.chatParticipantRepository.findChatParticipants(

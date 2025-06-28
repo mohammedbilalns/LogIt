@@ -1,5 +1,5 @@
 import UserSidebar from '@/components/user/UserSidebar';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Loader } from '@mantine/core';
 import { useChat } from '@/hooks/useChat';
 import { ChatHeader } from '@/components/chat/ChatHeader';
@@ -10,11 +10,17 @@ import GroupDetailsModal from '@/components/chat/GroupDetailsModal';
 
 export default function GroupChatPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const chat = useChat(id);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const myParticipant = chat.participants.find((p: any) => p.userId === chat.loggedInUser?._id);
-  const myRole = myParticipant?.role as string | undefined;
-  const isRemovedOrLeft = myRole === 'removed-user' || myRole === 'left-user';
+  
+  const { isRemovedOrLeft, myParticipant } = chat;
+  const myRole = myParticipant?.role;
+
+  const handleBackToChats = () => {
+    navigate('/chats?tab=group');
+  };
+
   if (chat.loading && chat.page === 1 && chat.messages.length === 0) {
     return <><UserSidebar /><Box className={chat.containerClassName} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><Loader size="lg" /></Box></>;
   }
@@ -38,7 +44,10 @@ export default function GroupChatPage() {
           {...chat}
           onlineCount={isRemovedOrLeft ? undefined : chat.onlineCount}
           hideCounts={isRemovedOrLeft}
-          onTitleClick={() => setDetailsOpen(true)}
+          onTitleClick={() => !isRemovedOrLeft && setDetailsOpen(true)}
+          onBackClick={handleBackToChats}
+          isRemovedOrLeft={isRemovedOrLeft}
+          myParticipant={myParticipant}
         />
         <Box style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <ChatMessages {...chat} />
@@ -59,6 +68,7 @@ export default function GroupChatPage() {
         participants={chat.participants}
         isAdmin={chat.currentChat?.participants?.find((p: any) => p.userId === chat.loggedInUser?._id)?.role === 'admin'}
         loggedInUser={chat.loggedInUser}
+        isRemovedOrLeft={isRemovedOrLeft}
       />
     </>
   );

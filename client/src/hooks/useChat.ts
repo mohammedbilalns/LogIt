@@ -9,7 +9,10 @@ import {
   fetchChatDetails,
   sendMessage,
   setCurrentChat,
+  handleUserRemoved,
+  handleUserLeft,
 } from '@/store/slices/chatSlice';
+import { notifications } from '@mantine/notifications';
 
 export function useChat(id?: string) {
   const navigate = useNavigate();
@@ -25,21 +28,39 @@ export function useChat(id?: string) {
   const containerClassName = `page-container ${isSidebarOpen ? 'sidebar-open' : ''}`;
   const [isOnline, setIsOnline] = useState(false);
   const [onlineCount, setOnlineCount] = useState(0);
-  const { socket, joinChatRoom, leaveChatRoom, subscribeToUserStatus } = useSocket();
+  const { socket, joinChatRoom, leaveChatRoom, subscribeToUserStatus, subscribeToGroupEvents } = useSocket();
   const page = useSelector((state: RootState) => state.chat.page);
   const hasMore = useSelector((state: RootState) => state.chat.hasMore);
   const limit = useSelector((state: RootState) => state.chat.limit);
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const groupChats = useSelector((state: RootState) => state.chat.groupChats);
+  const singleChats = useSelector((state: RootState) => state.chat.singleChats);
 
   const chatName = useMemo(() => {
-    if (!currentChat) return 'Loading...';
+    if (!currentChat) {
+      // Try to get chat info from the chat lists as fallback
+      const groupChat = groupChats.find(c => c.id === id);
+      const singleChat = singleChats.find(c => c.id === id);
+      const fallbackChat = groupChat || singleChat;
+      
+      if (fallbackChat) {
+        if (fallbackChat.isGroup) {
+          return fallbackChat.name || 'Group Chat';
+        } else {
+          const otherParticipant = fallbackChat.participants?.find((p: any) => p.userId !== loggedInUser?._id);
+          return otherParticipant?.name || 'Private Chat';
+        }
+      }
+      return 'Loading...';
+    }
+    
     if (currentChat.isGroup) {
       return currentChat.name || 'Group Chat';
     }
     const otherParticipant = participants.find((p) => p.userId !== loggedInUser?._id);
     return otherParticipant ? otherParticipant.name : 'Private Chat';
-  }, [currentChat, participants, loggedInUser?._id]);
+  }, [currentChat, participants, loggedInUser?._id, id, groupChats, singleChats]);
 
   const avatarInitials = useMemo(() => getInitials(chatName), [chatName]);
   const otherParticipant = useMemo(
@@ -47,8 +68,15 @@ export function useChat(id?: string) {
     [participants, loggedInUser?._id]
   );
 
+  // Check if current user is removed or left the group
+  const myParticipant = useMemo(() => 
+    participants.find((p) => p.userId === loggedInUser?._id),
+    [participants, loggedInUser?._id]
+  );
+  const isRemovedOrLeft = myParticipant?.role === 'removed-user' || myParticipant?.role === 'left-user';
+
   useEffect(() => {
-    if (id && socketConnected) {
+    if (id && socketConnected && !isRemovedOrLeft) {
       joinChatRoom(id);
     }
     return () => {
@@ -60,6 +88,49 @@ export function useChat(id?: string) {
     };
   }, [id, socketConnected, joinChatRoom, leaveChatRoom, dispatch]);
 
+  // Subscribe to group events
+  useEffect(() => {
+    if (!socket || !socket.connected) return;
+
+    const unsubscribe = subscribeToGroupEvents({
+      onUserRemoved: (data) => {
+        if (data.chatId === id) {
+          notifications.show({
+            title: 'Removed from Group',
+            message: data.message,
+            color: 'red',
+          });
+      
+        }
+      },
+      onUserLeft: (data) => {
+        if (data.chatId === id) {
+          notifications.show({
+            title: 'Left Group',
+            message: data.message,
+            color: 'blue',
+          });
+
+        }
+      },
+      onParticipantRemoved: (data) => {
+        if (data.chatId === id) {
+          dispatch(handleUserRemoved({ chatId: data.chatId, removedUserId: data.removedUserId }));
+          dispatch(fetchChatDetails({ chatId: id, page: 1, limit }));
+        }
+      },
+      onParticipantLeft: (data) => {
+        if (data.chatId === id) {
+          dispatch(handleUserLeft({ chatId: data.chatId, leftUserId: data.leftUserId }));
+          // Refresh chat details to update participant list
+          dispatch(fetchChatDetails({ chatId: id, page: 1, limit }));
+        }
+      },
+    });
+
+    return unsubscribe;
+  }, [socket, socket?.connected, subscribeToGroupEvents, id, dispatch, navigate, limit]);
+
   useEffect(() => {
     if (shouldScrollToBottom && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -69,9 +140,11 @@ export function useChat(id?: string) {
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchChatDetails({ chatId: id, page: 1, limit }));
+      dispatch(fetchChatDetails({ chatId: id, page: 1, limit })).catch((error) => {
+        console.error('Failed to fetch chat details:', error);
+      });
     }
-  }, [id, dispatch]);
+  }, [id, dispatch, limit]);
 
   useEffect(() => {
     if (otherParticipant?.userId) {
@@ -106,11 +179,10 @@ export function useChat(id?: string) {
   }, [otherParticipant?.userId, subscribeToUserStatus]);
 
   useEffect(() => {
-    if (!currentChat?.isGroup || !participants.length || !socket || !socket.connected) {
+    if (!currentChat?.isGroup || !participants.length || !socket || !socket.connected || isRemovedOrLeft) {
       setOnlineCount(0);
       return;
     }
-    // Exclude self from online count
     const userIds = participants
       .map((p) => p.userId)
       .filter((uid) => uid && uid !== loggedInUser?._id);
@@ -137,9 +209,8 @@ export function useChat(id?: string) {
       socket.off('user_online', handleOnline);
       socket.off('user_offline', handleOffline);
     };
-  }, [currentChat?.isGroup, participants, socket, socket?.connected, loggedInUser?._id]);
+  }, [currentChat?.isGroup, participants, socket, socket?.connected, loggedInUser?._id, isRemovedOrLeft]);
 
-  // Fetch previous messages (older)
   const fetchPreviousMessages = async () => {
     if (!id || !hasMore) return;
     const container = messagesContainerRef.current;
@@ -156,7 +227,7 @@ export function useChat(id?: string) {
   };
 
   const handleSend = async () => {
-    if (!message.trim() || !id || sending) return;
+    if (!message.trim() || !id || sending || isRemovedOrLeft) return;
     setSending(true);
     try {
       await dispatch(sendMessage({ chatId: id, content: message.trim() })).unwrap();
@@ -201,7 +272,8 @@ export function useChat(id?: string) {
     fetchPreviousMessages,
     page,
     messagesContainerRef,
-    limit,
+    isRemovedOrLeft,
+    myParticipant,
   };
 }
 

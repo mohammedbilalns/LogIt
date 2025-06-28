@@ -13,6 +13,7 @@ interface ChatMessagesProps {
   fetchPreviousMessages: () => void;
   page: number;
   messagesContainerRef: React.RefObject<HTMLDivElement>;
+  isRemovedOrLeft?: boolean;
 }
 
 export const ChatMessages: React.FC<ChatMessagesProps> = ({
@@ -26,6 +27,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
   fetchPreviousMessages,
   page,
   messagesContainerRef,
+  isRemovedOrLeft = false,
 }) => {
   if (messagesLoading && page === 1 && messages.length === 0) {
     return (
@@ -87,7 +89,8 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
           })
         ) : (
           <Text c="dimmed" ta="center" style={{ marginTop: '50px' }}>
-            No messages yet. Start the conversation!
+
+            No messages yet.
           </Text>
         )}
         <div ref={messagesEndRef} />

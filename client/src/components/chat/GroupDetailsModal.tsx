@@ -31,9 +31,10 @@ interface GroupDetailsModalProps {
   participants: any[];
   isAdmin: boolean;
   loggedInUser: any;
+  isRemovedOrLeft?: boolean;
 }
 
-export default function GroupDetailsModal({ opened, onClose, chat, participants, isAdmin, loggedInUser }: GroupDetailsModalProps) {
+export default function GroupDetailsModal({ opened, onClose, chat, participants, isAdmin, loggedInUser, isRemovedOrLeft = false }: GroupDetailsModalProps) {
   const [editingName, setEditingName] = useState(false);
   const [groupName, setGroupName] = useState(chat?.name || '');
   const navigate = useNavigate();
@@ -56,6 +57,13 @@ export default function GroupDetailsModal({ opened, onClose, chat, participants,
       setGroupName(chat?.name || '');
     }
   }, [chat?.name, opened]);
+
+  // Close modal if user is removed or left
+  useEffect(() => {
+    if (opened && isRemovedOrLeft) {
+      onClose();
+    }
+  }, [opened, isRemovedOrLeft, onClose]);
 
   const handleMemberClick = (userId: string) => {
     navigate(`/user/${userId}`);
@@ -165,11 +173,9 @@ export default function GroupDetailsModal({ opened, onClose, chat, participants,
       }}
     >
       <Stack gap="md">
-        {/* Success message after name update */}
         {successMessage && (
           <Text c="green" fw={500} ta="center">{successMessage}</Text>
         )}
-        {/* Redesigned Group Name/Header */}
         <Group justify="space-between" align="center" mb="xs" style={{ paddingBottom: 8, borderBottom: `1px solid ${theme.colors.gray[isDark ? 8 : 2]}` }}>
           <Group gap="sm" align="center" style={{ flex: 1 }}>
             <Avatar src={chat?.groupImage} size="lg" radius="xl">
