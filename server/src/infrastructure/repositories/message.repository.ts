@@ -30,4 +30,15 @@ export class MessageRepository
       updatedAt: doc.updatedAt,
     };
   }
+
+  async findAll(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+    filters?: Record<string, unknown>;
+  }): Promise<{ data: Message[]; total: number }> {
+    return super.findAll(params);
+  }
 } 

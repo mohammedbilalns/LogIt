@@ -183,7 +183,10 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
           ))
         ) : (
           <Text c="dimmed" ta="center" style={{ marginTop: '50px' }}>
-            No messages yet. Start the conversation!
+            {isRemovedOrLeft
+              ? 'No messages available. You can no longer send messages in this chat.'
+              : 'No messages yet. Start the conversation!'
+            }
           </Text>
         )}
         <div ref={messagesEndRef} />

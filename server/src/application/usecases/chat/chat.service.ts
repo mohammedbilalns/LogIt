@@ -8,24 +8,23 @@ import { IChatService } from "../../../domain/services/chat.service.interface";
 import { IChatRepository } from "../../../domain/repositories/chat.repository.interface";
 import { IMessageRepository } from "../../../domain/repositories/message.repository.interface";
 import { IChatParticipantRepository } from "../../../domain/repositories/chat-participant.repository.interface";
+import { IChatActionLogRepository } from "../../../domain/repositories/chat-action-log.repository.interface";
 import { BadRequestError, UnauthorizedError } from "../../errors/http.errors";
 import { HttpResponse } from "../../../config/responseMessages";
 import { Chat } from "../../../domain/entities/chat.entity";
-import { ChatActionLogRepository } from "../../../infrastructure/repositories/chat-action-log.repository";
 import { Message } from "../../../domain/entities/message.entity";
 
 export class ChatService implements IChatService {
   private io: Server;
-  private chatActionLogRepository: ChatActionLogRepository;
 
   constructor(
     private chatRepository: IChatRepository,
     private messageRepository: IMessageRepository,
     private chatParticipantRepository: IChatParticipantRepository,
+    private chatActionLogRepository: IChatActionLogRepository,
     io: Server
   ) {
     this.io = io;
-    this.chatActionLogRepository = new ChatActionLogRepository();
   }
 
   async createChat(creatorId: string, data: CreateChatDto) {
@@ -129,10 +128,12 @@ export class ChatService implements IChatService {
 
   async getChatDetails(chatId: string, userId: string, page = 1, limit = 15) {
     const chat = await this.chatRepository.findChatWithDetailsById(chatId);
+
     if (!chat) throw new BadRequestError(HttpResponse.CHAT_NOT_FOUND);
     const participantRecord = chat.participants.find(
       (p) => p.userId === userId
     );
+    
     if (!participantRecord) {
       throw new UnauthorizedError(HttpResponse.NOT_A_MEMBER);
     }
@@ -141,10 +142,8 @@ export class ChatService implements IChatService {
       throw new UnauthorizedError(HttpResponse.NOT_A_MEMBER);
     }
     
-    // For removed/left users, include all participants including themselves
     let participants = chat.participants;
     
-    // For active users, filter to show only active participants
     if (participantRecord.role === "admin" || participantRecord.role === "member") {
       participants = chat.participants.filter(
         (p) => p.role === "admin" || p.role === "member"
@@ -153,6 +152,7 @@ export class ChatService implements IChatService {
     
     let messages: Message[] = [];
     let hasMore = false;
+    
     if (
       participantRecord.role === "removed-user" ||
       participantRecord.role === "left-user"
@@ -161,6 +161,7 @@ export class ChatService implements IChatService {
         chatId,
         userId
       );
+      
       if (log) {
         const allMessages = await this.messageRepository.findAll({
           filters: { chatId },
@@ -169,10 +170,15 @@ export class ChatService implements IChatService {
           page: 1,
           limit: 1000,
         });
+        
+        const cutoffDate = log.createdAt;
+        
         const filtered = allMessages.data.filter(
-          (m) => new Date(m.createdAt) <= log.createdAt
+          (m) => new Date(m.createdAt) <= cutoffDate
         );
+        
         const start = (page - 1) * limit;
+        
         messages = filtered.slice(start, start + limit).reverse();
         hasMore = start + limit < filtered.length;
       } else {
@@ -190,6 +196,7 @@ export class ChatService implements IChatService {
       messages = data.reverse();
       hasMore = page * limit < total;
     }
+    
     return { ...chat, participants, messages, page, limit, hasMore };
   }
 
@@ -267,6 +274,7 @@ export class ChatService implements IChatService {
       userId,
       "removed-user"
     );
+    
     await this.chatActionLogRepository.createLog({
       chatId,
       actionBy: requesterId,
@@ -436,11 +444,14 @@ export class ChatService implements IChatService {
     );
     if (!participant) throw new BadRequestError("Not a participant");
     const isAdmin = participant.role === "admin";
+    
     await this.chatParticipantRepository.setRole(chatId, userId, "left-user");
+    
     await this.chatActionLogRepository.createLog({
       chatId,
       actionBy: userId,
       action: "left",
+      targetUser: userId,
       message: `User voluntarily left the group`,
     });
 

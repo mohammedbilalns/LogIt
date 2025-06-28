@@ -106,7 +106,6 @@ export default function GroupDetailsModal({ opened, onClose, chat, participants,
   const confirmLeaveGroup = async () => {
     try {
       await dispatch(leaveGroup(chat.id)).unwrap();
-      notifications.show({ title: 'Left Group', message: 'You have left the group', color: 'green' });
       onClose();
     } catch (e: any) {
       notifications.show({ title: 'Error', message: e || 'Failed to leave group', color: 'red' });

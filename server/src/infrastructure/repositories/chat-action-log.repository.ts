@@ -1,8 +1,9 @@
 import ChatActionLogModel, { ChatActionLogDocument } from '../mongodb/chat-action-log.schema';
 import { ChatActionLog } from '../../domain/entities/chat-action-log.entity';
+import { IChatActionLogRepository } from '../../domain/repositories/chat-action-log.repository.interface';
 import { Types } from 'mongoose';
 
-export class ChatActionLogRepository {
+export class ChatActionLogRepository implements IChatActionLogRepository {
   async createLog(log: Omit<ChatActionLog, 'id' | 'createdAt'> & { createdAt?: Date }): Promise<ChatActionLog> {
     const doc = await ChatActionLogModel.create(log) as ChatActionLogDocument;
     return {
@@ -22,6 +23,7 @@ export class ChatActionLogRepository {
       targetUser: userId,
       action: { $in: ['removed', 'left'] },
     }).sort({ createdAt: -1 });
+    
     if (!doc) return null;
     return {
       id: (doc._id as Types.ObjectId).toString(),

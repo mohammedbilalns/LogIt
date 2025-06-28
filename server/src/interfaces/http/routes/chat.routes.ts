@@ -4,6 +4,7 @@ import { ChatService } from "../../../application/usecases/chat/chat.service";
 import { ChatRepository } from "../../../infrastructure/repositories/chat.repository";
 import { MessageRepository } from "../../../infrastructure/repositories/message.repository";
 import { ChatParticipantRepository } from "../../../infrastructure/repositories/chat-participant.repository";
+import { ChatActionLogRepository } from "../../../infrastructure/repositories/chat-action-log.repository";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { asyncHandler } from "../../../utils/asyncHandler";
 import { validate } from "../middlewares/validation.middleware";
@@ -22,11 +23,13 @@ export function createChatRouter(io: Server) {
   const chatRepository = new ChatRepository();
   const messageRepository = new MessageRepository();
   const chatParticipantRepository = new ChatParticipantRepository();
+  const chatActionLogRepository = new ChatActionLogRepository();
 
   const chatService = new ChatService(
     chatRepository,
     messageRepository,
     chatParticipantRepository,
+    chatActionLogRepository,
     io
   );
 
