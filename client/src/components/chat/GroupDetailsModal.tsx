@@ -1,35 +1,28 @@
-import { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
 import {
-  ActionIcon,
-  Avatar,
-  Badge,
-  Button,
-  Group,
   Modal,
-  rem,
-  ScrollArea,
-  Stack,
   Text,
+  Group,
+  Stack,
+  Avatar,
+  Button,
+  ActionIcon,
   TextInput,
+  ScrollArea,
+  rem,
   useMantineColorScheme,
   useMantineTheme,
+  Badge,
 } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
-import type { AppDispatch } from '@/store';
-import {
-  addParticipants,
-  fetchChatDetails,
-  leaveGroup,
-  promoteParticipant,
-  removeParticipant,
-  updateGroupName,
-} from '@/store/slices/chatSlice';
-import { ConfirmModal } from '../confirm';
-import PlusIcon from '../icons/PlusIcon';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { XIcon } from '../icons/XIcon';
+import PlusIcon from '../icons/PlusIcon';
 import UserSearchList from './UserSearchList';
+import { useDispatch } from 'react-redux';
+import type { AppDispatch } from '@/store';
+import { removeParticipant, promoteParticipant, leaveGroup, addParticipants, fetchChatDetails, updateGroupName } from '@/store/slices/chatSlice';
+import { notifications } from '@mantine/notifications';
+import { ConfirmModal } from '../confirm';
 
 interface GroupDetailsModalProps {
   opened: boolean;
@@ -41,15 +34,7 @@ interface GroupDetailsModalProps {
   isRemovedOrLeft?: boolean;
 }
 
-export default function GroupDetailsModal({
-  opened,
-  onClose,
-  chat,
-  participants,
-  isAdmin,
-  loggedInUser,
-  isRemovedOrLeft = false,
-}: GroupDetailsModalProps) {
+export default function GroupDetailsModal({ opened, onClose, chat, participants, isAdmin, loggedInUser, isRemovedOrLeft = false }: GroupDetailsModalProps) {
   const [editingName, setEditingName] = useState(false);
   const [groupName, setGroupName] = useState(chat?.name || '');
   const navigate = useNavigate();
@@ -65,10 +50,7 @@ export default function GroupDetailsModal({
   const [removedUserId, setRemovedUserId] = useState<string | null>(null);
   const [addMembersSuccess, setAddMembersSuccess] = useState<string | null>(null);
   const [confirmLeaveOpen, setConfirmLeaveOpen] = useState(false);
-  const [confirmRemoveOpen, setConfirmRemoveOpen] = useState<{
-    open: boolean;
-    userId: string | null;
-  }>({ open: false, userId: null });
+  const [confirmRemoveOpen, setConfirmRemoveOpen] = useState<{ open: boolean; userId: string | null }>({ open: false, userId: null });
 
   useEffect(() => {
     if (opened) {
@@ -95,9 +77,7 @@ export default function GroupDetailsModal({
     if (!confirmRemoveOpen.userId) return;
     try {
       setRemovedUserId(confirmRemoveOpen.userId);
-      await dispatch(
-        removeParticipant({ chatId: chat.id, userId: confirmRemoveOpen.userId })
-      ).unwrap();
+      await dispatch(removeParticipant({ chatId: chat.id, userId: confirmRemoveOpen.userId })).unwrap();
       notifications.show({ title: 'Removed', message: 'User removed from group', color: 'green' });
       dispatch(fetchChatDetails({ chatId: chat.id, page: 1, limit: 15 }));
       setTimeout(() => setRemovedUserId(null), 1500);
@@ -157,11 +137,7 @@ export default function GroupDetailsModal({
       setEditingName(false);
       setTimeout(() => setSuccessMessage(null), 2000);
     } catch (e: any) {
-      notifications.show({
-        title: 'Error',
-        message: e || 'Failed to update group name',
-        color: 'red',
-      });
+      notifications.show({ title: 'Error', message: e || 'Failed to update group name', color: 'red' });
     } finally {
       setUpdatingName(false);
     }
@@ -197,40 +173,23 @@ export default function GroupDetailsModal({
     >
       <Stack gap="md">
         {successMessage && (
-          <Text c="green" fw={500} ta="center">
-            {successMessage}
-          </Text>
+          <Text c="green" fw={500} ta="center">{successMessage}</Text>
         )}
-        <Group
-          justify="space-between"
-          align="center"
-          mb="xs"
-          style={{
-            paddingBottom: 8,
-            borderBottom: `1px solid ${theme.colors.gray[isDark ? 8 : 2]}`,
-          }}
-        >
+        <Group justify="space-between" align="center" mb="xs" style={{ paddingBottom: 8, borderBottom: `1px solid ${theme.colors.gray[isDark ? 8 : 2]}` }}>
           <Group gap="sm" align="center" style={{ flex: 1 }}>
             <Avatar src={chat?.groupImage} size="lg" radius="xl">
-              {groupName
-                ?.split(' ')
-                .map((n: string) => n[0])
-                .join('')
-                .slice(0, 2)
-                .toUpperCase()}
+              {groupName?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
             </Avatar>
             {editingName ? (
               <>
                 <TextInput
                   value={groupName}
-                  onChange={(e) => setGroupName(e.currentTarget.value)}
+                  onChange={e => setGroupName(e.currentTarget.value)}
                   autoFocus
                   size="md"
                   radius="md"
                   style={{ minWidth: 180, maxWidth: 320 }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleUpdateName();
-                  }}
+                  onKeyDown={e => { if (e.key === 'Enter') handleUpdateName(); }}
                 />
                 <Button
                   size="xs"
@@ -249,10 +208,7 @@ export default function GroupDetailsModal({
                   variant="subtle"
                   color="gray"
                   ml={4}
-                  onClick={() => {
-                    setEditingName(false);
-                    setGroupName(chat?.name || '');
-                  }}
+                  onClick={() => { setEditingName(false); setGroupName(chat?.name || ''); }}
                   style={{ marginLeft: 4 }}
                 >
                   Cancel
@@ -260,21 +216,11 @@ export default function GroupDetailsModal({
               </>
             ) : (
               <>
-                <Text
-                  fw={700}
-                  size="xl"
-                  style={{ letterSpacing: 0.5, minWidth: 180, maxWidth: 320 }}
-                  lineClamp={2}
-                >
+                <Text fw={700} size="xl" style={{ letterSpacing: 0.5, minWidth: 180, maxWidth: 320 }} lineClamp={2}>
                   {groupName}
                 </Text>
                 {isAdmin && (
-                  <Button
-                    variant="subtle"
-                    size="xs"
-                    onClick={() => setEditingName(true)}
-                    style={{ marginLeft: 8 }}
-                  >
+                  <Button variant="subtle" size="xs" onClick={() => setEditingName(true)} style={{ marginLeft: 8 }}>
                     Edit
                   </Button>
                 )}
@@ -287,56 +233,25 @@ export default function GroupDetailsModal({
         </Group>
 
         {isAdmin && (
-          <Button
-            leftSection={<PlusIcon size={16} />}
-            variant="light"
-            size="xs"
-            mb="xs"
-            onClick={() => setAddMembersOpen(true)}
-          >
+          <Button leftSection={<PlusIcon size={16} />} variant="light" size="xs" mb="xs" onClick={() => setAddMembersOpen(true)}>
             Add Members
           </Button>
         )}
 
-        <Text fw={500} size="sm" mb={-8} c="dimmed">
-          Members ({participants.length})
-        </Text>
+        <Text fw={500} size="sm" mb={-8} c="dimmed">Members ({participants.length})</Text>
         <ScrollArea h={320} type="auto" offsetScrollbars>
           <Stack gap="xs">
             {participants.map((user) => (
-              <Group
-                key={user.userId}
-                justify="space-between"
-                style={{
-                  cursor: 'pointer',
-                  borderRadius: 8,
-                  padding: '4px 8px',
-                  transition: 'background 0.15s',
-                  background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-                }}
-              >
+              <Group key={user.userId} justify="space-between" style={{ cursor: 'pointer', borderRadius: 8, padding: '4px 8px', transition: 'background 0.15s', background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }}>
                 <Group gap="sm" align="center" onClick={() => handleMemberClick(user.userId)}>
                   <Avatar src={user.profileImage} size="sm" radius="xl">
-                    {user.name
-                      ?.split(' ')
-                      .map((n: string) => n[0])
-                      .join('')
-                      .slice(0, 2)
-                      .toUpperCase()}
+                    {user.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
                   </Avatar>
-                  <Text size="sm" fw={500}>
-                    {user.name}
-                  </Text>
+                  <Text size="sm" fw={500}>{user.name}</Text>
                   {user.role === 'admin' && (
-                    <Badge color="yellow" size="xs" variant="filled" style={{ marginLeft: 4 }}>
-                      Admin
-                    </Badge>
+                    <Badge color="yellow" size="xs" variant="filled" style={{ marginLeft: 4 }}>Admin</Badge>
                   )}
-                  {user.userId === loggedInUser?._id && (
-                    <Text size="xs" c="blue">
-                      (You)
-                    </Text>
-                  )}
+                  {user.userId === loggedInUser?._id && <Text size="xs" c="blue">(You)</Text>}
                 </Group>
                 <Group>
                   {isAdmin && user.role !== 'admin' && user.userId !== loggedInUser?._id && (
@@ -351,13 +266,7 @@ export default function GroupDetailsModal({
                     </Button>
                   )}
                   {isAdmin && user.userId !== loggedInUser?._id && user.role !== 'admin' && (
-                    <ActionIcon
-                      color="red"
-                      variant="subtle"
-                      size="sm"
-                      onClick={() => handleRemoveUser(user.userId)}
-                      loading={removedUserId === user.userId}
-                    >
+                    <ActionIcon color="red" variant="subtle" size="sm" onClick={() => handleRemoveUser(user.userId)} loading={removedUserId === user.userId}>
                       <XIcon width={16} />
                     </ActionIcon>
                   )}
@@ -368,45 +277,26 @@ export default function GroupDetailsModal({
         </ScrollArea>
 
         {/* Leave Group Button */}
-        <Button
-          color="red"
-          variant="light"
-          mt="md"
-          fullWidth
-          radius="md"
-          onClick={handleLeaveGroup}
-        >
+        <Button color="red" variant="light" mt="md" fullWidth radius="md" onClick={handleLeaveGroup}>
           Leave Group
         </Button>
       </Stack>
 
-      <Modal
-        opened={addMembersOpen}
-        onClose={() => setAddMembersOpen(false)}
-        title="Add Members"
-        centered
-        zIndex={3200}
-      >
+      <Modal opened={addMembersOpen} onClose={() => setAddMembersOpen(false)} title="Add Members" centered zIndex={3200}>
         <UserSearchList
           opened={addMembersOpen}
           selectedUsers={addingUsers}
           setSelectedUsers={setAddingUsers}
           maxSelected={10 - participants.length}
-          excludeIds={[...participants.map((u) => u.userId), loggedInUser._id]}
+          excludeIds={[...participants.map(u => u.userId), loggedInUser._id]}
           label="Add Members"
         />
         {addMembersError && (
-          <Text color="red" size="sm" mt="sm">
-            {addMembersError}
-          </Text>
+          <Text color="red" size="sm" mt="sm">{addMembersError}</Text>
         )}
         <Group justify="flex-end" mt="md">
-          <Button variant="default" onClick={() => setAddMembersOpen(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleAddMembers} disabled={addingUsers.length === 0}>
-            Add
-          </Button>
+          <Button variant="default" onClick={() => setAddMembersOpen(false)}>Cancel</Button>
+          <Button onClick={handleAddMembers} disabled={addingUsers.length === 0}>Add</Button>
         </Group>
       </Modal>
 
@@ -433,4 +323,4 @@ export default function GroupDetailsModal({
       />
     </Modal>
   );
-}
+} 

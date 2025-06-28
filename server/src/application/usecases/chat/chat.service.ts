@@ -116,7 +116,12 @@ export class ChatService implements IChatService {
   }
 
   async getUserChats(userId: string, page = 1, limit = 10) {
-    const { data, total } = await this.chatRepository.findUserChats(userId, page, limit, false);
+    const { data, total } = await this.chatRepository.findUserChats(
+      userId,
+      page,
+      limit,
+      false
+    );
     return {
       data,
       total,
@@ -133,7 +138,7 @@ export class ChatService implements IChatService {
     const participantRecord = chat.participants.find(
       (p) => p.userId === userId
     );
-    
+
     if (!participantRecord) {
       throw new UnauthorizedError(HttpResponse.NOT_A_MEMBER);
     }
@@ -141,18 +146,21 @@ export class ChatService implements IChatService {
     if (!allowedRoles.includes(participantRecord.role)) {
       throw new UnauthorizedError(HttpResponse.NOT_A_MEMBER);
     }
-    
+
     let participants = chat.participants;
-    
-    if (participantRecord.role === "admin" || participantRecord.role === "member") {
+
+    if (
+      participantRecord.role === "admin" ||
+      participantRecord.role === "member"
+    ) {
       participants = chat.participants.filter(
         (p) => p.role === "admin" || p.role === "member"
       );
     }
-    
+
     let messages: Message[] = [];
     let hasMore = false;
-    
+
     if (
       participantRecord.role === "removed-user" ||
       participantRecord.role === "left-user"
@@ -161,7 +169,7 @@ export class ChatService implements IChatService {
         chatId,
         userId
       );
-      
+
       if (log) {
         const allMessages = await this.messageRepository.findAll({
           filters: { chatId },
@@ -170,15 +178,15 @@ export class ChatService implements IChatService {
           page: 1,
           limit: 1000,
         });
-        
+
         const cutoffDate = log.createdAt;
-        
+
         const filtered = allMessages.data.filter(
           (m) => new Date(m.createdAt) <= cutoffDate
         );
-        
+
         const start = (page - 1) * limit;
-        
+
         messages = filtered.slice(start, start + limit).reverse();
         hasMore = start + limit < filtered.length;
       } else {
@@ -196,7 +204,7 @@ export class ChatService implements IChatService {
       messages = data.reverse();
       hasMore = page * limit < total;
     }
-    
+
     return { ...chat, participants, messages, page, limit, hasMore };
   }
 
@@ -216,22 +224,36 @@ export class ChatService implements IChatService {
     if (!requester || requester.role !== "admin") {
       throw new UnauthorizedError(HttpResponse.NO_PERMISSION_ADD);
     }
-    // Get current participants
     const currentParticipants =
       await this.chatParticipantRepository.findChatParticipants(chatId);
     const currentCount = currentParticipants.length;
-    // Only add users who are not already participants
-    const uniqueNewParticipants = participants.filter(
-      (userId) => !currentParticipants.some((p) => p.userId === userId)
-    );
-    const newCount = uniqueNewParticipants.length;
-    if (currentCount + newCount > 10) {
-      throw new BadRequestError(
-        "Group size cannot exceed 10 members (including the creator)"
+
+    const newParticipants = [];
+    const existingParticipants = [];
+
+    for (const userId of participants) {
+      const existingParticipant = currentParticipants.find(
+        (p) => p.userId === userId
       );
+      if (!existingParticipant) {
+        newParticipants.push(userId);
+      } else if (
+        existingParticipant.role === "removed-user" ||
+        existingParticipant.role === "left-user"
+      ) {
+        existingParticipants.push(userId);
+      }
     }
+
+    const totalNewCount = newParticipants.length + existingParticipants.length;
+    if (currentCount + totalNewCount > 10) {
+      throw new BadRequestError(HttpResponse.GROUP_SIZE_CANNOT_EXCEED_LIMIT);
+    }
+
     const addedParticipants = [];
-    for (const userId of uniqueNewParticipants) {
+
+    // Add new participants
+    for (const userId of newParticipants) {
       const participant = await this.chatParticipantRepository.create({
         chatId,
         userId,
@@ -247,6 +269,28 @@ export class ChatService implements IChatService {
       });
       addedParticipants.push(participant);
     }
+
+    // Re-add existing participants who were removed or left
+    for (const userId of existingParticipants) {
+      await this.chatParticipantRepository.setRole(chatId, userId, "member");
+      await this.chatActionLogRepository.createLog({
+        chatId,
+        actionBy: requesterId,
+        action: "added",
+        targetUser: userId,
+        message: `User re-added to group`,
+      });
+
+      // Get the updated participant record
+      const participant = await this.chatParticipantRepository.findParticipant(
+        chatId,
+        userId
+      );
+      if (participant) {
+        addedParticipants.push(participant);
+      }
+    }
+
     return addedParticipants;
   }
 
@@ -274,7 +318,7 @@ export class ChatService implements IChatService {
       userId,
       "removed-user"
     );
-    
+
     await this.chatActionLogRepository.createLog({
       chatId,
       actionBy: requesterId,
@@ -283,16 +327,15 @@ export class ChatService implements IChatService {
       message: `User removed from group`,
     });
 
-   
     this.io.to(userId).emit("user_removed_from_group", {
       chatId,
-      message: HttpResponse.REMOVED_FROM_GROUP
+      message: HttpResponse.REMOVED_FROM_GROUP,
     });
 
     this.io.to(chatId).emit("participant_removed", {
       chatId,
       removedUserId: userId,
-      removedBy: requesterId
+      removedBy: requesterId,
     });
 
     this.io.to(userId).emit("force_leave_chat_room", chatId);
@@ -302,9 +345,17 @@ export class ChatService implements IChatService {
     return this.chatParticipantRepository.findChatParticipants(chatId);
   }
 
-  private async isUserRemovedOrLeft(chatId: string, userId: string): Promise<boolean> {
-    const participant = await this.chatParticipantRepository.findParticipant(chatId, userId);
-    return participant?.role === "removed-user" || participant?.role === "left-user";
+  private async isUserRemovedOrLeft(
+    chatId: string,
+    userId: string
+  ): Promise<boolean> {
+    const participant = await this.chatParticipantRepository.findParticipant(
+      chatId,
+      userId
+    );
+    return (
+      participant?.role === "removed-user" || participant?.role === "left-user"
+    );
   }
 
   async sendMessage(chatId: string, senderId: string, data: SendMessageDto) {
@@ -369,7 +420,12 @@ export class ChatService implements IChatService {
   }
 
   async getUserGroupChats(userId: string, page = 1, limit = 10) {
-    const { data, total } = await this.chatRepository.findUserChats(userId, page, limit, true);
+    const { data, total } = await this.chatRepository.findUserChats(
+      userId,
+      page,
+      limit,
+      true
+    );
     return {
       data,
       total,
@@ -388,7 +444,7 @@ export class ChatService implements IChatService {
       userId
     );
     if (!participant || participant.role !== "admin")
-      throw new UnauthorizedError("Only admins can update group name");
+      throw new UnauthorizedError(HttpResponse.ONLY_ADMIN_CAN_CHANGE_NAME);
     await this.chatRepository.update(chatId, { name });
     await this.chatActionLogRepository.createLog({
       chatId,
@@ -412,12 +468,12 @@ export class ChatService implements IChatService {
       requesterId
     );
     if (!requester || requester.role !== "admin")
-      throw new UnauthorizedError("Only admins can promote");
+      throw new UnauthorizedError(HttpResponse.ONLY_ADMIN_CAN_PROMOTE);
     const participant = await this.chatParticipantRepository.findParticipant(
       chatId,
       userId
     );
-    if (!participant) throw new BadRequestError("User not a participant");
+    if (!participant) throw new BadRequestError(HttpResponse.NOT_A_PARTICIPANT);
     if (participant.role === "admin") return participant;
     const result = await this.chatParticipantRepository.updateRole(
       chatId,
@@ -444,15 +500,17 @@ export class ChatService implements IChatService {
     );
     if (!participant) throw new BadRequestError(HttpResponse.NOT_A_PARTICIPANT);
     const isAdmin = participant.role === "admin";
-    
+
     if (isAdmin) {
-      const allParticipants = await this.chatParticipantRepository.findChatParticipants(
-        chatId
+      const allParticipants =
+        await this.chatParticipantRepository.findChatParticipants(chatId);
+      const otherAdmins = allParticipants.filter(
+        (p) => p.role === "admin" && p.userId !== userId
       );
-      const otherAdmins = allParticipants.filter((p) => p.role === "admin" && p.userId !== userId);
       if (otherAdmins.length === 0 && allParticipants.length > 1) {
-        // No other admins left, promote earliest joined member (excluding the leaving admin)
-        const otherMembers = allParticipants.filter((p) => p.userId !== userId && p.role === "member");
+        const otherMembers = allParticipants.filter(
+          (p) => p.userId !== userId && p.role === "member"
+        );
         if (otherMembers.length > 0) {
           const earliest = otherMembers.reduce((a, b) =>
             a.joinedAt < b.joinedAt ? a : b
@@ -465,9 +523,9 @@ export class ChatService implements IChatService {
         }
       }
     }
-    
+
     await this.chatParticipantRepository.setRole(chatId, userId, "left-user");
-    
+
     await this.chatActionLogRepository.createLog({
       chatId,
       actionBy: userId,
@@ -476,15 +534,14 @@ export class ChatService implements IChatService {
       message: `User voluntarily left the group`,
     });
 
-   
     this.io.to(userId).emit("user_left_group", {
       chatId,
-      message: "You have left this group"
+      message: "You have left this group",
     });
 
     this.io.to(chatId).emit("participant_left", {
       chatId,
-      leftUserId: userId
+      leftUserId: userId,
     });
 
     this.io.to(userId).emit("force_leave_chat_room", chatId);

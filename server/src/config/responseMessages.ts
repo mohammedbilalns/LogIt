@@ -71,5 +71,8 @@ export enum HttpResponse {
   REQUIRED_GROUP_NAME = "Group name is required",
   REQUIRED_PARTICIPANTS = "At least one participant is required",
   NO_PERMISSION_TO_MESSAGE = 'You are not allowed to send messages in this chat.',
-  REMOVED_FROM_GROUP = "You have been removed from this group"
+  REMOVED_FROM_GROUP = "You have been removed from this group",
+  GROUP_SIZE_CANNOT_EXCEED_LIMIT ="Group size cannot exceed 10 members (including the creator)",
+  ONLY_ADMIN_CAN_CHANGE_NAME = "Only admins can update group name",
+  ONLY_ADMIN_CAN_PROMOTE = "Only admins can promote"
 }

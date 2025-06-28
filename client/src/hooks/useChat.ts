@@ -2,17 +2,17 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { notifications } from '@mantine/notifications';
 import { useSocket } from '@/hooks/useSocket';
 import { AppDispatch, RootState } from '@/store';
 import {
   clearMessages,
   fetchChatDetails,
+  handleUserLeft,
+  handleUserRemoved,
   sendMessage,
   setCurrentChat,
-  handleUserRemoved,
-  handleUserLeft,
 } from '@/store/slices/chatSlice';
-import { notifications } from '@mantine/notifications';
 
 export function useChat(id?: string) {
   const navigate = useNavigate();
@@ -28,7 +28,8 @@ export function useChat(id?: string) {
   const containerClassName = `page-container ${isSidebarOpen ? 'sidebar-open' : ''}`;
   const [isOnline, setIsOnline] = useState(false);
   const [onlineCount, setOnlineCount] = useState(0);
-  const { socket, joinChatRoom, leaveChatRoom, subscribeToUserStatus, subscribeToGroupEvents } = useSocket();
+  const { socket, joinChatRoom, leaveChatRoom, subscribeToUserStatus, subscribeToGroupEvents } =
+    useSocket();
   const page = useSelector((state: RootState) => state.chat.page);
   const hasMore = useSelector((state: RootState) => state.chat.hasMore);
   const limit = useSelector((state: RootState) => state.chat.limit);
@@ -40,21 +41,23 @@ export function useChat(id?: string) {
   const chatName = useMemo(() => {
     if (!currentChat) {
       // Try to get chat info from the chat lists as fallback
-      const groupChat = groupChats.find(c => c.id === id);
-      const singleChat = singleChats.find(c => c.id === id);
+      const groupChat = groupChats.find((c) => c.id === id);
+      const singleChat = singleChats.find((c) => c.id === id);
       const fallbackChat = groupChat || singleChat;
-      
+
       if (fallbackChat) {
         if (fallbackChat.isGroup) {
           return fallbackChat.name || 'Group Chat';
         } else {
-          const otherParticipant = fallbackChat.participants?.find((p: any) => p.userId !== loggedInUser?._id);
+          const otherParticipant = fallbackChat.participants?.find(
+            (p: any) => p.userId !== loggedInUser?._id
+          );
           return otherParticipant?.name || 'Private Chat';
         }
       }
       return 'Loading...';
     }
-    
+
     if (currentChat.isGroup) {
       return currentChat.name || 'Group Chat';
     }
@@ -69,11 +72,12 @@ export function useChat(id?: string) {
   );
 
   // Check if current user is removed or left the group
-  const myParticipant = useMemo(() => 
-    participants.find((p) => p.userId === loggedInUser?._id),
+  const myParticipant = useMemo(
+    () => participants.find((p) => p.userId === loggedInUser?._id),
     [participants, loggedInUser?._id]
   );
-  const isRemovedOrLeft = myParticipant?.role === 'removed-user' || myParticipant?.role === 'left-user';
+  const isRemovedOrLeft =
+    myParticipant?.role === 'removed-user' || myParticipant?.role === 'left-user';
 
   useEffect(() => {
     if (id && socketConnected && !isRemovedOrLeft) {
@@ -100,7 +104,6 @@ export function useChat(id?: string) {
             message: data.message,
             color: 'red',
           });
-      
         }
       },
       onUserLeft: (data) => {
@@ -110,7 +113,6 @@ export function useChat(id?: string) {
             message: data.message,
             color: 'blue',
           });
-
         }
       },
       onParticipantRemoved: (data) => {
@@ -179,7 +181,13 @@ export function useChat(id?: string) {
   }, [otherParticipant?.userId, subscribeToUserStatus]);
 
   useEffect(() => {
-    if (!currentChat?.isGroup || !participants.length || !socket || !socket.connected || isRemovedOrLeft) {
+    if (
+      !currentChat?.isGroup ||
+      !participants.length ||
+      !socket ||
+      !socket.connected ||
+      isRemovedOrLeft
+    ) {
       setOnlineCount(0);
       return;
     }
@@ -209,7 +217,14 @@ export function useChat(id?: string) {
       socket.off('user_online', handleOnline);
       socket.off('user_offline', handleOffline);
     };
-  }, [currentChat?.isGroup, participants, socket, socket?.connected, loggedInUser?._id, isRemovedOrLeft]);
+  }, [
+    currentChat?.isGroup,
+    participants,
+    socket,
+    socket?.connected,
+    loggedInUser?._id,
+    isRemovedOrLeft,
+  ]);
 
   const fetchPreviousMessages = async () => {
     if (!id || !hasMore) return;
