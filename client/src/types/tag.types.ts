@@ -19,3 +19,17 @@ export interface TagState {
     loadingPromotedTags: boolean;
     errorPromotedTags: string | null;
   }
+
+
+  export interface TagManagementState {
+  tags: Tag[];
+  promotedTags: Tag[];
+  loadingAllTags: boolean;
+  errorAllTags: string | null;
+  loadingPromotedTags: boolean;
+  errorPromotedTags: string | null;
+  total: number;
+  currentPage: number;
+  pageSize: number;
+  searchQuery: string;
+}

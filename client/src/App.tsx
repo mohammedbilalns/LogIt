@@ -1,18 +1,12 @@
-import { Suspense, useEffect, memo, useRef } from 'react';
+import { memo, Suspense, useEffect, useRef } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { initializeApp } from '@slices/initSlice';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import { RouterProvider } from 'react-router-dom';
-import { LoadingOverlay, MantineProvider } from '@mantine/core';
+import { LoadingOverlay } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { router } from '@/Router';
 import { AppDispatch, RootState, store } from '@/store';
-import { theme } from '@/theme';
-
-import '@mantine/core/styles.css';
-import '@mantine/notifications/styles.css';
-import '@mantine/dates/styles.css';
-
 import { useAxiosInterceptors } from './hooks/useAxiosInterceptors';
 import { useRemoveRootLoader } from './hooks/useRemoveRootLoader';
 
@@ -27,7 +21,7 @@ const AppContent = memo(function AppContent() {
   }, [dispatch]);
 
   useRemoveRootLoader(isInitialized);
-  
+
   if (!isInitialized) {
     return <LoadingOverlay />;
   }
@@ -45,10 +39,8 @@ export default function App() {
   return (
     <Provider store={store}>
       <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-        <MantineProvider theme={theme}>
-          <Notifications />
-          <AppContent />
-        </MantineProvider>
+        <Notifications />
+        <AppContent />
       </GoogleOAuthProvider>
     </Provider>
   );

@@ -1,18 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '@/api/axios';
 import { API_ROUTES } from '@/constants/routes';
+import { ConnectionState } from '@/types/connection.types';
 
-interface ConnectionState {
-  loading: boolean;
-  error: string | null;
-  success: boolean;
-  followers: any[];
-  following: any[];
-  followersLoading: boolean;
-  followingLoading: boolean;
-  followersError: string | null;
-  followingError: string | null;
-}
 
 const initialState: ConnectionState = {
   loading: false,

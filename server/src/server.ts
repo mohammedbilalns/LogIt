@@ -11,7 +11,7 @@ import tagRoutes from "./interfaces/http/routes/tag.routes";
 import userRoutes from "./interfaces/http/routes/user.route";
 import logRoutes from "./interfaces/http/routes/log.routes";
 import reportRoutes from "./interfaces/http/routes/report.routes";
-import subscritionRoutes from "./interfaces/http/routes/subscription.route"
+import subscritionRoutes from "./interfaces/http/routes/subscription.route";
 import connectionRoutes from "./interfaces/http/routes/connection.routes";
 import { createChatRouter } from "./interfaces/http/routes/chat.routes";
 import { errorMiddleware } from "./interfaces/http/middlewares/error.middleware";
@@ -49,7 +49,7 @@ app.use("/api/logs", logRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/connections", connectionRoutes);
 app.use("/api/chats", createChatRouter(socketConfig.io));
-app.use("/api/subscription",subscritionRoutes )
+app.use("/api/subscription", subscritionRoutes);
 app.use(errorMiddleware());
 
 // Connect to DB

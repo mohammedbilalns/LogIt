@@ -1,20 +1,6 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from '@/api/axios';
-
-export interface SubscriptionPlan {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  maxLogsPerMonth: number;
-  maxArticlesPerMonth: number;
-}
-
-interface SubscriptionState {
-  subscriptions: SubscriptionPlan[];
-  loading: boolean;
-  error: string | null;
-}
+import { SubscriptionPlan, SubscriptionState } from '@/types/subscription.types';
 
 const initialState: SubscriptionState = {
   subscriptions: [],
@@ -92,13 +78,13 @@ const subscriptionSlice = createSlice({
         state.subscriptions.push(action.payload);
       })
       .addCase(updateSubscription.fulfilled, (state, action) => {
-        const idx = state.subscriptions.findIndex(s => s.id === action.payload.id);
+        const idx = state.subscriptions.findIndex((s) => s.id === action.payload.id);
         if (idx !== -1) state.subscriptions[idx] = action.payload;
       })
       .addCase(deleteSubscription.fulfilled, (state, action) => {
-        state.subscriptions = state.subscriptions.filter(s => s.id !== action.payload);
+        state.subscriptions = state.subscriptions.filter((s) => s.id !== action.payload);
       });
   },
 });
 
-export default subscriptionSlice.reducer; 
+export default subscriptionSlice.reducer;

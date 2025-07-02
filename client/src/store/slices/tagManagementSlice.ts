@@ -1,21 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '@axios';
-import { Tag } from '@type/tag.types';
 import { API_ROUTES } from '@/constants/routes';
 import axios from 'axios';
-
-interface TagManagementState {
-  tags: Tag[];
-  promotedTags: Tag[];
-  loadingAllTags: boolean;
-  errorAllTags: string | null;
-  loadingPromotedTags: boolean;
-  errorPromotedTags: string | null;
-  total: number;
-  currentPage: number;
-  pageSize: number;
-  searchQuery: string;
-}
+import { TagManagementState } from '@type/tag.types';
 
 const initialState: TagManagementState = {
   tags: [],

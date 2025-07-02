@@ -1,77 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import axios from '@/api/axios';
-
-export interface Chat {
-  id: string;
-  isGroup: boolean;
-  name?: string;
-  creator?: string;
-  lastMessage?: string;
-  createdAt: string;
-  updatedAt: string;
-  participants: Array<{
-    id: string;
-    userId: string;
-    name: string;
-    profileImage?: string;
-    role: string;
-  }>;
-  lastMessageDetails?: {
-    id: string;
-    content: string;
-    senderId: string;
-    senderName: string;
-    createdAt: string;
-  };
-  unreadCount?: number;
-}
-
-export interface Message {
-  id: string;
-  chatId: string;
-  senderId: string;
-  content?: string;
-  media?: string;
-  log?: string;
-  replyTo?: string;
-  deletedFor: string[];
-  seenBy: string[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ChatParticipant {
-  id: string;
-  chatId: string;
-  userId: string;
-  role: 'admin' | 'member' | 'removed-user' | 'left-user';
-  joinedAt: string;
-  isMuted?: boolean;
-  isBlocked?: boolean;
-  leftAt?: string;
-  name: string;
-  profileImage?: string;
-}
-
-interface ChatState {
-  singleChats: Chat[];
-  groupChats: Chat[];
-  currentChat: Chat | null;
-  messages: Message[];
-  participants: ChatParticipant[];
-  loading: boolean;
-  messagesLoading: boolean;
-  error: string | null;
-  socketConnected: boolean;
-  page: number;
-  hasMore: boolean;
-  singleHasMore: boolean;
-  groupHasMore: boolean;
-  limit: number;
-  total: number;
-  singleTotal: number;
-  groupTotal: number;
-}
+import { Chat, ChatState, Message } from '@/types/chat.types';
 
 const initialState: ChatState = {
   singleChats: [],
@@ -135,7 +64,10 @@ export const createGroupChat = createAsyncThunk(
 
 export const fetchChatDetails = createAsyncThunk(
   'chat/fetchChatDetails',
-  async ({ chatId, page = 1, limit = 15 }: { chatId: string; page?: number; limit?: number }, { rejectWithValue }) => {
+  async (
+    { chatId, page = 1, limit = 15 }: { chatId: string; page?: number; limit?: number },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await axios.get(`/chats/${chatId}?page=${page}&limit=${limit}`);
       return { ...response.data, page };
@@ -221,7 +153,10 @@ export const leaveGroup = createAsyncThunk(
 
 export const addParticipants = createAsyncThunk(
   'chat/addParticipants',
-  async ({ chatId, participants }: { chatId: string; participants: string[] }, { rejectWithValue }) => {
+  async (
+    { chatId, participants }: { chatId: string; participants: string[] },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await axios.post(`/chats/${chatId}/participants`, { participants });
       return { participants: response.data };
@@ -274,21 +209,24 @@ const chatSlice = createSlice({
         chat.lastMessage = action.payload.messageId;
       }
     },
-    handleUserRemoved: (state, action: PayloadAction<{ chatId: string; removedUserId: string }>) => {
+    handleUserRemoved: (
+      state,
+      action: PayloadAction<{ chatId: string; removedUserId: string }>
+    ) => {
       const { chatId, removedUserId } = action.payload;
-      
+
       // Update participants in current chat
       if (state.currentChat?.id === chatId) {
-        const participant = state.participants.find(p => p.userId === removedUserId);
+        const participant = state.participants.find((p) => p.userId === removedUserId);
         if (participant) {
           participant.role = 'removed-user';
         }
       }
-      
+
       // Update the specific chat in groupChats list
-      const groupChat = state.groupChats.find(chat => chat.id === chatId);
+      const groupChat = state.groupChats.find((chat) => chat.id === chatId);
       if (groupChat) {
-        const participant = groupChat.participants.find(p => p.userId === removedUserId);
+        const participant = groupChat.participants.find((p) => p.userId === removedUserId);
         if (participant) {
           participant.role = 'removed-user';
         }
@@ -296,19 +234,19 @@ const chatSlice = createSlice({
     },
     handleUserLeft: (state, action: PayloadAction<{ chatId: string; leftUserId: string }>) => {
       const { chatId, leftUserId } = action.payload;
-      
+
       // Update participants in current chat
       if (state.currentChat?.id === chatId) {
-        const participant = state.participants.find(p => p.userId === leftUserId);
+        const participant = state.participants.find((p) => p.userId === leftUserId);
         if (participant) {
           participant.role = 'left-user';
         }
       }
-      
+
       // Update the specific chat in groupChats list
-      const groupChat = state.groupChats.find(chat => chat.id === chatId);
+      const groupChat = state.groupChats.find((chat) => chat.id === chatId);
       if (groupChat) {
-        const participant = groupChat.participants.find(p => p.userId === leftUserId);
+        const participant = groupChat.participants.find((p) => p.userId === leftUserId);
         if (participant) {
           participant.role = 'left-user';
         }
@@ -425,9 +363,9 @@ const chatSlice = createSlice({
       })
       .addCase(fetchChatDetails.rejected, (state, action) => {
         state.messagesLoading = false;
-    
+
         if (!state.currentChat && !state.participants.length) {
-        state.error = action.payload as string;
+          state.error = action.payload as string;
         }
       })
       // Send message
@@ -479,4 +417,4 @@ export const {
   addNewChat,
 } = chatSlice.actions;
 
-export default chatSlice.reducer; 
+export default chatSlice.reducer;

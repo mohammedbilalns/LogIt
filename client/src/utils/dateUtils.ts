@@ -9,4 +9,4 @@ export const formatRelativeDate = (dateString: string): string => {
     const diffInDays = Math.floor(diffInHours / 24);
     return `${diffInDays} days ago`;
   }
-}; 
+};
