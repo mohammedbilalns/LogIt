@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { TextInput, Button, Box, Group, Text, useMantineColorScheme } from '@mantine/core';
+import { TextInput, Button, Box, Group, Text, useMantineColorScheme, Loader, Center } from '@mantine/core';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor, BubbleMenu } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -65,7 +65,7 @@ interface FormErrors {
 }
 
 const lowlight = createLowlight();
-lowlight.register({ts, javascript, html, css, python, ruby, java, csharp, php, go, swift, kotlin});
+lowlight.register({ ts, javascript, html, css, python, ruby, java, csharp, php, go, swift, kotlin });
 
 export default function ArticleEditorForm({ mode, articleId, onClose, onSubscriptionLimitError }: ArticleEditorFormProps) {
   const dispatch = useDispatch<AppDispatch>();
@@ -82,10 +82,12 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
   const [featuredImage, setFeaturedImage] = useState<string | undefined>(undefined);
   const [hasUploadedImage, setHasUploadedImage] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({codeBlock: false}),
+      StarterKit.configure({ codeBlock: false }),
       Image,
       CodeBlockLowlight.configure({ lowlight }),
       Underline,
@@ -129,7 +131,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
   const validateForm = useCallback(() => {
     const titleError = validateTitle(title);
     const contentError = validateContent(editorContent);
-    
+
     const newErrors: FormErrors = {};
     if (titleError) {
       newErrors.title = titleError;
@@ -137,7 +139,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
     if (contentError) {
       newErrors.content = contentError;
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }, [title, editorContent, validateTitle, validateContent]);
@@ -168,18 +170,18 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
   useEffect(() => {
     if (mode === 'edit' && currentArticle && editor) {
       setTitle(currentArticle.title);
-      const tagIds = currentArticle.tags.map((tag: any) => 
+      const tagIds = currentArticle.tags.map((tag: any) =>
         typeof tag === 'string' ? tag : (tag._id || tag.id)
       );
       setSelectedTags(tagIds);
-      setFeaturedImage(currentArticle.featured_image ?? undefined );
+      setFeaturedImage(currentArticle.featured_image ?? undefined);
       editor.commands.setContent(currentArticle.content);
       setEditorContent(currentArticle.content);
     }
   }, [mode, currentArticle, editor]);
 
   useEffect(() => {
-    dispatch(fetchTags({ 
+    dispatch(fetchTags({
       page: 1,
       limit: 10,
       search: '',
@@ -191,22 +193,32 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
     if (!editor) {
       return;
     }
+    const localUrl = URL.createObjectURL(file);
+    setPreviewImage(localUrl);
+    setUploadingImage(true);
+    editor.chain().focus().setImage({ src: localUrl }).run();
     try {
       const imageUrl = await dispatch(uploadImage(file)).unwrap();
-      
       if (!hasUploadedImage) {
         setFeaturedImage(imageUrl);
         setHasUploadedImage(true);
       }
-
-      editor.chain().focus().setImage({ src: imageUrl }).run();
+      const html = editor.getHTML().replace(localUrl, imageUrl);
+      editor.commands.setContent(html);
+      const pos = editor.state.doc.content.size;
+      editor.commands.focus(pos);
+      editor.commands.enter();
+      setPreviewImage(null);
     } catch (error) {
-      console.error('Error uploading image:', error);
       notifications.show({
         title: 'Error',
         message: uploadError || 'Failed to upload image. Please try again.',
         color: 'red',
       });
+      setPreviewImage(null);
+    } finally {
+      setUploadingImage(false);
+      URL.revokeObjectURL(localUrl);
     }
   }, [editor, hasUploadedImage, dispatch, uploadError]);
 
@@ -222,7 +234,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
       featured_image: featuredImage,
     };
 
-  
+
     try {
       if (mode === 'create') {
         await dispatch(createArticle(articleData)).unwrap();
@@ -244,7 +256,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
       navigate('/articles');
     } catch (error: any) {
       console.error('Failed to save article:', error);
-      
+
       // Check if it's a subscription limit error
       if (error?.currentPlan && error?.exceededResource === 'articles') {
         if (onSubscriptionLimitError) {
@@ -258,7 +270,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
         }
         return; // Don't show the error notification, let the modal handle it
       }
-      
+
       // Show generic error notification
       notifications.show({
         title: 'Error',
@@ -269,10 +281,10 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
   };
 
   return (
-    <Box 
-      pos="relative" 
-      style={{ 
-        width: '100%', 
+    <Box
+      pos="relative"
+      style={{
+        width: '100%',
         zIndex: 0,
         backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
         backdropFilter: 'blur(16px)',
@@ -319,15 +331,15 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
       </Box>
 
       <Box mb="xl" style={{ width: '100%', position: 'relative', zIndex: 0 }}>
-        <RichTextEditor 
-          editor={editor} 
-          style={{ 
+        <RichTextEditor
+          editor={editor}
+          style={{
             width: '100%',
             backgroundColor: 'transparent',
           }}
         >
-          <RichTextEditor.Toolbar 
-            sticky 
+          <RichTextEditor.Toolbar
+            sticky
             stickyOffset={isMobile ? 60 : 80}
             style={{
               backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
@@ -347,12 +359,12 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
             <RichTextEditor.ControlsGroup>
               {editor && (
                 <BubbleMenu editor={editor}>
-                <RichTextEditor.ControlsGroup>
-              <RichTextEditor.Bold />
-              <RichTextEditor.Italic />
-              <RichTextEditor.Underline />
-              </RichTextEditor.ControlsGroup>
-             </BubbleMenu>
+                  <RichTextEditor.ControlsGroup>
+                    <RichTextEditor.Bold />
+                    <RichTextEditor.Italic />
+                    <RichTextEditor.Underline />
+                  </RichTextEditor.ControlsGroup>
+                </BubbleMenu>
               )}
               <RichTextEditor.Strikethrough />
               <RichTextEditor.ClearFormatting />
@@ -414,10 +426,10 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
           </RichTextEditor.Toolbar>
 
           <RichTextEditor.Content
-            style={{ 
-              minHeight: isMobile ? '300px' : '500px', 
+            style={{
+              minHeight: isMobile ? '300px' : '500px',
               maxHeight: isMobile ? '400px' : '600px',
-			  overflow: 'auto',
+              overflow: 'auto',
               backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
               backdropFilter: 'blur(8px)',
               border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
@@ -425,6 +437,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
               color: isDark ? 'var(--mantine-color-gray-0)' : 'inherit',
               padding: '1.5rem',
               width: '100%',
+              position: 'relative',
               '& .ProseMirror': {
                 minHeight: isMobile ? '300px' : '500px',
                 maxHeight: 'none',
@@ -463,15 +476,15 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
                   backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)',
                   border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
                 },
-								'& .ProseMirror img': {
-      maxWidth: '100%',
-      width: '100px', 
-									height: 'auto',
-      borderRadius: '8px',
-      display: 'block',
-      margin: '1rem auto',
-    },
-              }
+                '& .ProseMirror img': {
+                  maxWidth: '100%',
+                  width: '100px',
+                  height: 'auto',
+                  borderRadius: '8px',
+                  display: 'block',
+                  margin: '1rem auto',
+                },
+              },
             }}
             onPaste={(e) => {
               const items = e.clipboardData?.items;
@@ -488,6 +501,11 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
               }
             }}
           />
+          {uploadingImage && previewImage && (
+            <Center style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, background: 'rgba(255,255,255,0.5)' }}>
+              <Loader size="lg" color="blue" />
+            </Center>
+          )}
         </RichTextEditor>
         {errors.content && (
           <Text c="red" size="sm" mt={5}>
@@ -504,11 +522,11 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
       </Box>
 
       {(articleError || tagError || uploadError) && (
-        <Text 
-          c="red" 
-          size="sm" 
-          ta="center" 
-          style={{ 
+        <Text
+          c="red"
+          size="sm"
+          ta="center"
+          style={{
             padding: '0.5rem',
             backgroundColor: isDark ? 'rgba(255,0,0,0.1)' : 'rgba(255,0,0,0.05)',
             borderRadius: '4px',
@@ -523,7 +541,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
       )}
 
       <Group justify="flex-end" gap="md" wrap="wrap" mt="xl" mb="xl">
-        <Button 
+        <Button
           variant="light"
           onClick={onClose}
           size={isMobile ? "sm" : "md"}
@@ -542,9 +560,9 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
         </Button>
         <Button
           onClick={handleSubmit}
-          disabled={!title.trim() || !editor?.getText().trim() || articleLoading || tagsLoading || isUploading}
+          disabled={!title.trim() || !editor?.getText().trim() || articleLoading || tagsLoading}
           size={isMobile ? "sm" : "md"}
-          loading={articleLoading || tagsLoading || isUploading}
+          loading={articleLoading || tagsLoading}
           loaderProps={{ size: 'sm', color: 'white' }}
           styles={{
             root: {
