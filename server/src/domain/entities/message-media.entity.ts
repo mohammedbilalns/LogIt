@@ -1,9 +1,10 @@
-export interface MessageMedia {
-  id?: string;
-  mediaType: 'image' | 'video' | 'audio';
-  messageId: string;
-  size: number;
-  uploadedAt: Date;
-  url: string;
+
+export interface MessageMedia{
+    id: string ; 
+    messageId: string; 
+    url: string; 
+    type:'image' | 'audio'; 
+    size: number; 
+    uploadedAt: string 
 }
 
