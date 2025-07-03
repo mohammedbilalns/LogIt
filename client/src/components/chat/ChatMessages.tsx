@@ -170,6 +170,21 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                           border: isMine ? '1px solid #4dabf7' : '1px solid #dee2e6',
                         }}
                       >
+                        {/* Media rendering */}
+                        {msg.media && msg.media.url && (
+                          <div style={{ marginBottom: 8 }}>
+                            {msg.media.mediaType === 'image' && (
+                              <img src={msg.media.url} alt={msg.media.name || 'image'} style={{ maxWidth: 200, borderRadius: 8 }} />
+                            )}
+                            {msg.media.mediaType === 'video' && (
+                              <video src={msg.media.url} controls style={{ maxWidth: 200, borderRadius: 8 }} />
+                            )}
+                            {msg.media.mediaType === 'audio' && (
+                              <audio src={msg.media.url} controls style={{ width: 180 }} />
+                            )}
+                            <Text size="xs" c="dimmed" mt={2}>{msg.media.name} {msg.media.size ? `(${(msg.media.size / 1024 / 1024).toFixed(2)} MB)` : ''}</Text>
+                          </div>
+                        )}
                         <Text size="sm" style={{ lineHeight: 1.4 }}>{msg.content}</Text>
                         <Text size="xs" c="dimmed" ta={isMine ? 'right' : 'left'} mt={4}>
                           {formatMessageTime(msg.createdAt)}
