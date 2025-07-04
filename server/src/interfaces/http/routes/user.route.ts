@@ -19,6 +19,7 @@ import {
   changePasswordSchema,
 } from "../../../application/validations/user.validation";
 import { asyncHandler } from "../../../utils/asyncHandler";
+import { MessageRepository } from "../../../infrastructure/repositories/message.repository";
 
 const router = Router();
 
@@ -29,7 +30,7 @@ const connectionRepository = new MongoConnectionRepository();
 const cryptoProvider = new BcryptCryptoProvider();
 const userSubscriptionRepository = new UserSubscriptionRepository();
 const subscriptionRepository = new MongoSubscriptionRepository();
-
+const messagesRepository = new MessageRepository()
 const userSubscriptionService: IUserSubscriptionService = new UserSubscriptionServiceImpl(
   userSubscriptionRepository,
   subscriptionRepository
@@ -41,7 +42,9 @@ const userService: IUserService = new UserService(
   logRepository,
   cryptoProvider,
   connectionRepository,
-  userSubscriptionService
+  userSubscriptionService,
+  messagesRepository
+  
 );
 const userController = new UserController(userService);
 

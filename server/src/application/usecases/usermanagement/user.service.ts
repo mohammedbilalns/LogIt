@@ -26,6 +26,7 @@ import {
 import { UserInfoWithRelationship } from "../../../domain/entities/user.entity";
 import { IConnectionRepository } from "../../../domain/repositories/connection.repository.interface";
 import { IUserSubscriptionService } from "../../../domain/services/user-subscription.service.interface";
+import { IMessageRepository } from "../../../domain/repositories/message.repository.interface";
 
 export class UserService implements IUserService {
   constructor(
@@ -34,7 +35,8 @@ export class UserService implements IUserService {
     private logsRepository: ILogRepository,
     private cryptoProvider: ICryptoProvider,
     private connectionRepository: IConnectionRepository,
-    private userSubscriptionService: IUserSubscriptionService
+    private userSubscriptionService: IUserSubscriptionService,
+    private messageRepository: IMessageRepository
   ) {}
 
   async checkUserBlocked(userId: string): Promise<void> {
@@ -131,13 +133,16 @@ export class UserService implements IUserService {
       await this.checkUserBlocked(userId);
 
       // Get counts
-      const [articlesCount, logsCount] = await Promise.all([
+      const [articlesCount, logsCount, followersCount, messagesCount] = await Promise.all([
         this.articleRepository.count({ authorId: userId }),
         this.logsRepository.count({ userId }),
+        this.connectionRepository.count({connectedUserId: userId}),
+        this.messageRepository.count({senderId:userId})
       ]);
 
-      const messagesCount = 434;
-      const followersCount = 534;
+      console.log("Messages count", messagesCount)
+
+      // const messagesCount = 434;
 
       const [recentLogs, recentArticles] = await Promise.all([
         this.logsRepository.findMany(userId, {
