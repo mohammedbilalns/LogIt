@@ -4,8 +4,8 @@ import env from "../../../config/env";
 import { IAuthCheckService } from "../../../domain/services/auth-check.service.interface";
 import { AuthCheckService } from "../../../application/usecases/auth/auth-check.service";
 import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
-import { HttpStatus } from "../../../config/statusCodes";
-import { HttpResponse } from "../../../config/responseMessages";
+import { HttpStatus } from "../../../constants/statusCodes";
+import { HttpResponse } from "../../../constants/responseMessages";
 
 declare module "express" {
   interface Request {

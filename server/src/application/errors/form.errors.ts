@@ -1,5 +1,5 @@
 import { HttpError } from "./base.errors"
-import { HttpStatus } from "../../config/statusCodes"
+import { HttpStatus } from "../../constants/statusCodes"
 
 export class MissingFieldsError extends HttpError  {
     constructor(message: string = 'Fill all the fileds'){

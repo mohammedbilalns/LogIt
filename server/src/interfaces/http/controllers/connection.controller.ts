@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { IConnectionService } from "../../../domain/services/connection.service.interface";
-import { HttpStatus } from "../../../config/statusCodes";
-import { HttpResponse } from "../../../config/responseMessages";
+import { HttpStatus } from "../../../constants/statusCodes";
+import { HttpResponse } from "../../../constants/responseMessages";
 
 export class ConnectionController {
   constructor(private connectionService: IConnectionService) {}

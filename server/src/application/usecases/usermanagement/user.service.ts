@@ -14,7 +14,7 @@ import {
   UnauthorizedError,
 } from "../../errors/auth.errors";
 import { MissingFieldsError } from "../../errors/form.errors";
-import { HttpResponse } from "../../../config/responseMessages";
+import { HttpResponse } from "../../../constants/responseMessages";
 import { InternalServerError } from "../../errors/internal.errors";
 import {
   UpdateProfileData,

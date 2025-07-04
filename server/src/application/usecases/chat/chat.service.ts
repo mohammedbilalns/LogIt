@@ -10,7 +10,7 @@ import { IMessageRepository } from "../../../domain/repositories/message.reposit
 import { IChatParticipantRepository } from "../../../domain/repositories/chat-participant.repository.interface";
 import { IChatActionLogRepository } from "../../../domain/repositories/chat-action-log.repository.interface";
 import { BadRequestError, UnauthorizedError } from "../../errors/http.errors";
-import { HttpResponse } from "../../../config/responseMessages";
+import { HttpResponse } from "../../../constants/responseMessages";
 import { Chat } from "../../../domain/entities/chat.entity";
 import { Message } from "../../../domain/entities/message.entity";
 

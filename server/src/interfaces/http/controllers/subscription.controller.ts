@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { ISubscriptionService } from "../../../domain/services/subsription.service.interface";
-import { HttpResponse } from "../../../config/responseMessages";
-import { HttpStatus } from "../../../config/statusCodes";
+import { HttpResponse } from "../../../constants/responseMessages";
+import { HttpStatus } from "../../../constants/statusCodes";
 
 export class SubscriptionController {
   constructor(private subscriptionService: ISubscriptionService) {}

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { IUserManagementService } from "../../../domain/services/usermanagement.service.interface";
-import { HttpStatus } from "../../../config/statusCodes";
+import { HttpStatus } from "../../../constants/statusCodes";
 
 export class AdminController {
   constructor(private userManagementService: IUserManagementService) {}

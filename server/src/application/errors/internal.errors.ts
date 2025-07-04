@@ -1,5 +1,5 @@
 import { HttpError } from "./base.errors";
-import { HttpStatus } from "../../config/statusCodes";
+import { HttpStatus } from "../../constants/statusCodes";
 
 export class BadRequestError extends HttpError {
   constructor(message: string = "Bad Request") {

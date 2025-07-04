@@ -1,4 +1,4 @@
-import { HttpStatus } from "../../config/statusCodes";
+import { HttpStatus } from "../../constants/statusCodes";
 import { HttpError } from "./base.errors";
 
 export class ResourceNotFoundError extends HttpError {

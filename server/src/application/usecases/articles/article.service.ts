@@ -15,7 +15,7 @@ import {
 
 import { MissingFieldsError } from "../../errors/form.errors";
 import { ResourceNotFoundError, ResourceLimitExceededError } from "../../errors/resource.errors";
-import { HttpResponse } from "../../../config/responseMessages";
+import { HttpResponse } from "../../../constants/responseMessages";
 import { IUserSubscriptionService } from "../../../domain/services/user-subscription.service.interface";
 
 export class ArticleService implements IArticleService {

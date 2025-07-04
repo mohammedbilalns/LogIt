@@ -4,7 +4,7 @@ import ReportModel, { ReportDocument } from "../mongodb/report.schema";
 import { BaseRepository } from "./base.repository";
 import { FilterQuery } from "mongoose";
 import { InternalServerError } from "../../application/errors/internal.errors";
-import { HttpResponse } from "../../config/responseMessages";
+import { HttpResponse } from "../../constants/responseMessages";
 
 export class MongoReportRepository
   extends BaseRepository<ReportDocument, Report>

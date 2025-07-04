@@ -5,8 +5,8 @@ import {
   UpdateTagData,
   TagsByIdsResponse,
 } from "../../../application/dtos";
-import { HttpStatus } from "../../../config/statusCodes";
-import { HttpResponse } from "../../../config/responseMessages";
+import { HttpStatus } from "../../../constants/statusCodes";
+import { HttpResponse } from "../../../constants/responseMessages";
 
 export class TagController {
   constructor(private tagService: ITagService) {}

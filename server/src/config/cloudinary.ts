@@ -1,5 +1,5 @@
-import { v2 as cloudinary } from 'cloudinary';
-import env from './env';
+import { v2 as cloudinary } from "cloudinary";
+import env from "./env";
 
 cloudinary.config({
   cloud_name: env.CLOUDINARY_CLOUD_NAME,
@@ -9,16 +9,19 @@ cloudinary.config({
 
 export { cloudinary };
 
-export function uploadBufferToCloudinary(buffer: Buffer, folder: string): Promise<{ secure_url: string }> {
+export function uploadBufferToCloudinary(
+  buffer: Buffer,
+  folder: string
+): Promise<{ secure_url: string }> {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       { folder },
       (error, result) => {
         if (error) reject(error);
         else if (result) resolve(result as { secure_url: string });
-        else reject(new Error('No result from Cloudinary'));
+        else reject(new Error("No result from Cloudinary"));
       }
     );
     stream.end(buffer);
   });
-} 
+}

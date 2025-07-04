@@ -4,7 +4,7 @@ import {
   CreateArticleData,
   UpdateArticleData,
 } from "../../../application/dtos";
-import { HttpStatus } from "../../../config/statusCodes";
+import { HttpStatus } from "../../../constants/statusCodes";
 import { ResourceLimitExceededError } from "../../../application/errors/resource.errors";
 
 export class ArticleController {

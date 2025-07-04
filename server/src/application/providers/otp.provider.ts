@@ -1,7 +1,7 @@
 import { IOTPService } from "../../domain/providers/otp.provider.interface";
 import { IOTPRepository } from "../../domain/repositories/otp.repository.interface";
 import { OTP } from "../../domain/entities/otp.entity";
-import { OTP_EXPIRY } from "../../config/constants";
+import { OTP_EXPIRY } from "../../constants/authConstants";
 import {
   InvalidOTPError,
   MaxRetryAttemptsExceededError,

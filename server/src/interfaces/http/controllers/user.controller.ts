@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { IUserService } from "../../../domain/services/user.service.interface";
-import { HttpStatus } from "../../../config/statusCodes";
-import { HttpResponse } from "../../../config/responseMessages";
+import { HttpStatus } from "../../../constants/statusCodes";
+import { HttpResponse } from "../../../constants/responseMessages";
 import { onlineUsers } from '../../../config/socket';
 
 export class UserController {

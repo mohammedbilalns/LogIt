@@ -8,7 +8,7 @@ import { ILogService } from "../../../domain/services/log.service.interface";
 import { UnauthorizedError } from "../../errors/auth.errors";
 import { InternalServerError } from "../../errors/internal.errors";
 import { ResourceLimitExceededError } from "../../errors/resource.errors";
-import { HttpResponse } from "../../../config/responseMessages";
+import { HttpResponse } from "../../../constants/responseMessages";
 import {
   CreateLogData,
   UpdateLogData,

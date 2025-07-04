@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { IChatService } from "../../../domain/services/chat.service.interface";
-import { HttpStatus } from "../../../config/statusCodes";
+import { HttpStatus } from "../../../constants/statusCodes";
 
 export class ChatController {
   constructor(private chatService: IChatService) {}

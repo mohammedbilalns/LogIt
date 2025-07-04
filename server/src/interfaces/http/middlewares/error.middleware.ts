@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { HttpStatus } from "../../../config/statusCodes";
-import { HttpResponse } from "../../../config/responseMessages";
+import { HttpStatus } from "../../../constants/statusCodes";
+import { HttpResponse } from "../../../constants/responseMessages";
 import { logger } from "../../../utils/logger";
 
 export const errorMiddleware = () => {

@@ -4,9 +4,9 @@ import {
   COOKIE_OPTIONS,
   ACCESS_COOKIE_EXPIRY,
   REFRESH_COOKIE_EXPIRY,
-} from "../../../config/constants";
-import { HttpStatus } from "../../../config/statusCodes";
-import { HttpResponse } from "../../../config/responseMessages";
+} from "../../../constants/authConstants";
+import { HttpStatus } from "../../../constants/statusCodes";
+import { HttpResponse } from "../../../constants/responseMessages";
 
 export class AuthController {
   constructor(private authService: IAuthService) {}

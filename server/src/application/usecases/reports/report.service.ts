@@ -4,7 +4,7 @@ import { IArticleRepository } from "../../../domain/repositories/article.reposit
 import { IUserManagementService } from "../../../domain/services/usermanagement.service.interface";
 import { IReportService } from "../../../domain/services/report.service.interface";
 import { ResourceNotFoundError } from "../../errors/resource.errors";
-import { HttpResponse } from "../../../config/responseMessages";
+import { HttpResponse } from "../../../constants/responseMessages";
 import {
   CreateReportDto,
   GetReportsDto,

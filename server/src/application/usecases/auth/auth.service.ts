@@ -17,7 +17,7 @@ import {
   PasswordResetNotAllowedError,
   UserBlockedError,
 } from "../../errors/auth.errors";
-import { HttpResponse } from "../../../config/responseMessages";
+import { HttpResponse } from "../../../constants/responseMessages";
 import { ResourceNotFoundError } from "../../errors/resource.errors";
 import { SignupData, LoginData } from "../../dtos";
 

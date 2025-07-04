@@ -4,7 +4,7 @@ import { UserWithoutPassword } from "../../domain/entities/user.entity";
 import {
   ACCESS_TOKEN_EXPIRY,
   REFRESH_TOKEN_EXPIRY,
-} from "../../config/constants";
+} from "../../constants/authConstants";
 import { InvalidTokenTypeError } from "../errors/auth.errors";
 import { InternalServerError } from "../errors/internal.errors";
 

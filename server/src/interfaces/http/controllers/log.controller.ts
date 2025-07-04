@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { ILogService } from "../../../domain/services/log.service.interface";
-import { HttpStatus } from "../../../config/statusCodes";
-import { HttpResponse } from "../../../config/responseMessages";
+import { HttpStatus } from "../../../constants/statusCodes";
+import { HttpResponse } from "../../../constants/responseMessages";
 import { ResourceLimitExceededError } from "../../../application/errors/resource.errors";
 
 export class LogController {

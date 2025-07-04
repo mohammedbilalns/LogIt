@@ -2,7 +2,7 @@ import { ISubscriptionService } from '../../../domain/services/subsription.servi
 import { ISubscriptionRepository } from '../../../domain/repositories/subscription.repository.interface';
 import { SubscriptionPlan } from '../../../domain/entities/subscription.entity';
 import { ResourceLimitExceededError, ResourceNotFoundError } from '../../errors/resource.errors';
-import { HttpResponse } from '../../../config/responseMessages';
+import { HttpResponse } from '../../../constants/responseMessages';
 
 export class SubscriptionService implements ISubscriptionService {
   constructor(private subscriptionRepository: ISubscriptionRepository) {}
