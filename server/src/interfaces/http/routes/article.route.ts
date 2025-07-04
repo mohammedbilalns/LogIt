@@ -1,13 +1,13 @@
 import { Router } from "express";
 import { ArticleController } from "../controllers/article.controller";
 import { IArticleService } from "../../../domain/services/article.service.interface";
-import { ArticleService } from "../../../application/usecases/articles/article.service";
+import { ArticleService } from "../../../application/services/article.service";
 import { MongoArticleRepository } from "../../../infrastructure/repositories/article.repository";
 import { MongoTagRepository } from "../../../infrastructure/repositories/tag.repository";
 import { MongoArticleTagRepository } from "../../../infrastructure/repositories/article-tag.repository";
 import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
 import { MongoReportRepository } from "../../../infrastructure/repositories/report.repository";
-import { UserSubscriptionServiceImpl } from "../../../application/usecases/user-subscription/user-subscription.service";
+import { UserSubscriptionServiceImpl } from "../../../application/services/user-subscription.service";
 import { UserSubscriptionRepository } from "../../../infrastructure/repositories/user-subscription.repository";
 import { MongoSubscriptionRepository } from "../../../infrastructure/repositories/subscription.repository";
 import { IUserSubscriptionService } from "../../../domain/services/user-subscription.service.interface";

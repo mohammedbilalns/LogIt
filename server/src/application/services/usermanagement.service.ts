@@ -1,13 +1,13 @@
-import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
-import { User } from '../../../domain/entities/user.entity';
-import { IUserManagementService } from '../../../domain/services/usermanagement.service.interface';
-import { UserNotFoundError } from '../../errors/auth.errors';
+import { IUserRepository } from '../../domain/repositories/user.repository.interface';
+import { User } from '../../domain/entities/user.entity';
+import { IUserManagementService } from '../../domain/services/usermanagement.service.interface';
+import { UserNotFoundError } from '../errors/auth.errors';
 import {
   FetchUsersOptions,
   UserResponse,
   UpdateUserData,
   UsersListResponse,
-} from '../../dtos';
+} from '../dtos';
 
 export class UserManagementService implements IUserManagementService {
   constructor(private userRepository: IUserRepository) {}

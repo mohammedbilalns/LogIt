@@ -1,13 +1,13 @@
-import { IUserRepository } from "../../../domain/repositories/user.repository.interface";
+import { IUserRepository } from "../../domain/repositories/user.repository.interface";
 import {
   User,
   UserWithoutPassword,
-} from "../../../domain/entities/user.entity";
-import { IMailService } from "../../../domain/providers/mail.provider.interface";
-import { ITokenService } from "../../../domain/providers/token.provider.interface";
-import { IOTPService } from "../../../domain/providers/otp.provider.interface";
-import { ICryptoProvider } from "../../../domain/providers/crypto.provider.interface";
-import { IAuthService } from "../../../domain/services/auth.service.interface";
+} from "../../domain/entities/user.entity";
+import { IMailService } from "../../domain/providers/mail.provider.interface";
+import { ITokenService } from "../../domain/providers/token.provider.interface";
+import { IOTPService } from "../../domain/providers/otp.provider.interface";
+import { ICryptoProvider } from "../../domain/providers/crypto.provider.interface";
+import { IAuthService } from "../../domain/services/auth.service.interface";
 import {
   EmailAlreadyRegisteredError,
   InvalidCredentialsError,
@@ -16,10 +16,10 @@ import {
   EmailAlreadyWithGoogleIdError,
   PasswordResetNotAllowedError,
   UserBlockedError,
-} from "../../errors/auth.errors";
-import { HttpResponse } from "../../../constants/responseMessages";
-import { ResourceNotFoundError } from "../../errors/resource.errors";
-import { SignupData, LoginData } from "../../dtos";
+} from "../errors/auth.errors";
+import { HttpResponse } from "../../constants/responseMessages";
+import { ResourceNotFoundError } from "../errors/resource.errors";
+import { SignupData, LoginData } from "../dtos";
 
 export class AuthService implements IAuthService {
   constructor(

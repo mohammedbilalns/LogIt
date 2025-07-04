@@ -4,7 +4,7 @@ import { authMiddleware, authorizeRoles } from "../middlewares/auth.middleware";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
 import { SubscriptionController } from "../controllers/subscription.controller";
 import { MongoSubscriptionRepository } from "../../../infrastructure/repositories/subscription.repository";
-import { SubscriptionService } from "../../../application/usecases/subscription/subscription.service";
+import { SubscriptionService } from "../../../application/services/subscription.service";
 
 const router = Router();
 const subscriptionRepository = new MongoSubscriptionRepository();

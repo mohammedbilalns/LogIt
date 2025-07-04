@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { AuthController } from "../controllers/auth.controller";
 import { IAuthService } from "../../../domain/services/auth.service.interface";
-import { AuthService } from "../../../application/usecases/auth/auth.service";
+import { AuthService } from "../../../application/services/auth.service";
 import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
 import { MongoOTPRepository } from "../../../infrastructure/repositories/otp.repository";
 import { MailService } from "../../../application/providers/mail.provider";

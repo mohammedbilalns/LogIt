@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { TagController } from "../controllers/tag.controller";
 import { ITagService } from "../../../domain/services/tag.service.interface";
-import { TagService } from "../../../application/usecases/tag/tag.service";
+import { TagService } from "../../../application/services/tag.service";
 import { MongoTagRepository } from "../../../infrastructure/repositories/tag.repository";
 import { authorizeRoles, authMiddleware } from "../middlewares/auth.middleware";
 import { asyncHandler } from "../../../utils/asyncHandler";

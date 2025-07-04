@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { MongoConnectionRepository } from "../../../infrastructure/repositories/connection.repository";
-import { ConnectionService } from "../../../application/usecases/connections/connections.service";
+import { ConnectionService } from "../../../application/services/connections.service";
 import { IConnectionService } from "../../../domain/services/connection.service.interface";
 import { ConnectionController } from "../controllers/connection.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";

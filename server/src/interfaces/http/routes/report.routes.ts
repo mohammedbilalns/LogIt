@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { ReportController } from "../controllers/report.controller";
 import { IReportService } from "../../../domain/services/report.service.interface";
-import { ReportService } from "../../../application/usecases/reports/report.service";
+import { ReportService } from "../../../application/services/report.service";
 import { IUserManagementService } from "../../../domain/services/usermanagement.service.interface";
-import { UserManagementService } from "../../../application/usecases/usermanagement/usermanagement.service";
+import { UserManagementService } from "../../../application/services/usermanagement.service";
 import { MongoReportRepository } from "../../../infrastructure/repositories/report.repository";
 import { MongoArticleRepository } from "../../../infrastructure/repositories/article.repository";
 import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";

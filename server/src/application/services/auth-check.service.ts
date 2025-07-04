@@ -1,7 +1,7 @@
-import { IAuthCheckService } from "../../../domain/services/auth-check.service.interface";
-import { IUserRepository } from "../../../domain/repositories/user.repository.interface";
-import { ResourceNotFoundError } from "../../errors/resource.errors";
-import { HttpResponse } from "../../../constants/responseMessages";
+import { IAuthCheckService } from "../../domain/services/auth-check.service.interface";
+import { IUserRepository } from "../../domain/repositories/user.repository.interface";
+import { ResourceNotFoundError } from "../errors/resource.errors";
+import { HttpResponse } from "../../constants/responseMessages";
 
 export class AuthCheckService implements IAuthCheckService {
   constructor(private userRepository: IUserRepository) {}

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { ChatController } from "../controllers/chat.controller";
-import { ChatService } from "../../../application/usecases/chat/chat.service";
+import { ChatService } from "../../../application/services/chat.service";
 import { ChatRepository } from "../../../infrastructure/repositories/chat.repository";
 import { MessageRepository } from "../../../infrastructure/repositories/message.repository";
 import { ChatParticipantRepository } from "../../../infrastructure/repositories/chat-participant.repository";

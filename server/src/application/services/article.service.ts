@@ -1,22 +1,22 @@
-import { IArticleRepository } from "../../../domain/repositories/article.repository.interface";
-import { ITagRepository } from "../../../domain/repositories/tag.repository.interface";
-import { IArticleTagRepository } from "../../../domain/repositories/article-tag.repository.interface";
-import { IUserRepository } from "../../../domain/repositories/user.repository.interface";
-import { IReportRepository } from "../../../domain/repositories/report.repository.interface";
-import { IArticleService } from "../../../domain/services/article.service.interface";
-import { Article } from "../../../domain/entities/article.entity";
+import { IArticleRepository } from "../../domain/repositories/article.repository.interface";
+import { ITagRepository } from "../../domain/repositories/tag.repository.interface";
+import { IArticleTagRepository } from "../../domain/repositories/article-tag.repository.interface";
+import { IUserRepository } from "../../domain/repositories/user.repository.interface";
+import { IReportRepository } from "../../domain/repositories/report.repository.interface";
+import { IArticleService } from "../../domain/services/article.service.interface";
+import { Article } from "../../domain/entities/article.entity";
 import {
   CreateArticleData,
   UpdateArticleData,
   GetArticlesParams,
   ArticlesResponse,
   ArticleResponse,
-} from "../../dtos";
+} from "../dtos";
 
-import { MissingFieldsError } from "../../errors/form.errors";
-import { ResourceNotFoundError, ResourceLimitExceededError } from "../../errors/resource.errors";
-import { HttpResponse } from "../../../constants/responseMessages";
-import { IUserSubscriptionService } from "../../../domain/services/user-subscription.service.interface";
+import { MissingFieldsError } from "../errors/form.errors";
+import { ResourceNotFoundError, ResourceLimitExceededError } from "../errors/resource.errors";
+import { HttpResponse } from "../../constants/responseMessages";
+import { IUserSubscriptionService } from "../../domain/services/user-subscription.service.interface";
 
 export class ArticleService implements IArticleService {
   constructor(

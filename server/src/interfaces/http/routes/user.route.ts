@@ -1,13 +1,13 @@
 import { Router } from "express";
 import { UserController } from "../controllers/user.controller";
 import { IUserService } from "../../../domain/services/user.service.interface";
-import { UserService } from "../../../application/usecases/usermanagement/user.service";
+import { UserService } from "../../../application/services/user.service";
 import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
 import { MongoArticleRepository } from "../../../infrastructure/repositories/article.repository";
 import { MongoLogRepository } from "../../../infrastructure/repositories/log.repository";
 import { MongoConnectionRepository } from "../../../infrastructure/repositories/connection.repository";
 import { BcryptCryptoProvider } from "../../../application/providers/crypto.provider";
-import { UserSubscriptionServiceImpl } from "../../../application/usecases/user-subscription/user-subscription.service";
+import { UserSubscriptionServiceImpl } from "../../../application/services/user-subscription.service";
 import { UserSubscriptionRepository } from "../../../infrastructure/repositories/user-subscription.repository";
 import { MongoSubscriptionRepository } from "../../../infrastructure/repositories/subscription.repository";
 import { IUserSubscriptionService } from "../../../domain/services/user-subscription.service.interface";

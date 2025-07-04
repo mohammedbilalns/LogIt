@@ -1,7 +1,7 @@
-import { Tag } from "../../../domain/entities/tag.entity";
-import { ITagRepository } from "../../../domain/repositories/tag.repository.interface";
-import { ITagService } from "../../../domain/services/tag.service.interface";
-import { GetTagsParams, TagsResponse } from "../../dtos";
+import { Tag } from "../../domain/entities/tag.entity";
+import { ITagRepository } from "../../domain/repositories/tag.repository.interface";
+import { ITagService } from "../../domain/services/tag.service.interface";
+import { GetTagsParams, TagsResponse } from "../dtos";
 
 export class TagService implements ITagService {
   constructor(private tagRepository: ITagRepository) {}

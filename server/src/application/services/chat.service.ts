@@ -3,16 +3,16 @@ import {
   CreateChatDto,
   CreateGroupChatDto,
   SendMessageDto,
-} from "../../../application/dtos/chat.dto";
-import { IChatService } from "../../../domain/services/chat.service.interface";
-import { IChatRepository } from "../../../domain/repositories/chat.repository.interface";
-import { IMessageRepository } from "../../../domain/repositories/message.repository.interface";
-import { IChatParticipantRepository } from "../../../domain/repositories/chat-participant.repository.interface";
-import { IChatActionLogRepository } from "../../../domain/repositories/chat-action-log.repository.interface";
-import { BadRequestError, UnauthorizedError } from "../../errors/http.errors";
-import { HttpResponse } from "../../../constants/responseMessages";
-import { Chat } from "../../../domain/entities/chat.entity";
-import { Message } from "../../../domain/entities/message.entity";
+} from "../dtos/chat.dto";
+import { IChatService } from "../../domain/services/chat.service.interface";
+import { IChatRepository } from "../../domain/repositories/chat.repository.interface";
+import { IMessageRepository } from "../../domain/repositories/message.repository.interface";
+import { IChatParticipantRepository } from "../../domain/repositories/chat-participant.repository.interface";
+import { IChatActionLogRepository } from "../../domain/repositories/chat-action-log.repository.interface";
+import { BadRequestError, UnauthorizedError } from "../errors/http.errors";
+import { HttpResponse } from "../../constants/responseMessages";
+import { Chat } from "../../domain/entities/chat.entity";
+import { Message } from "../../domain/entities/message.entity";
 
 export class ChatService implements IChatService {
   private io: Server;

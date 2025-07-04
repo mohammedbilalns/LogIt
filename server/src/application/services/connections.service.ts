@@ -1,6 +1,6 @@
-import { IConnectionRepository } from "../../../domain/repositories/connection.repository.interface";
-import { IConnectionService } from "../../../domain/services/connection.service.interface";
-import { IUserRepository } from "../../../domain/repositories/user.repository.interface";
+import { IConnectionRepository } from "../../domain/repositories/connection.repository.interface";
+import { IConnectionService } from "../../domain/services/connection.service.interface";
+import { IUserRepository } from "../../domain/repositories/user.repository.interface";
 
 export class ConnectionService implements IConnectionService {
     constructor(

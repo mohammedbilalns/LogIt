@@ -1,12 +1,12 @@
 import { Router } from "express";
 import { LogController } from "../controllers/log.controller";
 import { ILogService } from "../../../domain/services/log.service.interface";
-import { LogService } from "../../../application/usecases/logs/log.service";
+import { LogService } from "../../../application/services/log.service";
 import { MongoLogRepository } from "../../../infrastructure/repositories/log.repository";
 import { MongoLogTagRepository } from "../../../infrastructure/repositories/log-tag.repository";
 import { MongoLogMediaRepository } from "../../../infrastructure/repositories/log-media.repository";
 import { MongoTagRepository } from "../../../infrastructure/repositories/tag.repository";
-import { UserSubscriptionServiceImpl } from "../../../application/usecases/user-subscription/user-subscription.service";
+import { UserSubscriptionServiceImpl } from "../../../application/services/user-subscription.service";
 import { UserSubscriptionRepository } from "../../../infrastructure/repositories/user-subscription.repository";
 import { MongoSubscriptionRepository } from "../../../infrastructure/repositories/subscription.repository";
 import { IUserSubscriptionService } from "../../../domain/services/user-subscription.service.interface";

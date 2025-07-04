@@ -1,7 +1,7 @@
 import { Router } from "express";
 import multer from "multer";
 import { UploadController } from "../controllers/upload.controller";
-import { UploadService } from "../../../application/usecases/upload.service";
+import { UploadService } from "../../../application/services/upload.service";
 import { asyncHandler } from "../../../utils/asyncHandler";
 
 const router = Router();

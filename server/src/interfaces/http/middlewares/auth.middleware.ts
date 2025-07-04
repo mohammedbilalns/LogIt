@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import env from "../../../config/env";
 import { IAuthCheckService } from "../../../domain/services/auth-check.service.interface";
-import { AuthCheckService } from "../../../application/usecases/auth/auth-check.service";
+import { AuthCheckService } from "../../../application/services/auth-check.service";
 import { MongoUserRepository } from "../../../infrastructure/repositories/user.repository";
 import { HttpStatus } from "../../../constants/statusCodes";
 import { HttpResponse } from "../../../constants/responseMessages";

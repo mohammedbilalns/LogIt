@@ -1,21 +1,21 @@
-import { ILogRepository } from "../../../domain/repositories/log.repository";
-import { ILogTagRepository } from "../../../domain/repositories/logTag.repository";
-import { ILogMediaRepository } from "../../../domain/repositories/logMedia.repository";
-import { ITagRepository } from "../../../domain/repositories/tag.repository.interface";
-import { Tag } from "../../../domain/entities/tag.entity";
-import { LogTag } from "../../../domain/entities/log-tag.entity";
-import { ILogService } from "../../../domain/services/log.service.interface";
-import { UnauthorizedError } from "../../errors/auth.errors";
-import { InternalServerError } from "../../errors/internal.errors";
-import { ResourceLimitExceededError } from "../../errors/resource.errors";
-import { HttpResponse } from "../../../constants/responseMessages";
+import { ILogRepository } from "../../domain/repositories/log.repository";
+import { ILogTagRepository } from "../../domain/repositories/logTag.repository";
+import { ILogMediaRepository } from "../../domain/repositories/logMedia.repository";
+import { ITagRepository } from "../../domain/repositories/tag.repository.interface";
+import { Tag } from "../../domain/entities/tag.entity";
+import { LogTag } from "../../domain/entities/log-tag.entity";
+import { ILogService } from "../../domain/services/log.service.interface";
+import { UnauthorizedError } from "../errors/auth.errors";
+import { InternalServerError } from "../errors/internal.errors";
+import { ResourceLimitExceededError } from "../errors/resource.errors";
+import { HttpResponse } from "../../constants/responseMessages";
 import {
   CreateLogData,
   UpdateLogData,
   GetLogsOptions,
   LogWithRelations,
-} from "../../dtos";
-import { IUserSubscriptionService } from "../../../domain/services/user-subscription.service.interface";
+} from "../dtos";
+import { IUserSubscriptionService } from "../../domain/services/user-subscription.service.interface";
 
 export class LogService implements ILogService {
   constructor(
@@ -30,19 +30,21 @@ export class LogService implements ILogService {
     userId: string | undefined,
     data: CreateLogData
   ): Promise<LogWithRelations> {
-      if (!userId) {
-        throw new UnauthorizedError();
-      }
+    if (!userId) {
+      throw new UnauthorizedError();
+    }
 
     // Check subscription limits
-    const currentPlan = await this.userSubscriptionService.getUserCurrentPlan(userId);
-    
+    const currentPlan = await this.userSubscriptionService.getUserCurrentPlan(
+      userId
+    );
+
     if (currentPlan.maxLogsPerMonth !== -1) {
       // Get current month's log count
       const startOfMonth = new Date();
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
-      
+
       const endOfMonth = new Date();
       endOfMonth.setMonth(endOfMonth.getMonth() + 1);
       endOfMonth.setDate(0);
@@ -50,18 +52,20 @@ export class LogService implements ILogService {
 
       const currentMonthLogs = await this.logRepository.findMany(userId, {
         sortBy: "createdAt",
-        sortOrder: "asc"
+        sortOrder: "asc",
       });
 
       // Filter logs by date manually
-      const filteredLogs = currentMonthLogs.filter(log => {
+      const filteredLogs = currentMonthLogs.filter((log) => {
         const logDate = new Date(log.createdAt);
         return logDate >= startOfMonth && logDate <= endOfMonth;
       });
 
       if (filteredLogs.length >= currentPlan.maxLogsPerMonth) {
         // Get next plan for upgrade suggestion
-        const nextPlan = await this.userSubscriptionService.getNextPlan(currentPlan.id);
+        const nextPlan = await this.userSubscriptionService.getNextPlan(
+          currentPlan.id
+        );
 
         throw new ResourceLimitExceededError(
           `You've reached your ${currentPlan.name} plan limit of ${currentPlan.maxLogsPerMonth} logs per month.`,
@@ -70,55 +74,55 @@ export class LogService implements ILogService {
             nextPlan: nextPlan || undefined,
             currentUsage: filteredLogs.length,
             limit: currentPlan.maxLogsPerMonth,
-            exceededResource: 'logs'
+            exceededResource: "logs",
           }
         );
       }
     }
 
-      const log = await this.logRepository.create({
-        userId,
-        title: data.title,
-        content: data.content,
-      });
+    const log = await this.logRepository.create({
+      userId,
+      title: data.title,
+      content: data.content,
+    });
 
-      if (!log.id) {
-        throw new InternalServerError(HttpResponse.LOG_ID_NOT_FOUND);
-      }
+    if (!log.id) {
+      throw new InternalServerError(HttpResponse.LOG_ID_NOT_FOUND);
+    }
 
-      const logId = log.id;
+    const logId = log.id;
 
-      if (data.tags && data.tags.length > 0) {
-        for (const tagId of data.tags) {
-          const tag = await this.tagRepository.findById(tagId);
-          if (tag) {
-            await this.logTagRepository.create({
-              logId,
-              tagId,
-              userId,
-              createdAt: new Date(),
-            } as Omit<LogTag, "id">);
-            await this.tagRepository.incrementUsageCount(tagId);
-          }
-        }
-      }
-
-      if (data.mediaUrls && data.mediaUrls.length > 0) {
-        await this.logMediaRepository.createMany(
-          data.mediaUrls.map((url) => ({
+    if (data.tags && data.tags.length > 0) {
+      for (const tagId of data.tags) {
+        const tag = await this.tagRepository.findById(tagId);
+        if (tag) {
+          await this.logTagRepository.create({
             logId,
-            url,
+            tagId,
             userId,
             createdAt: new Date(),
-          }))
-        );
+          } as Omit<LogTag, "id">);
+          await this.tagRepository.incrementUsageCount(tagId);
+        }
       }
+    }
 
-      const logWithRelations = await this.getLogWithRelations(logId);
-      if (!logWithRelations) {
-        throw new InternalServerError();
-      }
-      return logWithRelations;
+    if (data.mediaUrls && data.mediaUrls.length > 0) {
+      await this.logMediaRepository.createMany(
+        data.mediaUrls.map((url) => ({
+          logId,
+          url,
+          userId,
+          createdAt: new Date(),
+        }))
+      );
+    }
+
+    const logWithRelations = await this.getLogWithRelations(logId);
+    if (!logWithRelations) {
+      throw new InternalServerError();
+    }
+    return logWithRelations;
   }
 
   async getLogs(
