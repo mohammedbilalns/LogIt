@@ -16,7 +16,7 @@ export default function CreateButton({
   position = 'right', 
   onClick, 
   text = 'Create',
-  size = 'lg',
+  size = 'md',
   color = 'blue',
   disabled = false
 }: CreateButtonProps) {
@@ -32,17 +32,18 @@ export default function CreateButton({
 
   return (
     <Button
-      leftSection={<PlusIcon size={20} />}
+      leftSection={<PlusIcon size={16} />}
       size={size}
       color={color}
-      radius="xl"
+      radius="md"
       disabled={disabled}
       style={{
         position: 'fixed',
-        bottom: '2rem',
-        [position]: '2rem',
+        bottom: '1.5rem',
+        [position]: '1.5rem',
         zIndex: 200,
-        boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+        backdropFilter: 'blur(8px)',
       }}
       onClick={handleClick}
     >

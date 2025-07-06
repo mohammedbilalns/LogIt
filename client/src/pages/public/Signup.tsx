@@ -3,6 +3,7 @@ import {
   Button,
   Stack,
   Divider,
+  Group,
 } from '@mantine/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
@@ -12,8 +13,7 @@ import { signup } from '@slices/authSlice';
 import { useEffect } from 'react';
 import { GoogleButton } from '@components/user/GoogleButton';
 
-import AuthContainer from '@/components/auth/AuthContainer';
-import AuthHeader from '@/components/auth/AuthHeader';
+import AuthSplitLayout from '@/components/auth/AuthSplitLayout';
 import { TextField } from '@/components/auth/FormField';
 import { PasswordField } from '@/components/auth/FormField';
 import SubmitButton from '@/components/auth/SubmitButton';
@@ -71,68 +71,64 @@ export default function Signup() {
   };
 
   return (
-    <AuthContainer my={20} mt={100}>
-      <AuthHeader
-        icon={<UserPlusIcon width={42} color="var(--mantine-color-blue-6)" />}
-        title="Create your account"
-        description="Fill in your details to get started with LogIt"
-      />
-
+    <AuthSplitLayout
+      rightHeading="Join LogIt today!"
+      rightDescription={
+        'Start your journey. Log, share, connect, and grow with your personal digital journal and knowledge hub.'
+      }
+    >
+      <Group justify="center" mb="md">
+        <UserPlusIcon width={36} color="var(--mantine-color-blue-6)" />
+      </Group>
+      <Stack gap={4} mb="lg" align="center">
+        <h2 style={{ fontWeight: 700, fontSize: 28, margin: 0 }}>Create Account</h2>
+        <div style={{ color: '#888', fontSize: 15, textAlign: 'center' }}>
+          Start your journey with LogIt today!
+        </div>
+      </Stack>
       <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack gap="md">
+        <Stack gap="sm">
+          <GoogleButton style={{ width: '100%' }} />
+          <Divider label="or Sign up with Email" labelPosition="center" my="xs" color="gray" />
           <TextField
             label="Name"
             placeholder="Your name"
             {...form.getInputProps('name')}
           />
-
           <TextField
             label="Email"
             placeholder="you@example.com"
             {...form.getInputProps('email')}
           />
-
           <PasswordField
             label="Password"
             placeholder="Create a strong password"
             {...form.getInputProps('password')}
           />
-
           <PasswordField
             label="Confirm Password"
             placeholder="Repeat your password"
             {...form.getInputProps('confirmPassword')}
           />
-
           <ErrorDisplay error={error} />
-
-          <SubmitButton loading={loading}>
+          <SubmitButton loading={loading} style={{ width: '100%' }}>
             Create account
           </SubmitButton>
-
-          <Divider
-            label="Already have an account?"
-            labelPosition="center"
-            my="xs"
-            color="gray"
-          />
-
-          <Stack gap="sm">
+          <Group justify="center" mt={4}>
+            <span style={{ fontSize: 14, color: '#888' }}>Already have an account?</span>
             <Button
               component={Link}
               to="/login"
-              variant="light"
-              radius="xl"
-              size="md"
-              fullWidth
+              variant="subtle"
+              size="sm"
+              color="blue"
+              style={{ fontWeight: 500 }}
             >
               Sign in
             </Button>
-
-            <GoogleButton style={{ width: '100%' }} />
-          </Stack>
+          </Group>
         </Stack>
       </form>
-    </AuthContainer>
+    </AuthSplitLayout>
   );
 }

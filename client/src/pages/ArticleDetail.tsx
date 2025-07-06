@@ -39,61 +39,55 @@ const ArticleDetailSkeleton = () => {
   const isDark = colorScheme === 'dark';
   const theme = useMantineTheme();
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
+  const containerClassName = `user-page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
 
   return (
-    <Box
-      style={{
-        marginLeft: isMobile ? theme.spacing.md : isSidebarOpen ? '290px' : theme.spacing.md,
-        marginRight: isMobile ? theme.spacing.md : theme.spacing.xl,
-        paddingTop: '30px',
-        transition: 'margin-left 0.3s ease',
-      }}
-    >
+    <div className={containerClassName}>
       <Paper
-        radius="lg"
-        p={isMobile ? 'md' : 'xl'}
+        radius="md"
+        p={isMobile ? 'sm' : 'lg'}
         style={{
-          backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
-          backdropFilter: 'blur(16px)',
-          border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+          backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.3)',
+          backdropFilter: 'blur(12px)',
+          border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)',
           boxShadow: isDark
-            ? '0 4px 24px rgba(0,0,0,0.5)'
-            : '0 4px 16px rgba(0,0,0,0.1)',
+            ? '0 2px 12px rgba(0,0,0,0.3)'
+            : '0 2px 8px rgba(0,0,0,0.06)',
         }}
       >
-        <Stack gap="md">
-          <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
+        <Stack gap="sm">
+          <Group justify="space-between" align="flex-start" wrap="wrap" gap="sm">
             <Box style={{ minWidth: 0, flex: 1 }}>
-              <Skeleton height={isMobile ? 32 : 40} width="80%" mb="xs" />
+              <Skeleton height={isMobile ? 28 : 36} width="80%" mb="xs" />
               <Group gap="xs" mt={4} wrap="wrap">
-                <Skeleton height={20} width={120} />
-                <Skeleton height={20} width={20} />
-                <Skeleton height={20} width={100} />
+                <Skeleton height={18} width={120} />
+                <Skeleton height={18} width={18} />
+                <Skeleton height={18} width={100} />
               </Group>
             </Box>
-            <Group gap="sm">
-              <Skeleton height={36} width={120} />
-              <Skeleton height={36} width={120} />
+            <Group gap="xs">
+              <Skeleton height={32} width={100} />
+              <Skeleton height={32} width={100} />
             </Group>
           </Group>
 
-          <Box mt="md">
-            <Skeleton height={20} width="100%" mb="md" />
-            <Skeleton height={20} width="95%" mb="md" />
-            <Skeleton height={20} width="90%" mb="md" />
-            <Skeleton height={20} width="85%" mb="md" />
-            <Skeleton height={20} width="92%" mb="md" />
-            <Skeleton height={20} width="88%" mb="md" />
+          <Box mt="sm">
+            <Skeleton height={18} width="100%" mb="sm" />
+            <Skeleton height={18} width="95%" mb="sm" />
+            <Skeleton height={18} width="90%" mb="sm" />
+            <Skeleton height={18} width="85%" mb="sm" />
+            <Skeleton height={18} width="92%" mb="sm" />
+            <Skeleton height={18} width="88%" mb="sm" />
           </Box>
 
           <Group gap="xs" wrap="wrap">
-            <Skeleton height={24} width={80} radius="xl" />
-            <Skeleton height={24} width={100} radius="xl" />
-            <Skeleton height={24} width={90} radius="xl" />
+            <Skeleton height={22} width={80} radius="xl" />
+            <Skeleton height={22} width={100} radius="xl" />
+            <Skeleton height={22} width={90} radius="xl" />
           </Group>
         </Stack>
       </Paper>
-    </Box>
+    </div>
   );
 };
 
@@ -119,6 +113,8 @@ export default function ArticleDetailPage() {
 
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
   const isAuthor = user?._id === article?.authorId;
+
+  const containerClassName = `user-page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
 
   const reportForm = useForm({
     initialValues: {
@@ -172,24 +168,26 @@ export default function ArticleDetailPage() {
 
   if (!article) {
     return (
+      <div className={containerClassName}>
       <Center h="100vh">
         <Paper
-          radius="lg"
-          p="xl"
+            radius="md"
+            p="lg"
           style={{
-            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
-            backdropFilter: 'blur(16px)',
-            border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+              backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.3)',
+              backdropFilter: 'blur(12px)',
+              border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)',
             boxShadow: isDark
-              ? '0 4px 24px rgba(0,0,0,0.5)'
-              : '0 4px 16px rgba(0,0,0,0.1)',
+                ? '0 2px 12px rgba(0,0,0,0.3)'
+                : '0 2px 8px rgba(0,0,0,0.06)',
           }}
         >
-          <Text size="xl" c="dimmed">
+            <Text size="lg" c="dimmed">
             Article not found
           </Text>
         </Paper>
       </Center>
+      </div>
     );
   }
 
@@ -235,7 +233,7 @@ export default function ArticleDetailPage() {
           overflowX: 'auto',
           maxWidth: '100%',
           backgroundColor: isDark ? theme.colors.dark[7] : theme.colors.gray[0],
-          padding: theme.spacing.md,
+          padding: theme.spacing.sm,
           borderRadius: theme.radius.md,
           fontSize: isMobile ? theme.fontSizes.sm : theme.fontSizes.md,
         }}
@@ -302,28 +300,21 @@ export default function ArticleDetailPage() {
 
   return (
     <>
-      <Box
-        style={{
-          marginLeft: isMobile ? theme.spacing.md : isSidebarOpen ? '290px' : theme.spacing.md,
-          marginRight: isMobile ? theme.spacing.md : theme.spacing.xl,
-          paddingTop: '30px',
-          transition: 'margin-left 0.3s ease',
-        }}
-      >
+      <div className={containerClassName}>
         <Paper
-          radius="lg"
-          p={isMobile ? 'md' : 'xl'}
+          radius="md"
+          p={isMobile ? 'sm' : 'lg'}
           style={{
-            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
-            backdropFilter: 'blur(16px)',
-            border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+            backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.3)',
+            backdropFilter: 'blur(12px)',
+            border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)',
             boxShadow: isDark
-              ? '0 4px 24px rgba(0,0,0,0.5)'
-              : '0 4px 16px rgba(0,0,0,0.1)',
+              ? '0 2px 12px rgba(0,0,0,0.3)'
+              : '0 2px 8px rgba(0,0,0,0.06)',
           }}
         >
-          <Stack gap="md">
-            <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
+          <Stack gap="sm">
+            <Group justify="space-between" align="flex-start" wrap="wrap" gap="sm">
               <Box style={{ minWidth: 0, flex: 1 }}>
                 <Title order={1} size={isMobile ? 'h2' : 'h1'} style={{ wordBreak: 'break-word' }}>
                   {article.title}
@@ -348,20 +339,20 @@ export default function ArticleDetailPage() {
                 </Group>
               </Box>
 
-              <Group gap="sm">
+              <Group gap="xs">
                 {isAuthor && (
                   <>
                     <Button
-                      leftSection={<EditIcon width={16} />}
+                      leftSection={<EditIcon width={14} />}
                       onClick={() => navigate(`/articles/${article._id}/edit`)}
-                      size={isMobile ? 'sm' : 'md'}
+                      size={isMobile ? 'xs' : 'sm'}
                     >
                       Edit Article
                     </Button>
                     <Button
-                      leftSection={<TrashIcon width={16} />}
+                      leftSection={<TrashIcon width={14} />}
                       onClick={() => setDeleteModalOpen(true)}
-                      size={isMobile ? 'sm' : 'md'}
+                      size={isMobile ? 'xs' : 'sm'}
                       color="red"
                       variant="outline"
                     >
@@ -371,9 +362,9 @@ export default function ArticleDetailPage() {
                 )}
                 {!isAuthor && !isAdmin && (
                   <Button
-                    leftSection={<AlertTriangleIcon width={16} />}
+                    leftSection={<AlertTriangleIcon width={14} />}
                     onClick={() => setReportModalOpen(true)}
-                    size={isMobile ? 'sm' : 'md'}
+                    size={isMobile ? 'xs' : 'sm'}
                     variant="outline"
                     color="red"
                     disabled={article.isReported}
@@ -384,7 +375,7 @@ export default function ArticleDetailPage() {
               </Group>
             </Group>
 
-            <Box mt="md" style={{ wordBreak: 'break-word' }}>
+            <Box mt="sm" style={{ wordBreak: 'break-word' }}>
               <ReactMarkdown
                 rehypePlugins={[rehypeRaw]}
                 remarkPlugins={[remarkGfm]}
@@ -396,12 +387,12 @@ export default function ArticleDetailPage() {
 
             <TagList 
               tags={article.tagNames.map(name => ({ name }))} 
-              size="sm"
+              size="xs"
               maxVisible={10}
             />
           </Stack>
         </Paper>
-      </Box>
+      </div>
 
       <Modal
         opened={reportModalOpen}
@@ -411,9 +402,9 @@ export default function ArticleDetailPage() {
         zIndex={2000}
         styles={{
           content: {
-            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.95)',
-            backdropFilter: 'blur(16px)',
-            border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+            backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.95)',
+            backdropFilter: 'blur(12px)',
+            border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)',
           },
           header: {
             backgroundColor: 'transparent',
@@ -421,7 +412,7 @@ export default function ArticleDetailPage() {
         }}
       >
         <form onSubmit={reportForm.onSubmit(handleReportSubmit)}>
-          <Stack gap="md">
+          <Stack gap="sm">
             <Text size="sm" fw={500}>
               Reason for reporting
             </Text>
@@ -452,15 +443,16 @@ export default function ArticleDetailPage() {
                 </Text>
               )}
 
-            <Group justify="flex-end" mt="md">
+            <Group justify="flex-end" mt="sm">
               <Button
                 variant="default"
                 onClick={() => setReportModalOpen(false)}
                 disabled={reportLoading}
+                size="sm"
               >
                 Cancel
               </Button>
-              <Button type="submit" color="red" loading={reportLoading}>
+              <Button type="submit" color="red" loading={reportLoading} size="sm">
                 Submit
               </Button>
             </Group>

@@ -47,21 +47,11 @@ export default function ArticleEditor({ mode }: ArticleEditorProps) {
     setSubscriptionLimitError(null);
   };
 
+  const containerClassName = `editor-page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
+
   return (
     <>
-      <Box 
-        style={{
-          marginLeft: isMobile ? '16px' : (isSidebarOpen ? '290px' : '16px'),
-          marginRight: isMobile ? '16px' : '30px',
-          paddingLeft: isMobile ? '0' : '16px',
-          paddingTop: isMobile ? '60px' : '80px',
-          paddingBottom: '100px',
-          transition: 'margin-left 0.3s ease',
-          minHeight: '100vh',
-          position: 'relative',
-          zIndex: 0
-        }}
-      >
+      <div className={containerClassName}>
         <Container 
           size="xl" 
           style={{
@@ -79,7 +69,7 @@ export default function ArticleEditor({ mode }: ArticleEditorProps) {
             onSubscriptionLimitError={handleSubscriptionLimitError}
           />
         </Container>
-      </Box>
+      </div>
 
       {subscriptionLimitError && (
         <SubscriptionLimitModal

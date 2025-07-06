@@ -1,4 +1,4 @@
-import { Paper, Stack, Group, Text, ActionIcon } from '@mantine/core';
+import { Paper, Group, Text, ActionIcon } from '@mantine/core';
 import { ReactNode } from 'react';
 
 interface StatsCardProps {
@@ -9,20 +9,20 @@ interface StatsCardProps {
 
 export default function StatsCard({ label, value, icon }: StatsCardProps) {
   return (
-    <Paper shadow="lg" radius="md" p="md" withBorder >
-      <Stack gap="sm">
-        <Group justify="space-between" align="center">
-          <ActionIcon variant="light" color="blue" radius="xl" size={40}>
+    <Paper shadow="sm" radius="md" p="sm" withBorder>
+      <Group gap="sm" align="center">
+        <ActionIcon variant="light" color="blue" radius="md" size={36}>
             {icon}
           </ActionIcon>
-        </Group>
-        <Text size="xl" fw={700}>
+        <div style={{ flex: 1 }}>
+          <Text size="lg" fw={700} lh={1.2}>
           {value}
         </Text>
-        <Text size="sm" c="dimmed">
+          <Text size="xs" c="dimmed" lh={1.2}>
           {label}
         </Text>
-      </Stack>
+        </div>
+      </Group>
     </Paper>
   );
 } 

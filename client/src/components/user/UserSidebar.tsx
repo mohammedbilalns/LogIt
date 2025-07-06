@@ -1,4 +1,3 @@
-
 import { ChevronLeftIcon } from '../icons/ChevronLeftIcon';
 import { HomeIcon } from '../icons/HomeIcon';
 import { Menu2Icon } from '../icons/Menu2Icon';
@@ -70,19 +69,19 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
         <Portal>
           <ActionIcon
             variant="filled"
-            size="lg"
+            size="md"
             color="blue"
             radius="xl"
             onClick={handleToggleSidebar}
             style={{
               position: 'fixed',
-              bottom: '2rem',
-              left: '2rem',
+              bottom: '1.5rem',
+              left: '1.5rem',
               zIndex: 1000,
-              boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             }}
           >
-            <Menu2Icon width={20} />
+            <Menu2Icon width={16} />
           </ActionIcon>
         </Portal>
       )}
@@ -106,24 +105,24 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
 
       <Portal>
         <Paper
-          p="md"
+          p="sm"
           style={{
             position: 'fixed',
-            left: isMobile ? (isOpen ? '1rem' : '-300px') : isOpen ? '1rem' : '-300px',
-            top: '5rem',
-            width: '250px',
-            height: 'calc(100vh - 6rem)',
+            left: isMobile ? (isOpen ? '0.75rem' : '-280px') : isOpen ? '0.75rem' : '-280px',
+            top: '4rem',
+            width: '220px',
+            height: 'calc(100vh - 5rem)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
             zIndex: 1001,
             transition: 'left 0.3s ease',
             overflow: 'hidden',
-            borderRadius: '1rem',
+            borderRadius: '0.75rem',
             backgroundColor: isDark ? 'rgba(30, 30, 30, 0.6)' : 'rgba(255, 255, 255, 0.6)',
             backdropFilter: 'blur(12px)',
             border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
-            boxShadow: isDark ? '0 8px 24px rgba(0,0,0,0.4)' : '0 8px 24px rgba(0,0,0,0.15)',
+            boxShadow: isDark ? '0 4px 16px rgba(0,0,0,0.3)' : '0 4px 16px rgba(0,0,0,0.1)',
           }}
         >
           <Stack gap="xs" style={{ overflowY: 'auto' }}>
@@ -146,17 +145,17 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
                           ? 'rgba(0, 123, 255, 0.25)'
                           : 'rgba(0, 123, 255, 0.1)'
                         : 'transparent',
-                      padding: '0.5rem',
+                      padding: '0.375rem',
                       flex: 1,
                       transition: 'background-color 150ms ease',
                     }}
                   >
-                    <Group gap="md">
+                    <Group gap="sm">
                       <Box
                         style={{
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '0.5rem',
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '0.375rem',
                           backgroundColor: isActive
                             ? 'var(--mantine-color-blue-6)'
                             : isDark
@@ -168,7 +167,7 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
                           color: isActive ? 'white' : 'var(--mantine-color-blue-6)',
                         }}
                       >
-                        <item.icon width={20} />
+                        <item.icon width={16} />
                       </Box>
                       <Text
                         size="sm"
@@ -187,14 +186,14 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
                       color="blue"
                       radius="xl"
                       onClick={handleToggleSidebar}
-                      size="sm"
+                      size="xs"
                       style={{
                         transform: isOpen ? 'rotate(0deg)' : 'rotate(180deg)',
                         transition: 'transform 0.3s ease',
-                        marginLeft: '0.5rem',
+                        marginLeft: '0.25rem',
                       }}
                     >
-                      <ChevronLeftIcon width={16} />
+                      <ChevronLeftIcon width={12} />
                     </ActionIcon>
                   )}
                 </Group>
@@ -203,7 +202,7 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
           </Stack>
 
           <Box>
-            <Divider my="sm" />
+            <Divider my="xs" />
             <UnstyledButton
               onClick={() => handleNavigation('/profile')}
               style={{
@@ -214,7 +213,7 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
                       ? 'rgba(0, 123, 255, 0.25)'
                       : 'rgba(0, 123, 255, 0.1)'
                     : 'transparent',
-                padding: '0.5rem',
+                padding: '0.375rem',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -222,7 +221,7 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
               }}
             >
               <Group gap="sm" align="center" style={{ flexWrap: 'nowrap', width: '100%' }}>
-                <Avatar color="blue" radius="xl" src={user?.profileImage}>
+                <Avatar color="blue" radius="md" size="sm" src={user?.profileImage}>
                   {getInitials(user?.name)}
                 </Avatar>
                 <Box style={{ overflow: 'hidden' }}>

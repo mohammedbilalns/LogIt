@@ -1,4 +1,4 @@
-import { Title, Grid, Box, Stack, Paper } from '@mantine/core';
+import { Title, Grid, Box, Stack, Paper, Group, Text, Button, SimpleGrid } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/store';
@@ -15,7 +15,6 @@ import { UsersIcon } from '@/components/icons/UsersIcon';
 import { notifications } from '@mantine/notifications';
 import { HomeSkeleton } from '@components/skeletons/HomeSkeleton';
 import StatsCard from '@components/home/StatsCard';
-import RecentItemsSection from '@components/home/RecentItemsSection';
 import ActivityChart from '@components/home/ActivityChart';
 import RecentActivitySection from '@components/home/RecentActivitySection';
 import { formatRelativeDate } from '@/utils/dateUtils';
@@ -59,26 +58,26 @@ export default function Home() {
     {
       label: 'Total Logs',
       value: homeData?.logsCount.toString() || '0',
-      icon: <FileTextIcon width={28} />
+      icon: <FileTextIcon width={24} />
     },
     {
       label: 'Articles Written',
       value: homeData?.articlesCount.toString() || '0',
-      icon: <FileTextIcon width={28} />
+      icon: <FileTextIcon width={24} />
     },
     {
       label: 'Messages',
       value: homeData?.messagesCount.toString() || '0',
-      icon: <MessageIcon width={28} />
+      icon: <MessageIcon width={24} />
     },
     {
       label: 'Followers',
       value: homeData?.followersCount.toString() || '0',
-      icon: <UsersIcon width={28} />
+      icon: <UsersIcon width={24} />
     },
   ], [homeData]);
 
-  const containerClassName = `page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
+  const containerClassName = `user-page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
 
   if (!appInitialized || !authInitialized || !user || !user._id || homeLoading) {
     return (
@@ -86,7 +85,7 @@ export default function Home() {
         {homeLoading ? (
           <HomeSkeleton />
         ) : (
-          <Stack gap="xl">
+          <Stack gap="lg">
             <Title order={1} fw={700}>
               Loading...
             </Title>
@@ -98,31 +97,51 @@ export default function Home() {
 
   return (
     <Box className={containerClassName}>
-      <Stack gap="xl">
-        <Title order={1} fw={700}>
-          Welcome, {user?.name || 'User'}
-        </Title>
+      <Stack gap="lg">
+        <Group justify="space-between" align="center">
+          <Title order={1} fw={700} size="h2">
+            Welcome back, {user?.name || 'User'}
+          </Title>
+          <Group gap="sm">
+            <Button 
+              variant="filled" 
+              size="sm" 
+              leftSection={<FileTextIcon width={16} />}
+              onClick={() => navigate('/logs/create')}
+            >
+              New Log
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              leftSection={<FileTextIcon width={16} />}
+              onClick={() => navigate('/articles/create')}
+            >
+              Write Article
+            </Button>
+          </Group>
+        </Group>
 
-        {/* Stats Section */}
-        <Grid gutter="md">
+        {/* Stats Section  */}
+        <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
           {statsData.map((stat, index) => (
-            <Grid.Col span={{ base: 6, sm: 3 }} key={index}>
-              <StatsCard {...stat} />
-            </Grid.Col>
+            <StatsCard key={index} {...stat} />
           ))}
-        </Grid>
+        </SimpleGrid>
 
-        {/* Recent Activity & Weekly Log Activity */}
         <Grid gutter="md">
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <RecentActivitySection 
-              activities={homeData?.recentActivities || []}
-              formatDate={formatRelativeDate}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, md: 6 }}>
+          <Grid.Col span={{ base: 12, lg: 4 }}>
             <Paper shadow="sm" radius="md" p="md" withBorder>
-              <Title order={2} fw={600} mb="md">Weekly Activity</Title>
+              <RecentActivitySection 
+                activities={homeData?.recentActivities || []}
+                formatDate={formatRelativeDate}
+              />
+            </Paper>
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, lg: 8 }}>
+            <Paper shadow="sm" radius="md" p="md" withBorder style={{ height: 'fit-content' }}>
+              <Title order={3} fw={600} mb="md">Weekly Activity</Title>
               <ActivityChart 
                 data={homeData?.chartData || []}
                 onNewLog={() => navigate('/logs/create')}
@@ -132,23 +151,37 @@ export default function Home() {
           </Grid.Col>
         </Grid>
 
-        {/* Recent Logs */}
-        <RecentItemsSection
-          title="Recent Logs"
-          items={logs.map(log => <LogRow key={log._id} log={log} />)}
-          emptyMessage="No recent logs available."
-          viewMorePath="/logs"
-          onViewMore={() => navigate('/logs')}
-        />
+        <Paper shadow="sm" radius="md" p="md" withBorder>
+          <Group justify="space-between" align="center" mb="sm">
+            <Title order={3} fw={600}>Recent Logs</Title>
+            <Button variant="subtle" size="sm" onClick={() => navigate('/logs')}>
+              View All
+            </Button>
+          </Group>
+          <Stack gap="xs">
+            {logs.length === 0 ? (
+              <Text c="dimmed" size="sm">No recent logs available.</Text>
+            ) : (
+              logs.map(log => <LogRow key={log._id} log={log} />)
+            )}
+          </Stack>
+        </Paper>
 
-        {/* Recent Articles */}
-        <RecentItemsSection
-          title="Recent Articles"
-          items={articles.map(article => <ArticleRow key={article._id} article={article} />)}
-          emptyMessage="No recent articles available."
-          viewMorePath="/articles"
-          onViewMore={() => navigate('/articles')}
-        />
+        <Paper shadow="sm" radius="md" p="md" withBorder>
+          <Group justify="space-between" align="center" mb="sm">
+            <Title order={3} fw={600}>Recent Articles</Title>
+            <Button variant="subtle" size="sm" onClick={() => navigate('/articles')}>
+              View All
+            </Button>
+          </Group>
+          <Stack gap="xs">
+            {articles.length === 0 ? (
+              <Text c="dimmed" size="sm">No recent articles available.</Text>
+            ) : (
+              articles.map(article => <ArticleRow key={article._id} article={article} />)
+            )}
+          </Stack>
+        </Paper>
       </Stack>
     </Box>
   );

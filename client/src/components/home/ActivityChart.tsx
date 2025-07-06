@@ -36,7 +36,7 @@ export default function ActivityChart({ data, onNewLog, onWriteArticle }: Activi
 
   return (
     <>
-      <Box style={styles.container}>
+      <Box style={{ ...styles.container, height: '200px' }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={styles.chartMargin}>
             <CartesianGrid {...styles.grid} />
@@ -60,13 +60,14 @@ export default function ActivityChart({ data, onNewLog, onWriteArticle }: Activi
           </LineChart>
         </ResponsiveContainer>
       </Box>
-      <Group mt="md" justify="space-between">
-        <Button variant="default" leftSection={<FileTextIcon width={18} />} onClick={onNewLog}>
+      <Group mt="sm" gap="xs" justify="space-between">
+        <Button variant="default" size="xs" leftSection={<FileTextIcon width={14} />} onClick={onNewLog}>
           New Log
         </Button>
         <Button
           variant="default"
-          leftSection={<FileTextIcon width={18} />}
+          size="xs"
+          leftSection={<FileTextIcon width={14} />}
           onClick={onWriteArticle}
         >
           Write Article

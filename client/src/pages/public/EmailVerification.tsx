@@ -5,6 +5,7 @@ import {
   Text,
   Button,
   Stack,
+  Group,
 } from '@mantine/core';
 import { MailCheckIcon } from '@/components/icons/MailCheckIcon';
 import { AppDispatch, RootState } from '@/store';
@@ -16,8 +17,7 @@ import {
 } from '@slices/authSlice';
 import { notifications } from '@mantine/notifications';
 
-import AuthContainer from '@/components/auth/AuthContainer';
-import AuthHeader from '@/components/auth/AuthHeader';
+import AuthSplitLayout from '@/components/auth/AuthSplitLayout';
 import OTPInput from '@/components/auth/OTPInput';
 import SubmitButton from '@/components/auth/SubmitButton';
 import ErrorDisplay from '@/components/auth/ErrorDisplay';
@@ -106,20 +106,17 @@ export default function EmailVerification() {
   };
 
   return (
-    <AuthContainer my={100} withBorder>
-      <AuthHeader
-        icon={<MailCheckIcon width={50} color="var(--mantine-color-blue-6)" />}
-        title="Verify Your Email"
-        description={
-          <>
-            We've sent a verification code to{' '}
-            <Text span fw={500} c="blue">
-              {verificationEmail}
-            </Text>
-          </>
-        }
-      />
-
+    <AuthSplitLayout>
+      <Group justify="center" mb="md">
+        <MailCheckIcon width={36} color="var(--mantine-color-blue-6)" />
+      </Group>
+      <Stack gap={4} mb="lg" align="center">
+        <h2 style={{ fontWeight: 700, fontSize: 26, margin: 0 }}>Verify Your Email</h2>
+        <div style={{ color: '#888', fontSize: 15, textAlign: 'center' }}>
+          We've sent a verification code to{' '}
+          <span style={{ fontWeight: 500, color: 'var(--mantine-color-blue-6)' }}>{verificationEmail}</span>
+        </div>
+      </Stack>
       <form onSubmit={handleSubmit}>
         <Stack>
           <OTPInput
@@ -132,15 +129,12 @@ export default function EmailVerification() {
             onResend={handleResendOTP}
             onResendLoading={resendLoading}
           />
-
           <ErrorDisplay error={error} />
-
           {otpExpiryTime === 0 && (
             <Text c="orange" size="sm" ta="center">
               OTP expired. Please resend.
             </Text>
           )}
-
           <SubmitButton
             loading={loading}
             disabled={otp.length !== 6 || otpExpiryTime === 0}
@@ -148,7 +142,6 @@ export default function EmailVerification() {
           >
             Verify Email
           </SubmitButton>
-
           <Button
             variant="subtle"
             fullWidth
@@ -163,6 +156,9 @@ export default function EmailVerification() {
           </Button>
         </Stack>
       </form>
-    </AuthContainer>
+      <div style={{ marginTop: 32, fontSize: 12, color: '#bbb', textAlign: 'center' }}>
+        ©2024 LogIt. All rights reserved.
+      </div>
+    </AuthSplitLayout>
   );
 }

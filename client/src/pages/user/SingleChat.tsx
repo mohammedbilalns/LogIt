@@ -1,79 +1,55 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { Box, Loader } from '@mantine/core';
+import { Box, Loader, Text } from '@mantine/core';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { ChatMessages } from '@/components/chat/ChatMessages';
 import UserSidebar from '@/components/user/UserSidebar';
 import { useChat } from '@/hooks/useChat';
 import { ChatInput } from '../../components/chat/ChatInput';
+import { useMediaQuery } from '@mantine/hooks';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 
 export default function SingleChatPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const chat = useChat(id);
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
 
   const handleBackToChats = () => {
     navigate('/chats?tab=single');
   };
 
+  const containerClassName = `chat-page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
+
   if (chat.loading && chat.page === 1 && chat.messages.length === 0) {
     return (
       <>
         <UserSidebar />
-        <Box
-          className={chat.containerClassName}
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '100vh',
-          }}
-        >
+        <Box className={containerClassName} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <Loader size="lg" />
         </Box>
       </>
     );
   }
+  
   if (chat.error) {
     return (
       <>
         <UserSidebar />
-        <Box
-          className={chat.containerClassName}
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '100vh',
-          }}
-        >
-          <span style={{ color: 'red' }}>{chat.error}</span>
+        <Box className={containerClassName} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <Text c="red">{chat.error}</Text>
         </Box>
       </>
     );
   }
+  
   return (
     <>
       <UserSidebar />
-      <Box
-        className={chat.containerClassName}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: '100vh',
-          height: '100vh',
-          overflow: 'hidden',
-        }}
-      >
+      <Box className={containerClassName}>
         <ChatHeader {...chat} onBackClick={handleBackToChats} />
-        <Box
-          style={{
-            flex: 1,
-            minHeight: 0,
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
+        <Box style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <ChatMessages {...chat} />
         </Box>
         <ChatInput {...chat} />

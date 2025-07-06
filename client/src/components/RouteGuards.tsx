@@ -8,11 +8,14 @@ import UserSidebar from '@components/user/UserSidebar';
 
 export function Layout() {
   const { user } = useSelector((state: RootState) => state.auth);
+  const location = useLocation();
+  const nonFixedRoutes = ['/', '/login', '/signup', '/reset-password', '/verify-email'];
+  const isNonFixed = nonFixedRoutes.includes(location.pathname);
   return (
     <Box>
-      <Navbar />
+      <Navbar fixed={!isNonFixed} />
       {user?.role === 'user' && <UserSidebar />}
-      <Box style={{ marginTop: '4.5rem' }}>
+      <Box style={{ marginTop: !isNonFixed ? '4.5rem' : 0 }}>
         <Suspense fallback={<LoadingOverlay visible />}>
           <Outlet />
         </Suspense>

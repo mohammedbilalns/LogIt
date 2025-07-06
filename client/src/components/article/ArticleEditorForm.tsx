@@ -286,17 +286,17 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
       style={{
         width: '100%',
         zIndex: 0,
-        backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
-        backdropFilter: 'blur(16px)',
-        border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
-        borderRadius: 'var(--mantine-radius-lg)',
+        backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.3)',
+        backdropFilter: 'blur(12px)',
+        border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)',
+        borderRadius: 'var(--mantine-radius-md)',
         boxShadow: isDark
-          ? '0 4px 24px rgba(0,0,0,0.5)'
-          : '0 4px 16px rgba(0,0,0,0.1)',
-        padding: isMobile ? '1rem' : '1.5rem',
+          ? '0 2px 12px rgba(0,0,0,0.3)'
+          : '0 2px 8px rgba(0,0,0,0.06)',
+        padding: isMobile ? 'sm' : 'lg',
       }}
     >
-      <Box mb="xl">
+      <Box mb="sm">
         <TextInput
           label="Title"
           placeholder="Enter article title"
@@ -309,12 +309,12 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
           }}
           error={errors.title}
           required
-          size={isMobile ? "md" : "lg"}
+          size={isMobile ? "sm" : "md"}
           maxLength={150}
           styles={{
             input: {
-              fontSize: isMobile ? '1rem' : '1.25rem',
-              padding: isMobile ? '0.75rem' : '1rem',
+              fontSize: isMobile ? '1rem' : '1.125rem',
+              padding: isMobile ? '0.5rem 0.75rem' : '0.75rem 1rem',
               backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
               backdropFilter: 'blur(8px)',
               border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)',
@@ -324,13 +324,13 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
             },
             label: {
               color: isDark ? 'var(--mantine-color-gray-0)' : 'var(--mantine-color-dark-9)',
-              marginBottom: '0.5rem',
+              marginBottom: '0.25rem',
             }
           }}
         />
       </Box>
 
-      <Box mb="xl" style={{ width: '100%', position: 'relative', zIndex: 0 }}>
+      <Box mb="sm" style={{ width: '100%', position: 'relative', zIndex: 0 }}>
         <RichTextEditor
           editor={editor}
           style={{
@@ -343,29 +343,23 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
             stickyOffset={isMobile ? 60 : 80}
             style={{
               backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
-              backdropFilter: 'blur(16px)',
+              backdropFilter: 'blur(12px)',
               border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)',
               borderRadius: 'var(--mantine-radius-md)',
               boxShadow: isDark
-                ? '0 2px 12px rgba(0,0,0,0.3)'
-                : '0 2px 12px rgba(0,0,0,0.05)',
+                ? '0 2px 8px rgba(0,0,0,0.2)'
+                : '0 2px 8px rgba(0,0,0,0.04)',
               width: '100%',
               position: 'sticky',
               top: isMobile ? '60px' : '62px',
               zIndex: 100,
-              padding: '0.5rem',
+              padding: '0.25rem',
             }}
           >
-            <RichTextEditor.ControlsGroup>
-              {editor && (
-                <BubbleMenu editor={editor}>
                   <RichTextEditor.ControlsGroup>
                     <RichTextEditor.Bold />
                     <RichTextEditor.Italic />
                     <RichTextEditor.Underline />
-                  </RichTextEditor.ControlsGroup>
-                </BubbleMenu>
-              )}
               <RichTextEditor.Strikethrough />
               <RichTextEditor.ClearFormatting />
             </RichTextEditor.ControlsGroup>
@@ -398,7 +392,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
               <Button
                 variant="subtle"
                 size="xs"
-                leftSection={<UploadIcon width={16} height={16} />}
+                leftSection={<UploadIcon width={14} height={14} />}
                 onClick={() => {
                   const input = document.createElement('input');
                   input.type = 'file';
@@ -427,19 +421,19 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
 
           <RichTextEditor.Content
             style={{
-              minHeight: isMobile ? '300px' : '500px',
-              maxHeight: isMobile ? '400px' : '600px',
+              minHeight: isMobile ? '250px' : '400px',
+              maxHeight: isMobile ? '350px' : '500px',
               overflow: 'auto',
-              backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
+              backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.5)',
               backdropFilter: 'blur(8px)',
-              border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+              border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)',
               borderRadius: 'var(--mantine-radius-md)',
               color: isDark ? 'var(--mantine-color-gray-0)' : 'inherit',
-              padding: '1.5rem',
+              padding: '1rem',
               width: '100%',
               position: 'relative',
               '& .ProseMirror': {
-                minHeight: isMobile ? '300px' : '500px',
+                minHeight: isMobile ? '250px' : '400px',
                 maxHeight: 'none',
                 '& > *:first-child': {
                   marginTop: 0,
@@ -448,21 +442,23 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
                   marginBottom: 0,
                 },
                 '& p': {
-                  fontSize: isMobile ? '1rem' : '1.125rem',
+                  fontSize: isMobile ? '0.875rem' : '1rem',
                   lineHeight: 1.6,
                   color: isDark ? 'var(--mantine-color-gray-0)' : 'inherit',
+                  wordBreak: 'break-word',
                 },
                 '& h1, & h2, & h3, & h4': {
                   color: isDark ? 'var(--mantine-color-gray-0)' : 'inherit',
+                  wordBreak: 'break-word',
                 },
                 '& h1': {
-                  fontSize: isMobile ? '1.75rem' : '2rem',
-                },
-                '& h2': {
                   fontSize: isMobile ? '1.5rem' : '1.75rem',
                 },
-                '& h3': {
+                '& h2': {
                   fontSize: isMobile ? '1.25rem' : '1.5rem',
+                },
+                '& h3': {
+                  fontSize: isMobile ? '1.125rem' : '1.25rem',
                 },
                 '& blockquote': {
                   borderLeftColor: isDark ? 'var(--mantine-color-gray-6)' : 'var(--mantine-color-gray-4)',
@@ -478,11 +474,12 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
                 },
                 '& .ProseMirror img': {
                   maxWidth: '100%',
-                  width: '100px',
                   height: 'auto',
-                  borderRadius: '8px',
+                  maxHeight: isMobile ? '300px' : '400px',
+                  objectFit: 'contain',
+                  borderRadius: '6px',
                   display: 'block',
-                  margin: '1rem auto',
+                  margin: '0.75rem auto',
                 },
               },
             }}
@@ -500,21 +497,31 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
                 }
               }
             }}
-          />
+          >
+            {editor && (
+              <BubbleMenu editor={editor}>
+                <RichTextEditor.ControlsGroup>
+                  <RichTextEditor.Bold />
+                  <RichTextEditor.Italic />
+                  <RichTextEditor.Underline />
+                </RichTextEditor.ControlsGroup>
+              </BubbleMenu>
+            )}
+          </RichTextEditor.Content>
           {uploadingImage && previewImage && (
             <Center style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, background: 'rgba(255,255,255,0.5)' }}>
-              <Loader size="lg" color="blue" />
+              <Loader size="md" color="blue" />
             </Center>
           )}
         </RichTextEditor>
         {errors.content && (
-          <Text c="red" size="sm" mt={5}>
+          <Text c="red" size="sm" mt={4}>
             {errors.content}
           </Text>
         )}
       </Box>
 
-      <Box mb="xl">
+      <Box mb="sm">
         <TagSelector
           value={selectedTags}
           onChange={setSelectedTags}
@@ -531,7 +538,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
             backgroundColor: isDark ? 'rgba(255,0,0,0.1)' : 'rgba(255,0,0,0.05)',
             borderRadius: '4px',
             border: '1px solid rgba(255,0,0,0.2)',
-            marginBottom: '1rem'
+            marginBottom: '0.75rem'
           }}
         >
           {typeof articleError === 'string' ? articleError : (articleError as any)?.message || ''}
@@ -540,11 +547,11 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
         </Text>
       )}
 
-      <Group justify="flex-end" gap="md" wrap="wrap" mt="xl" mb="xl">
+      <Group justify="flex-end" gap="sm" wrap="wrap" mt="sm">
         <Button
           variant="light"
           onClick={onClose}
-          size={isMobile ? "sm" : "md"}
+          size={isMobile ? "xs" : "sm"}
           styles={{
             root: {
               backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
@@ -561,7 +568,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
         <Button
           onClick={handleSubmit}
           disabled={!title.trim() || !editor?.getText().trim() || articleLoading || tagsLoading}
-          size={isMobile ? "sm" : "md"}
+          size={isMobile ? "xs" : "sm"}
           loading={articleLoading || tagsLoading}
           loaderProps={{ size: 'sm', color: 'white' }}
           styles={{

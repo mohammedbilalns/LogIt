@@ -54,8 +54,8 @@ function ChatCard({ chat, isGroup }: { chat: any; isGroup?: boolean }) {
     <Paper
       withBorder
       radius="md"
-      p="md"
-      mb="sm"
+      p="sm"
+      mb="xs"
       onClick={() => isGroup ? navigate(`/group-chats/${chat.id}`) : navigate(`/chats/${chat.id}`)}
       style={{ 
         cursor: 'pointer', 
@@ -67,21 +67,21 @@ function ChatCard({ chat, isGroup }: { chat: any; isGroup?: boolean }) {
       onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)')}
       onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 rgba(0,0,0,0)')}
     >
-      <Group align="center">
+      <Group align="center" gap="sm">
         <Avatar
           src={isGroup ? chat.avatar : otherParticipant?.profileImage || undefined}
-          radius="xl"
-          size={48}
+          radius="md"
+          size={40}
           color={isRemovedOrLeft ? 'red' : 'blue'}
         >
           {(chatName || 'Chat').split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
         </Avatar>
         <Stack gap={0} style={{ flex: 1 }}>
-          <Group gap="xs" justify="space-between">
-            <Text fw={600} style={{ color: isRemovedOrLeft ? '#ff6b6b' : undefined }}>
+          <Group gap="xs" justify="space-between" align="center">
+            <Text fw={600} size="sm" style={{ color: isRemovedOrLeft ? '#ff6b6b' : undefined }}>
               {chatName}
               {isRemovedOrLeft && (
-                <Badge size="xs" color="red" variant="light" style={{ marginLeft: 8 }}>
+                <Badge size="xs" color="red" variant="light" style={{ marginLeft: 4 }}>
                   {myParticipant?.role === 'removed-user' ? 'Removed' : 'Left'}
                 </Badge>
               )}
@@ -90,9 +90,9 @@ function ChatCard({ chat, isGroup }: { chat: any; isGroup?: boolean }) {
               <Text size="xs" c="dimmed">{lastMessageTime}</Text>
             )}
           </Group>
-          <Text size="sm" c={isRemovedOrLeft ? 'red' : 'dimmed'} lineClamp={1}>{lastMessage}</Text>
+          <Text size="xs" c={isRemovedOrLeft ? 'red' : 'dimmed'} lineClamp={1}>{lastMessage}</Text>
         </Stack>
-        {unreadCount > 0 && !isRemovedOrLeft && <Badge color="blue" size="sm">{unreadCount}</Badge>}
+        {unreadCount > 0 && !isRemovedOrLeft && <Badge color="blue" size="xs">{unreadCount}</Badge>}
       </Group>
     </Paper>
   );
@@ -109,7 +109,7 @@ export default function ChatsPage() {
   const initialTab = searchParams.get('tab') === 'group' ? 'group' : 'single';
   const [tab, setTab] = useState<string | null>(initialTab);
   const [groupModalOpened, { open: openGroupModal, close: closeGroupModal }] = useDisclosure(false);
-  const containerClassName = `page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
+  const containerClassName = `user-page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
   const [singlePage, setSinglePage] = useState(1);
   const [groupPage, setGroupPage] = useState(1);
   const [singleLoading, setSingleLoading] = useState(false);
@@ -125,7 +125,6 @@ export default function ChatsPage() {
     }
   };
 
-  // Refresh data when component mounts
   useEffect(() => {
     dispatch(fetchUserChats({ page: 1, limit: 10 }));
     dispatch(fetchUserGroupChats({ page: 1, limit: 10 }));
@@ -220,24 +219,24 @@ export default function ChatsPage() {
               <Tabs.Tab value="single">Single Chats ({singleTotal || 0})</Tabs.Tab>
               <Tabs.Tab value="group">Group Chats ({groupTotal || 0})</Tabs.Tab>
             </Tabs.List>
-            <Tabs.Panel value="single" pt="md">
+            <Tabs.Panel value="single" pt="sm">
               {singleChats.length > 0 ? singleChats.map((chat) => (
                 <ChatCard key={chat.id} chat={chat} />
-              )) : <Text c="dimmed">No single chats found.</Text>}
+              )) : <Text c="dimmed" size="sm">No single chats found.</Text>}
               {tab === 'single' && singleHasMore && (
-                <Box style={{ textAlign: 'center', marginTop: 16 }}>
+                <Box style={{ textAlign: 'center', marginTop: 12 }}>
                   <Button onClick={handleViewMore} variant="subtle" size="xs" loading={singleLoading}>
                     View More
                   </Button>
                 </Box>
               )}
             </Tabs.Panel>
-            <Tabs.Panel value="group" pt="md">
+            <Tabs.Panel value="group" pt="sm">
               {groupChats.length > 0 ? groupChats.map((chat) => (
                 <ChatCard key={chat.id} chat={chat} isGroup />
-              )) : <Text c="dimmed">No group chats found.</Text>}
+              )) : <Text c="dimmed" size="sm">No group chats found.</Text>}
               {tab === 'group' && groupHasMore && (
-                <Box style={{ textAlign: 'center', marginTop: 16 }}>
+                <Box style={{ textAlign: 'center', marginTop: 12 }}>
                   <Button onClick={handleViewMore} variant="subtle" size="xs" loading={groupLoading}>
                     View More
                   </Button>

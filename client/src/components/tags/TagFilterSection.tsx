@@ -33,28 +33,28 @@ export default function TagFilterSection({
 
   return (
     <Paper
-      p="md"
-      radius="lg"
+      p="sm"
+      radius="md"
       withBorder={false}
       style={{
-        backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
-        backdropFilter: 'blur(16px)',
-        border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+        backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.3)',
+        backdropFilter: 'blur(12px)',
+        border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)',
         boxShadow: isDark
-          ? '0 4px 24px rgba(0,0,0,0.5)'
-          : '0 4px 16px rgba(0,0,0,0.1)',
+          ? '0 2px 12px rgba(0,0,0,0.3)'
+          : '0 2px 8px rgba(0,0,0,0.06)',
       }}
     >
-      <Stack gap="md">
+      <Stack gap="sm">
         <Stack gap="xs">
-          <Text fw={500}>Quick Select Tags:</Text>
+          <Text fw={500} size="sm">Quick Select Tags:</Text>
           <Group gap="xs" wrap="wrap">
             {promotedTags.map((tag) => (
               <Chip
                 key={tag._id}
                 checked={selectedTags.includes(tag._id)}
                 onChange={(checked) => onSelectedTagsChange(tag._id, checked)}
-                size="sm"
+                size="xs"
                 variant="light"
                 color="blue"
               >

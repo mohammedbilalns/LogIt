@@ -3,6 +3,7 @@ import {
   Text,
   Button,
   Stack,
+  Group,
 } from '@mantine/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -19,8 +20,7 @@ import {
 import { useEffect, useState, useCallback } from 'react';
 import { notifications } from '@mantine/notifications';
 
-import AuthContainer from '@/components/auth/AuthContainer';
-import AuthHeader from '@/components/auth/AuthHeader';
+import AuthSplitLayout from '@/components/auth/AuthSplitLayout';
 import { TextField } from '@/components/auth/FormField';
 import OTPInput from '@/components/auth/OTPInput';
 import { PasswordField } from '@/components/auth/FormField';
@@ -269,18 +269,21 @@ export default function ResetPassword() {
   const headerContent = getHeaderContent();
 
   return (
-    <AuthContainer size={470} my={40} mt={200} withBorder>
-      <AuthHeader
-        icon={headerContent.icon}
-        title={headerContent.title}
-        description={headerContent.description}
-      />
-
+    <AuthSplitLayout>
+      <Group justify="center" mb="md">
+        {headerContent.icon}
+      </Group>
+      <Stack gap={4} mb="lg" align="center">
+        <h2 style={{ fontWeight: 700, fontSize: 26, margin: 0 }}>{headerContent.title}</h2>
+        <div style={{ color: '#888', fontSize: 15, textAlign: 'center' }}>{headerContent.description}</div>
+      </Stack>
       {renderStep()}
-
-      <Button variant="subtle" fullWidth mt="md" onClick={() => navigate('/login')}>
+      <Button variant="subtle" fullWidth mt="md" onClick={() => navigate('/login')} style={{ marginTop: 16 }}>
         Back to Login
       </Button>
-    </AuthContainer>
+      <div style={{ marginTop: 32, fontSize: 12, color: '#bbb', textAlign: 'center' }}>
+        ©2024 LogIt. All rights reserved.
+      </div>
+    </AuthSplitLayout>
   );
 }

@@ -395,6 +395,5 @@ export default function LandingPage() {
         </Container>
       </Box>
     </Box>
-
   );
 } 

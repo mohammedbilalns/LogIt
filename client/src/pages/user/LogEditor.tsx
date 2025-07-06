@@ -47,22 +47,11 @@ export default function LogEditor({ mode }: LogEditorProps) {
     setSubscriptionLimitError(null);
   };
 
+  const containerClassName = `editor-page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
+
   return (
     <>
-      <Box 
-        style={{
-          marginLeft: isMobile ? '16px' : (isSidebarOpen ? '290px' : '16px'),
-          marginRight: isMobile ? '16px' : '30px',
-          paddingLeft: isMobile ? '0' : '16px',
-          marginTop: '100px',
-          paddingBottom: '100px',
-          transition: 'margin-left 0.3s ease',
-          height: 'calc(100vh - 100px)',
-          overflow: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
+      <Box className={containerClassName}>
         <Container 
           size="xl" 
           style={{

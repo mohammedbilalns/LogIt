@@ -15,8 +15,7 @@ import { AppDispatch, RootState } from '@/store';
 import { login, clearError } from '@slices/authSlice';
 import { GoogleButton } from '@components/user/GoogleButton';
 
-import AuthContainer from '@/components/auth/AuthContainer';
-import AuthHeader from '@/components/auth/AuthHeader';
+import AuthSplitLayout from '@/components/auth/AuthSplitLayout';
 import { TextField } from '@/components/auth/FormField';
 import { PasswordField } from '@/components/auth/FormField';
 import SubmitButton from '@/components/auth/SubmitButton';
@@ -69,13 +68,21 @@ export default function Login() {
   };
 
   return (
-    <AuthContainer>
-      <AuthHeader
-        icon={<LockIcon width={42} height={42} color="var(--mantine-color-blue-6)" />}
-        title="Welcome back to LogIt"
-        description="Enter your credentials to access your account"
-      />
-
+    <AuthSplitLayout
+      rightHeading="Welcome back to LogIt!"
+      rightDescription={
+        'Log, share, connect, and grow. Your personal digital journal and knowledge hub.'
+      }
+    >
+      <Group justify="center" mb="md">
+        <LockIcon width={36} height={36} color="var(--mantine-color-blue-6)" />
+      </Group>
+      <Stack gap={4} mb="lg" align="center">
+        <h2 style={{ fontWeight: 700, fontSize: 28, margin: 0 }}>Login</h2>
+        <div style={{ color: '#888', fontSize: 15, textAlign: 'center' }}>
+          See your growth and get consulting support!
+        </div>
+      </Stack>
       {isBlocked && (
         <Alert
           icon={<AlertCircleIcon width={16} height={16} />}
@@ -87,62 +94,51 @@ export default function Login() {
           Your account has been blocked. Please contact support for assistance.
         </Alert>
       )}
-
       <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack gap="md">
+        <Stack gap="sm">
+          <GoogleButton style={{ width: '100%' }} />
+          <Divider label="or Sign in with Email" labelPosition="center" my="xs" color="gray" />
           <TextField
             label="Email"
-            placeholder="your@email.com"
+            placeholder="mail@website.com"
             {...form.getInputProps('email')}
           />
-
           <PasswordField
             label="Password"
-            placeholder="Your password"
+            placeholder="Min. 8 character"
             {...form.getInputProps('password')}
           />
-
-          <ErrorDisplay error={error} />
-
-          <SubmitButton loading={loading}>
-            Sign in
-          </SubmitButton>
-
-          <Group justify="flex-end">
+          <Group justify="flex-end" align="center" mt={-8} mb={-4}>
             <Button
               component={Link}
               to="/reset-password"
               variant="subtle"
               size="sm"
-              color="gray"
+              color="blue"
+              style={{ fontWeight: 500 }}
             >
               Forgot password?
             </Button>
           </Group>
-
-          <Divider
-            label="Don't have an account?"
-            labelPosition="center"
-            my="xs"
-            color="gray"
-          />
-
-          <Stack gap="sm">
+          <ErrorDisplay error={error} />
+          <SubmitButton loading={loading} style={{ width: '100%' }}>
+            Login
+          </SubmitButton>
+          <Group justify="center" mt={4}>
+            <span style={{ fontSize: 14, color: '#888' }}>Not registered yet?</span>
             <Button
               component={Link}
               to="/signup"
-              variant="light"
-              radius="xl"
-              size="md"
-              fullWidth
+              variant="subtle"
+              size="sm"
+              color="blue"
+              style={{ fontWeight: 500 }}
             >
-              Create account
+              Create an Account
             </Button>
-
-            <GoogleButton style={{ width: '100%' }} />
-          </Stack>
+          </Group>
         </Stack>
       </form>
-    </AuthContainer>
+    </AuthSplitLayout>
   );
 }

@@ -9,6 +9,7 @@ import {
   Text,
   Title,
   Badge,
+  Paper,
 } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -176,19 +177,19 @@ export default function ProfilePage() {
     
     if (currentPlanName === 'base') {
       return (
-        <Button variant="outline" leftSection={<Avatar size={18} radius="xl" />}>
+        <Button variant="outline" size="sm" leftSection={<Avatar size={16} radius="xl" />}>
           Upgrade to Plus
         </Button>
       );
     } else if (currentPlanName === 'plus') {
       return (
-        <Button variant="outline" leftSection={<Avatar size={18} radius="xl" />}>
+        <Button variant="outline" size="sm" leftSection={<Avatar size={16} radius="xl" />}>
           Upgrade to Pro
         </Button>
       );
     } else if (currentPlanName === 'pro') {
       return (
-        <Badge color="green" size="lg" variant="filled">
+        <Badge color="green" size="md" variant="filled">
           Pro Plan Active
         </Badge>
       );
@@ -208,7 +209,7 @@ export default function ProfilePage() {
       <Stack gap="xs" align="center">
         <Badge 
           color={plan.name.toLowerCase() === 'pro' ? 'green' : plan.name.toLowerCase() === 'plus' ? 'blue' : 'gray'} 
-          size="md"
+          size="sm"
         >
           {plan.name} Plan
         </Badge>
@@ -225,38 +226,65 @@ export default function ProfilePage() {
     );
   };
 
+  const containerClassName = `user-page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
+
   return (
     <>
       <UserSidebar isModalOpen={passwordOpened || profileOpened} />
-      <Box className={`page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`}>
-        <Box mb={40}>
-          <Stack align="center" gap="xs">
-            <Avatar src={user?.profileImage} size={isMobile ? 80 : 120} radius="xl">
+      <Box className={containerClassName}>
+        <Stack gap="lg">
+          {/* Profile Header */}
+          <Paper shadow="sm" radius="md" p="md">
+            <Stack align="center" gap="sm">
+              <Avatar src={user?.profileImage} size={isMobile ? 80 : 100} radius="xl">
               {getInitials(user?.name)}
             </Avatar>
             <Title order={3}>{user?.name}</Title>
-            <Text c="dimmed">{user?.email}</Text>
-            <Text size="sm">{user?.profession}</Text>
-            <Text size="sm" ta="center" maw={600}>
+              <Text c="dimmed" size="sm">{user?.email}</Text>
+              {user?.profession && (
+                <Text size="sm" fw={500}>{user?.profession}</Text>
+              )}
+              {user?.bio && (
+                <Text size="sm" ta="center" maw={500} c="dimmed">
               {user?.bio}
             </Text>
-            {stats && <UserStats followersCount={stats.followersCount} followingCount={stats.followingCount} articlesCount={stats.articlesCount} />}
+              )}
+            </Stack>
+          </Paper>
+
+          {/* Stats and Plan Info */}
+          <Group gap="md" justify="center" wrap="wrap">
+            {stats && (
+              <Paper shadow="sm" radius="md" p="sm">
+                <UserStats 
+                  followersCount={stats.followersCount} 
+                  followingCount={stats.followingCount} 
+                  articlesCount={stats.articlesCount} 
+                />
+              </Paper>
+            )}
+            {getPlanInfo() && (
+              <Paper shadow="sm" radius="md" p="sm">
             {getPlanInfo()}
-            <Group mt="sm" wrap="wrap" justify="center">
-              <Button onClick={openProfile}>Edit Profile</Button>
-              <Button variant="default" onClick={openPassword}>
+              </Paper>
+            )}
+          </Group>
+
+          {/* Action Buttons */}
+          <Group justify="center" wrap="wrap" gap="sm">
+            <Button size="sm" onClick={openProfile}>Edit Profile</Button>
+            <Button variant="default" size="sm" onClick={openPassword}>
                 Change Password
               </Button>
               {getUpgradeButton()}
             </Group>
-          </Stack>
-        </Box>
 
+          {/* Recent Articles */}
         <Box>
-          <Title order={4} mb="md">
+            <Title order={4} mb="sm">
             Recent Articles
           </Title>
-          <Stack gap="md">
+            <Stack gap="sm">
             {loading && page === 1 ? (
               renderSkeletons()
             ) : userArticles.length > 0 ? (
@@ -268,12 +296,13 @@ export default function ProfilePage() {
                 {loading && page > 1 && renderSkeletons()}
               </>
             ) : (
-              <Text c="dimmed" ta="center">
+                <Text c="dimmed" ta="center" size="sm">
                 No articles found
               </Text>
             )}
           </Stack>
         </Box>
+        </Stack>
 
         <Box pos="fixed" bottom={24} right={24}>
           <CreateButton />

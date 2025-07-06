@@ -1,4 +1,3 @@
-
 import {
   ActionIcon,
   Group,
@@ -23,7 +22,11 @@ import { SunIcon } from './icons/SunIcon';
 import { SearchIcon } from './icons/SearchIcon';
 import { LogoutIcon } from './icons/LogoutIcon';
 
-export default function Navbar() {
+interface NavbarProps {
+  fixed?: boolean;
+}
+
+export default function Navbar({ fixed = true }: NavbarProps) {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -36,134 +39,137 @@ export default function Navbar() {
     navigate('/login');
   };
 
-  return (
-    <Portal>
-      <Box
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          backgroundColor: isDark
-            ? 'rgba(24, 24, 27, 0.4)'
-            : 'rgba(255, 255, 255, 0.3)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
-          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-        }}
-      >
-        <Group justify="space-between" align="center" wrap="nowrap" px="lg" py="sm">
-          {/* Logo */}
-          <UnstyledButton onClick={() => isAuthenticated ? navigate('/home') : navigate('/')}>
-            <Group align="center" gap="xs">
-              <Image
-                src={isDark ? '/logo-dark.png' : '/logo-light.png'}
-                alt="LogIt logo"
-                w={35}
-                h={35}
-                fit="contain"
-                radius="md"
-              />
-              <span
-                style={{
-                  fontFamily: 'cursive',
-                  fontWeight: 700,
-                  fontSize: rem(22),
-                  color: isDark ? 'white' : 'black',
-                }}
-              >
-                LogIt
-              </span>
-            </Group>
-          </UnstyledButton>
-
-          {/* Search */}
-          {isAuthenticated && !isMobile && (
-            <TextInput
-              placeholder="Search LogIt"
-              leftSection={<SearchIcon width={16} height={16} />}
-              radius="xl"
-              w={rem(300)}
-              size="sm"
-              styles={{
-                input: {
-                  backgroundColor: isDark
-                    ? 'rgba(36, 36, 40, 0.6)'
-                    : 'rgba(255, 255, 255, 0.6)',
-                  backdropFilter: 'blur(8px)',
-                  border: isDark 
-                    ? '1px solid rgba(255, 255, 255, 0.2)'
-                    : '1px solid rgba(0, 0, 0, 0.15)',
-                },
-              }}
+  const navbarContent = (
+    <Box
+      style={{
+        position: fixed ? 'fixed' : 'static',
+        top: fixed ? 0 : undefined,
+        left: fixed ? 0 : undefined,
+        right: fixed ? 0 : undefined,
+        zIndex: fixed ? 1000 : undefined,
+        backgroundColor: isDark
+          ? 'rgba(24, 24, 27, 0.4)'
+          : 'rgba(255, 255, 255, 0.3)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
+        boxShadow: '0 2px 16px rgba(0, 0, 0, 0.08)',
+      }}
+    >
+      <Group justify="space-between" align="center" wrap="nowrap" px="md" py="xs">
+        {/* Logo */}
+        <UnstyledButton onClick={() => isAuthenticated ? navigate('/home') : navigate('/')}>
+          <Group align="center" gap="xs">
+            <Image
+              src={isDark ? '/logo-dark.png' : '/logo-light.png'}
+              alt="LogIt logo"
+              w={28}
+              h={28}
+              fit="contain"
+              radius="md"
             />
+            <span
+              style={{
+                fontFamily: 'cursive',
+                fontWeight: 700,
+                fontSize: rem(18),
+                color: isDark ? 'white' : 'black',
+              }}
+            >
+              LogIt
+            </span>
+          </Group>
+        </UnstyledButton>
+
+        {/* Search */}
+        {isAuthenticated && !isMobile && (
+          <TextInput
+            placeholder="Search LogIt"
+            leftSection={<SearchIcon width={14} height={14} />}
+            radius="md"
+            w={rem(250)}
+            size="xs"
+            styles={{
+              input: {
+                backgroundColor: isDark
+                  ? 'rgba(36, 36, 40, 0.6)'
+                  : 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(8px)',
+                border: isDark 
+                  ? '1px solid rgba(255, 255, 255, 0.2)'
+                  : '1px solid rgba(0, 0, 0, 0.15)',
+              },
+            }}
+          />
+        )}
+
+        {/* Actions */}
+        <Group gap="xs" wrap="nowrap">
+          {isAuthenticated ? (
+            <>
+              {isMobile && (
+                <ActionIcon variant="light" size="sm" color="blue" radius="md">
+                  <SearchIcon width={16} height={16} />
+                </ActionIcon>
+              )}
+              <ActionIcon variant="light" size="sm" radius="md">
+                <BellIcon width={16} height={16} />
+              </ActionIcon>
+              <ActionIcon
+                variant="light"
+                size="sm"
+                radius="md"
+                onClick={handleLogout}
+              >
+                <LogoutIcon width={16} height={16} />
+              </ActionIcon>
+            </>
+          ) : (
+            !isMobile && (
+              <Group gap="xs">
+                <Button
+                  variant="light"
+                  size="xs"
+                  radius="md"
+                  onClick={() => navigate('/login')}
+                >
+                  Login
+                </Button>
+                <Button
+                  size="xs"
+                  radius="md"
+                  onClick={() => navigate('/signup')}
+                >
+                  Sign Up
+                </Button>
+              </Group>
+            )
           )}
 
-          {/* Actions */}
-          <Group gap="sm" wrap="nowrap">
-            {isAuthenticated ? (
-              <>
-                {isMobile && (
-                  <ActionIcon variant="light" size="md" color="blue" radius="xl">
-                    <SearchIcon width={20} height={20} />
-                  </ActionIcon>
-                )}
-                <ActionIcon variant="light" size="md" radius="xl">
-                  <BellIcon width={20} height={20} />
-                </ActionIcon>
-                <ActionIcon
-                  variant="light"
-                  size="md"
-                  radius="xl"
-                  onClick={handleLogout}
-                >
-                  <LogoutIcon width={20} height={20} />
-                </ActionIcon>
-              </>
-            ) : (
-              !isMobile && (
-                <Group gap="xs">
-                  <Button
-                    variant="light"
-                    size="sm"
-                    radius="xl"
-                    onClick={() => navigate('/login')}
-                  >
-                    Login
-                  </Button>
-                  <Button
-                    size="sm"
-                    radius="xl"
-                    onClick={() => navigate('/signup')}
-                  >
-                    Sign Up
-                  </Button>
-                </Group>
-              )
-            )}
-
-            {/* Theme Toggle */}
-            <Switch
-              size="md"
-              onLabel={<SunIcon width={14} height={14} />}
-              offLabel={<MoonIcon width={14} height={14} />}
-              checked={isDark}
-              onChange={() => toggleColorScheme()}
-              color="blue"
-              styles={{
-                track: {
-                  backgroundColor: isDark
-                    ? 'rgba(36, 36, 40, 0.5)'
-                    : 'rgba(200, 200, 200, 0.5)',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                },
-              }}
-            />
-          </Group>
+          {/* Theme Toggle */}
+          <Switch
+            size="sm"
+            onLabel={<SunIcon width={12} height={12} />}
+            offLabel={<MoonIcon width={12} height={12} />}
+            checked={isDark}
+            onChange={() => toggleColorScheme()}
+            color="blue"
+            styles={{
+              track: {
+                backgroundColor: isDark
+                  ? 'rgba(36, 36, 40, 0.5)'
+                  : 'rgba(200, 200, 200, 0.5)',
+                border: '1px solid rgba(255,255,255,0.2)',
+              },
+            }}
+          />
         </Group>
-      </Box>
-    </Portal>
+      </Group>
+    </Box>
   );
+
+  if (fixed) {
+    return <Portal>{navbarContent}</Portal>;
+  }
+  return navbarContent;
 }

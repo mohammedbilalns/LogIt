@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Box, Stack, Title, Tabs, Avatar, Group, Text, Paper, Button, Center } from '@mantine/core';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { Box, Stack, Title, Tabs, Avatar, Group, Text, Paper, Button } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
@@ -73,19 +73,16 @@ export default function NetworkPage() {
   const followingTarget = useRef<HTMLDivElement>(null);
   const [localFollowing, setLocalFollowing] = useState<any[]>([]);
 
-  // Sync localFollowing with redux following
   useEffect(() => {
     setLocalFollowing(following);
   }, [following]);
 
-  // Fetch followers/following on mount or tab change
   useEffect(() => {
     if (!user?._id) return;
     if (tab === 'followers') dispatch(fetchFollowers(user._id));
     if (tab === 'following') dispatch(fetchFollowing(user._id));
   }, [dispatch, user?._id, tab]);
 
-  // Infinite scroll for followers
   useEffect(() => {
     if (tab !== 'followers') return;
     const observer = new window.IntersectionObserver(
@@ -101,7 +98,6 @@ export default function NetworkPage() {
     return () => { if (target) observer.unobserve(target); };
   }, [tab, followers.length, followersPage]);
 
-  // Infinite scroll for following
   useEffect(() => {
     if (tab !== 'following') return;
     const observer = new window.IntersectionObserver(
@@ -124,7 +120,7 @@ export default function NetworkPage() {
     setLocalFollowing((prev) => prev.filter((u) => u._id !== userId));
   };
 
-  const containerClassName = `page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
+  const containerClassName = `user-page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
 
   return (
     <Box className={containerClassName}>

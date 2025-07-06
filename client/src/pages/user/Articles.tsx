@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ArticleRow from '@components/article/ArticleRow';
 import { fetchArticles } from '@slices/articleSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Center, Chip, Group, Paper, Select, Stack, Text, Title } from '@mantine/core';
+import { Box, Center, Group, Stack, Text, Title } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import ArticleRowSkeleton from '@/components/skeletons/ArticleRowSkeleton';
 import SortBy from '@/components/SortBy';
@@ -10,10 +10,7 @@ import TagFilterSection from '@/components/tags/TagFilterSection';
 import CreateButton from '@/components/user/CreateButton';
 import { AppDispatch, RootState } from '@/store';
 
-interface ArticleFilters {
-  tagIds: string[];
-  isActive: boolean;
-}
+
 
 export default function ArticlesPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -23,7 +20,6 @@ export default function ArticlesPage() {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
   const { articles, loading, hasMore } = useSelector((state: RootState) => state.articles);
-  const { promotedTags } = useSelector((state: RootState) => state.tags);
   const observerTarget = useRef<HTMLDivElement>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchTags, setSearchTags] = useState<string[]>([]);
@@ -99,8 +95,10 @@ export default function ArticlesPage() {
     }
   }, []);
 
+  const containerClassName = `user-page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
+
   return (
-    <Box className={`page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`}>
+    <Box className={containerClassName}>
       <Stack gap="md">
         <Group justify="space-between" wrap="wrap" gap="md">
           <Title order={2}>Articles</Title>

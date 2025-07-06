@@ -1,4 +1,4 @@
-import { Box, Group, Stack, Text, Title, Select, Chip, Center, Modal, Button, Paper } from '@mantine/core';
+import { Box, Group, Stack, Text, Title, Center } from '@mantine/core';
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
@@ -36,8 +36,6 @@ export default function LogsPage() {
   const observerTarget = useRef<HTMLDivElement>(null);
 
   const { logs, loading, hasMore } = useSelector((state: RootState) => state.logs);
-  const { promotedTags } = useSelector((state: RootState) => state.tags);
-  const userId = useSelector((state: RootState) => state.auth.user?._id);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const filters = useMemo(() => ({
@@ -160,12 +158,12 @@ export default function LogsPage() {
     }
   }, []);
 
+  const containerClassName = `user-page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
+
   return (
     <>
       <UserSidebar isModalOpen={deleteModalOpen} />
-      <Box 
-        className={`page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`}
-      >
+      <Box className={containerClassName}>
         <Stack gap="md">
           <Group justify="space-between" wrap="wrap" gap="md">
             <Title order={2}>Your Logs</Title>
