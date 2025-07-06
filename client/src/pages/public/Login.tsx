@@ -13,7 +13,7 @@ import { LockIcon } from '@/components/icons/LockIcon';
 import { AlertCircleIcon } from '@/components/icons/AlertCircleIcon';
 import { AppDispatch, RootState } from '@/store';
 import { login, clearError } from '@slices/authSlice';
-import { GoogleButton } from '@components/user/GoogleButton';
+import CustomGoogleButton from '@/components/user/CustomGoogleButton';
 
 import AuthSplitLayout from '@/components/auth/AuthSplitLayout';
 import { TextField } from '@/components/auth/FormField';
@@ -96,7 +96,7 @@ export default function Login() {
       )}
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="sm">
-          <GoogleButton style={{ width: '100%' }} />
+          <CustomGoogleButton style={{ width: '100%' }} />
           <Divider label="or Sign in with Email" labelPosition="center" my="xs" color="gray" />
           <TextField
             label="Email"

@@ -11,7 +11,7 @@ import { UserPlusIcon } from '@/components/icons/UserPlusIcon';
 import { AppDispatch, RootState } from '@/store';
 import { signup } from '@slices/authSlice';
 import { useEffect } from 'react';
-import { GoogleButton } from '@components/user/GoogleButton';
+import CustomGoogleButton from '@/components/user/CustomGoogleButton';
 
 import AuthSplitLayout from '@/components/auth/AuthSplitLayout';
 import { TextField } from '@/components/auth/FormField';
@@ -88,7 +88,7 @@ export default function Signup() {
       </Stack>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="sm">
-          <GoogleButton style={{ width: '100%' }} />
+          <CustomGoogleButton style={{ width: '100%' }} />
           <Divider label="or Sign up with Email" labelPosition="center" my="xs" color="gray" />
           <TextField
             label="Name"
