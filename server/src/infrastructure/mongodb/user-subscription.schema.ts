@@ -7,10 +7,11 @@ export interface UserSubscriptionDocument extends Document, UserSubscriptionWith
 const userSubscriptionSchema = new mongoose.Schema<UserSubscriptionDocument>(
   {
     userId: { type: String, required: true, index: true },
-    paymentId: { type: String, required: true },
     planId: { type: String, required: true },
     expiryDate: { type: Date, required: true },
     isActive: { type: Boolean, default: true },
+    amount: { type: Number, required: true },
+    paymentId: { type: String, required: true },
   },
   {
     timestamps: true,

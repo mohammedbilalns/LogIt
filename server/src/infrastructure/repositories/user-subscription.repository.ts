@@ -16,10 +16,11 @@ export class UserSubscriptionRepository extends BaseRepository<UserSubscriptionD
     return {
       id: String(doc._id),
       userId: doc.userId,
-      paymentId: doc.paymentId,
       planId: doc.planId,
       expiryDate: doc.expiryDate,
       isActive: doc.isActive,
+      amount: doc.amount,
+      paymentId: doc.paymentId,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
     };

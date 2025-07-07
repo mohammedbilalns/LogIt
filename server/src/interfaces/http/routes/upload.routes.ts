@@ -15,4 +15,5 @@ router.post(
   asyncHandler((req, res) => uploadController.uploadImage(req, res))
 );
 
+
 export default router; 

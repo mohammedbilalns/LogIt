@@ -1,5 +1,10 @@
 import { Modal, Text, Button, Stack, Group, Badge, Title, SimpleGrid, Paper } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import type { AppDispatch } from '@/store';
+import { notifications } from '@mantine/notifications';
+import {  startRazorpayPayment } from '@/store/slices/paymentSlice';
+import { useEffect } from 'react';
 
 interface SubscriptionPlan {
   id: string;
@@ -20,6 +25,12 @@ interface SubscriptionUpgradeModalProps {
   limit?: number;
 }
 
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 export default function SubscriptionUpgradeModal({
   opened,
   onClose,
@@ -30,6 +41,21 @@ export default function SubscriptionUpgradeModal({
   limit
 }: SubscriptionUpgradeModalProps) {
   const navigate = useNavigate();
+  const user = useSelector((state: any) => state.auth.user);
+  const dispatch = useDispatch<AppDispatch>();
+
+  // Dynamically load Razorpay script
+  useEffect(() => {
+    if (!(window as any).Razorpay) {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      document.body.appendChild(script);
+      return () => {
+        document.body.removeChild(script);
+      };
+    }
+  }, []);
 
   const getResourceText = () => {
     if (!exceededResource) return '-';
@@ -41,8 +67,18 @@ export default function SubscriptionUpgradeModal({
     return limit === -1 ? 'unlimited' : limit.toString();
   };
 
-  const handleUpgrade = () => {
-    onClose();
+  const handleUpgrade = async (plan: SubscriptionPlan) => {
+    try {
+      const result = await dispatch(startRazorpayPayment({ plan, user })).unwrap();
+      if (result && typeof result === 'object' && 'valid' in result && result.valid) {
+        notifications.show({ title: 'Success', message: 'Subscription upgraded!', color: 'green' });
+        onClose();
+      } else {
+        notifications.show({ title: 'Payment Failed', message: 'Could not verify payment.', color: 'red' });
+      }
+    } catch (err) {
+      notifications.show({ title: 'Error', message: typeof err === 'string' ? err : 'Could not initiate payment.', color: 'red' });
+    }
   };
 
   const getNextPlanName = () => {
@@ -106,8 +142,8 @@ export default function SubscriptionUpgradeModal({
         <Stack gap="xs">
           <Text fw={500} size="sm">Current Plan:</Text>
           <Group gap="xs">
-            <Badge 
-              color={currentPlan.name.toLowerCase() === 'pro' ? 'green' : currentPlan.name.toLowerCase() === 'plus' ? 'blue' : 'gray'} 
+            <Badge
+              color={currentPlan.name.toLowerCase() === 'pro' ? 'green' : currentPlan.name.toLowerCase() === 'plus' ? 'blue' : 'gray'}
               size="md"
             >
               {currentPlan.name}
@@ -125,11 +161,11 @@ export default function SubscriptionUpgradeModal({
         {nextPlans && nextPlans.length > 0 && (
           <Stack gap="xs">
             <Text fw={500} size="sm">Upgrade Options:</Text>
-            <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg"> 
+            <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
               {nextPlans.map((plan) => (
                 <Paper key={plan.id} shadow="sm" p="md" radius="md" withBorder style={{ minWidth: 220, textAlign: 'center' }}>
-                  <Badge 
-                    color={plan.name.toLowerCase() === 'pro' ? 'green' : 'blue'} 
+                  <Badge
+                    color={plan.name.toLowerCase() === 'pro' ? 'green' : 'blue'}
                     size="md"
                     mb="xs"
                   >
@@ -144,7 +180,7 @@ export default function SubscriptionUpgradeModal({
                   <Text size="sm" c="dimmed">
                     {plan.maxArticlesPerMonth === -1 ? 'Unlimited' : plan.maxArticlesPerMonth} articles/month
                   </Text>
-                  <Button mt="md" fullWidth color="blue" onClick={() => {/* TODO: handle upgrade for this plan */}}>
+                  <Button mt="md" fullWidth color="blue" onClick={() => handleUpgrade(plan)}>
                     Upgrade to {plan.name}
                   </Button>
                 </Paper>

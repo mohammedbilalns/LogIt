@@ -20,6 +20,7 @@ import { initializeSocket } from "./config/socket";
 import morgan from "morgan";
 import { logger } from "./utils/logger";
 import uploadRoutes from "./interfaces/http/routes/upload.routes";
+import paymentRoutes from "./interfaces/http/routes/payment.routes";
 
 const app = express();
 const server = http.createServer(app);
@@ -52,6 +53,7 @@ app.use("/api/connections", connectionRoutes);
 app.use("/api/chats", createChatRouter(socketConfig.io));
 app.use("/api/subscription", subscritionRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/payments", paymentRoutes);
 app.use(errorMiddleware());
 
 // Connect to DB

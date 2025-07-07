@@ -195,20 +195,17 @@ export default function ProfilePage() {
     }
   };
 
-  const getUpgradeButton = () => {
-    if (!stats?.currentPlan) return null;
-    if (stats.currentPlan.name.toLowerCase() === 'pro') {
-      return (
-        <Badge color="green" size="md" variant="filled">
-          Pro Plan Active
-        </Badge>
-      );
-    }
-    return (
-      <Button variant="outline" size="sm" onClick={handleOpenUpgradeModal}>
-        Upgrade Plan
-      </Button>
-    );
+  const getUpgradeButton = () => (
+    <Button variant="outline" size="sm" onClick={handleOpenUpgradeModal}>
+      Upgrade Plan
+    </Button>
+  );
+
+  const handleUpgradeModalClose = async () => {
+    setUpgradeModalOpen(false);
+      const data = await dispatch(fetchUserStats()).unwrap();
+      setStats(data);
+    
   };
 
   const getPlanInfo = () => {
@@ -352,7 +349,7 @@ export default function ProfilePage() {
         {stats && stats.currentPlan && (
           <SubscriptionUpgradeModal
             opened={upgradeModalOpen}
-            onClose={() => setUpgradeModalOpen(false)}
+            onClose={handleUpgradeModalClose}
             currentPlan={stats.currentPlan}
             nextPlans={nextPlans}
           />
