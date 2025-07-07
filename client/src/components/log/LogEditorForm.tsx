@@ -298,6 +298,12 @@ export default function LogEditorForm({
         const result = await dispatch(createLog({
           ...values,
         })).unwrap();
+        if (result && result.limitExceeded) {
+          if (onSubscriptionLimitError) {
+            onSubscriptionLimitError(result);
+          }
+          return;
+        }
         notifications.show({
           title: 'Success',
           message: 'Log created successfully',

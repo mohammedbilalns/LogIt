@@ -19,6 +19,7 @@ export interface ILogRepository extends IBaseRepository<Log> {
     options: {
       search?: string;
       tags?: string[];
+      createdAt?: { $gte?: Date; $lte?: Date };
     }
   ): Promise<number>;
 }

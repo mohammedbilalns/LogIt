@@ -112,7 +112,7 @@ export default function SubscriptionSettingsModal({
             {...form.getInputProps('price')}
             min={0}
             required
-            prefix="$"
+            prefix="₹"
             disabled={isBase}
             description={isBase ? 'Base plan price cannot be changed' : undefined}
           />

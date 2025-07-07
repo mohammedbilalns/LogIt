@@ -19,7 +19,8 @@ export default function ArticlesPage() {
   const [sortBy, setSortBy] = useState('new');
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isSidebarOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
-  const { articles, loading, hasMore } = useSelector((state: RootState) => state.articles);
+  const { articles: articlesRaw, loading, hasMore } = useSelector((state: RootState) => state.articles);
+  const articles = Array.isArray(articlesRaw) ? articlesRaw : [];
   const observerTarget = useRef<HTMLDivElement>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchTags, setSearchTags] = useState<string[]>([]);

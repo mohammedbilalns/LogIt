@@ -1,4 +1,4 @@
-import { Modal, Text, Button, Stack, Group, Badge, Title } from '@mantine/core';
+import { Modal, Text, Button, Stack, Group, Badge, Title, SimpleGrid, Paper } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 
 interface SubscriptionPlan {
@@ -14,7 +14,7 @@ interface SubscriptionLimitModalProps {
   opened: boolean;
   onClose: () => void;
   currentPlan: SubscriptionPlan;
-  nextPlan?: SubscriptionPlan;
+  nextPlans?: SubscriptionPlan[];
   exceededResource: 'logs' | 'articles';
   currentUsage: number;
   limit: number;
@@ -24,7 +24,7 @@ export default function SubscriptionLimitModal({
   opened,
   onClose,
   currentPlan,
-  nextPlan,
+  nextPlans,
   exceededResource,
   currentUsage,
   limit
@@ -67,7 +67,7 @@ export default function SubscriptionLimitModal({
       opened={opened}
       onClose={onClose}
       title="Plan Limit Reached"
-      size="md"
+      size="xl"
       centered
       overlayProps={{
         blur: 6,
@@ -81,6 +81,8 @@ export default function SubscriptionLimitModal({
           borderRadius: '1rem',
           boxShadow: '0 12px 48px rgba(0, 0, 0, 0.25)',
           backdropFilter: 'blur(8px)',
+          minWidth: '600px',
+          maxWidth: '900px',
         },
       }}
     >
@@ -104,7 +106,7 @@ export default function SubscriptionLimitModal({
               {currentPlan.name}
             </Badge>
             <Text size="sm" c="dimmed">
-              ${currentPlan.price}/month
+              ₹{currentPlan.price}/month
             </Text>
           </Group>
           <Text size="xs" c="dimmed">
@@ -113,27 +115,34 @@ export default function SubscriptionLimitModal({
           </Text>
         </Stack>
 
-        {nextPlan && (
+        {nextPlans && nextPlans.length > 0 && (
           <Stack gap="xs">
-            <Text fw={500} size="sm">Upgrade to {nextPlan.name}:</Text>
-            <Group gap="xs">
-              <Badge 
-                color={nextPlan.name.toLowerCase() === 'pro' ? 'green' : 'blue'} 
-                size="md"
-              >
-                {nextPlan.name}
-              </Badge>
-              <Text size="sm" c="dimmed">
-                ${nextPlan.price}/month
-              </Text>
-            </Group>
-            <Text size="xs" c="dimmed">
-              {nextPlan.maxLogsPerMonth === -1 ? 'Unlimited' : nextPlan.maxLogsPerMonth} logs/month • {' '}
-              {nextPlan.maxArticlesPerMonth === -1 ? 'Unlimited' : nextPlan.maxArticlesPerMonth} articles/month
-            </Text>
-            <Text size="xs" c="dimmed">
-              {getNextPlanDescription()}
-            </Text>
+            <Text fw={500} size="sm">Upgrade Options:</Text>
+            <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg"> 
+              {nextPlans.map((plan) => (
+                <Paper key={plan.id} shadow="sm" p="md" radius="md" withBorder style={{ minWidth: 220, textAlign: 'center' }}>
+                  <Badge 
+                    color={plan.name.toLowerCase() === 'pro' ? 'green' : 'blue'} 
+                    size="md"
+                    mb="xs"
+                  >
+                    {plan.name}
+                  </Badge>
+                  <Text size="lg" fw={700} mb={4}>
+                    ₹{plan.price}/month
+                  </Text>
+                  <Text size="sm" c="dimmed" mb={2}>
+                    {plan.maxLogsPerMonth === -1 ? 'Unlimited' : plan.maxLogsPerMonth} logs/month
+                  </Text>
+                  <Text size="sm" c="dimmed">
+                    {plan.maxArticlesPerMonth === -1 ? 'Unlimited' : plan.maxArticlesPerMonth} articles/month
+                  </Text>
+                  <Button mt="md" fullWidth color="blue" onClick={() => {/* TODO: handle upgrade for this plan */}}>
+                    Upgrade to {plan.name}
+                  </Button>
+                </Paper>
+              ))}
+            </SimpleGrid>
           </Stack>
         )}
 
@@ -141,11 +150,6 @@ export default function SubscriptionLimitModal({
           <Button variant="default" onClick={onClose}>
             Maybe Later
           </Button>
-          {nextPlan && (
-            <Button onClick={handleUpgrade} color="blue">
-              Upgrade to {nextPlan.name}
-            </Button>
-          )}
         </Group>
       </Stack>
     </Modal>

@@ -79,9 +79,10 @@ export class MongoLogRepository
     options: {
       search?: string;
       tags?: string[];
+      createdAt?: { $gte?: Date; $lte?: Date };
     }
   ): Promise<number> {
-    const { search, tags } = options;
+    const { search, tags, createdAt } = options;
     const query: Record<string, unknown> = { userId };
     if (search) {
       query.$or = [
@@ -97,6 +98,9 @@ export class MongoLogRepository
         tagId: { $in: tags },
       });
       query._id = { $in: logIds };
+    }
+    if (createdAt) {
+      query.createdAt = createdAt;
     }
 
     return await LogModel.countDocuments(query);

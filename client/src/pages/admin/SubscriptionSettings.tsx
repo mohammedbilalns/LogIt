@@ -147,7 +147,7 @@ export default function SubscriptionSettings() {
           <Text size="sm" c="dimmed">{sub.description}</Text>
           <Group gap="xs">
             <Text size="sm">Price:</Text>
-            <Text size="sm" fw={500}>${sub.price}</Text>
+            <Text size="sm" fw={500}>₹{sub.price}</Text>
           </Group>
           <Group gap="xs">
             <Text size="sm">Max Logs/Month:</Text>
@@ -225,7 +225,7 @@ export default function SubscriptionSettings() {
                               {sub.isActive ? 'Active' : 'Inactive'}
                             </Badge>
                           </Table.Td>
-                          <Table.Td>${sub.price}</Table.Td>
+                          <Table.Td>₹{sub.price}</Table.Td>
                           <Table.Td>{sub.maxLogsPerMonth === -1 ? 'Unlimited' : sub.maxLogsPerMonth}</Table.Td>
                           <Table.Td>{sub.maxArticlesPerMonth === -1 ? 'Unlimited' : sub.maxArticlesPerMonth}</Table.Td>
                           <Table.Td>
@@ -258,7 +258,7 @@ export default function SubscriptionSettings() {
           editMode={!!editId}
         />
         
-        {/* Deactivate Confirmation Modal */}
+        {/* Deactivate Confirmation  */}
         <ConfirmModal
           opened={deactivateConfirmOpen}
           onClose={() => setDeactivateConfirmOpen(false)}

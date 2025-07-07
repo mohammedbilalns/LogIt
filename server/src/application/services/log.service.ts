@@ -7,7 +7,6 @@ import { LogTag } from "../../domain/entities/log-tag.entity";
 import { ILogService } from "../../domain/services/log.service.interface";
 import { UnauthorizedError } from "../errors/auth.errors";
 import { InternalServerError } from "../errors/internal.errors";
-import { ResourceLimitExceededError } from "../errors/resource.errors";
 import { HttpResponse } from "../../constants/responseMessages";
 import {
   CreateLogData,
@@ -16,6 +15,7 @@ import {
   LogWithRelations,
 } from "../dtos";
 import { IUserSubscriptionService } from "../../domain/services/user-subscription.service.interface";
+import { logger } from "../../utils/logger";
 
 export class LogService implements ILogService {
   constructor(
@@ -29,7 +29,28 @@ export class LogService implements ILogService {
   async createLog(
     userId: string | undefined,
     data: CreateLogData
-  ): Promise<LogWithRelations> {
+  ): Promise<LogWithRelations | {
+    limitExceeded: true;
+    currentPlan: {
+      id: string;
+      name: string;
+      price: number;
+      maxLogsPerMonth: number;
+      maxArticlesPerMonth: number;
+      description: string;
+    };
+    nextPlans?: {
+      id: string;
+      name: string;
+      price: number;
+      maxLogsPerMonth: number;
+      maxArticlesPerMonth: number;
+      description: string;
+    }[];
+    currentUsage: number;
+    limit: number;
+    exceededResource: 'logs';
+  }> {
     if (!userId) {
       throw new UnauthorizedError();
     }
@@ -38,6 +59,8 @@ export class LogService implements ILogService {
     const currentPlan = await this.userSubscriptionService.getUserCurrentPlan(
       userId
     );
+    logger.magenta("userplan: ",JSON.stringify( currentPlan) )
+    const limit = currentPlan.maxLogsPerMonth;
 
     if (currentPlan.maxLogsPerMonth !== -1) {
       // Get current month's log count
@@ -50,33 +73,30 @@ export class LogService implements ILogService {
       endOfMonth.setDate(0);
       endOfMonth.setHours(23, 59, 59, 999);
 
-      const currentMonthLogs = await this.logRepository.findMany(userId, {
-        sortBy: "createdAt",
-        sortOrder: "asc",
+      const usage = await this.logRepository.countLogs(userId, {
+        ...(data.tags && data.tags.length > 0 ? { tags: data.tags } : {}),
+        createdAt: { $gte: startOfMonth, $lte: endOfMonth }
       });
 
-      // Filter logs by date manually
-      const filteredLogs = currentMonthLogs.filter((log) => {
-        const logDate = new Date(log.createdAt);
-        return logDate >= startOfMonth && logDate <= endOfMonth;
-      });
 
-      if (filteredLogs.length >= currentPlan.maxLogsPerMonth) {
-        // Get next plan for upgrade suggestion
-        const nextPlan = await this.userSubscriptionService.getNextPlan(
-          currentPlan.id
-        );
-
-        throw new ResourceLimitExceededError(
-          `You've reached your ${currentPlan.name} plan limit of ${currentPlan.maxLogsPerMonth} logs per month.`,
-          {
-            currentPlan,
-            nextPlan: nextPlan || undefined,
-            currentUsage: filteredLogs.length,
-            limit: currentPlan.maxLogsPerMonth,
-            exceededResource: "logs",
-          }
-        );
+      if (usage >= limit) {
+        const nextPlans = await this.userSubscriptionService.getNextPlans('logs', limit);
+        console.log("next plans: ", nextPlans)
+        return {
+          limitExceeded: true,
+          currentPlan: {
+            id: currentPlan.id,
+            name: currentPlan.name,
+            price: currentPlan.price,
+            maxLogsPerMonth: currentPlan.maxLogsPerMonth,
+            maxArticlesPerMonth: currentPlan.maxArticlesPerMonth,
+            description: currentPlan.description,
+          },
+          nextPlans,
+          currentUsage: usage,
+          limit,
+          exceededResource: "logs",
+        };
       }
     }
 
@@ -109,7 +129,7 @@ export class LogService implements ILogService {
 
     if (data.mediaUrls && data.mediaUrls.length > 0) {
       await this.logMediaRepository.createMany(
-        data.mediaUrls.map((url) => ({
+        data.mediaUrls.map((url: string) => ({
           logId,
           url,
           userId,

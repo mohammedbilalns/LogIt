@@ -22,7 +22,7 @@ interface SubscriptionPlan {
 
 interface SubscriptionLimitError {
   currentPlan: SubscriptionPlan;
-  nextPlan?: SubscriptionPlan;
+  nextPlans?: SubscriptionPlan[];
   currentUsage: number;
   limit: number;
   exceededResource: 'logs' | 'articles';
@@ -45,6 +45,7 @@ export default function ArticleEditor({ mode }: ArticleEditorProps) {
 
   const handleCloseSubscriptionModal = () => {
     setSubscriptionLimitError(null);
+    navigate('/articles');
   };
 
   const containerClassName = `editor-page-container ${!isMobile && isSidebarOpen ? 'sidebar-open' : ''}`;
@@ -76,7 +77,7 @@ export default function ArticleEditor({ mode }: ArticleEditorProps) {
           opened={!!subscriptionLimitError}
           onClose={handleCloseSubscriptionModal}
           currentPlan={subscriptionLimitError.currentPlan}
-          nextPlan={subscriptionLimitError.nextPlan}
+          nextPlans={subscriptionLimitError.nextPlans}
           exceededResource={subscriptionLimitError.exceededResource}
           currentUsage={subscriptionLimitError.currentUsage}
           limit={subscriptionLimitError.limit}

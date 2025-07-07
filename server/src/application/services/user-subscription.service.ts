@@ -80,18 +80,26 @@ export class UserSubscriptionServiceImpl implements IUserSubscriptionService {
     return basePlan;
   }
 
-  async getNextPlan(
-    currentPlanId: string
-  ): Promise<
-    import("../../domain/entities/subscription.entity").SubscriptionPlan | null
-  > {
+  async getNextPlans(
+    resource: 'articles' | 'logs',
+    currentLimit: number
+  ): Promise<import("../../domain/entities/subscription.entity").SubscriptionPlan[]> {
     const { data: plans } = await this.subscriptionRepository.findAll();
-    const currentPlanIndex = plans.findIndex((p) => p.id === currentPlanId);
-
-    if (currentPlanIndex === -1 || currentPlanIndex === plans.length - 1) {
-      return null; // No next plan available
+    let nextPlans;
+    if (resource === 'articles') {
+      nextPlans = plans
+        .filter((p) => p.isActive && p.maxArticlesPerMonth > currentLimit)
+        .sort((a, b) => a.maxArticlesPerMonth - b.maxArticlesPerMonth);
+    } else {
+      nextPlans = plans
+        .filter((p) => p.isActive && p.maxLogsPerMonth > currentLimit)
+        .sort((a, b) => a.maxLogsPerMonth - b.maxLogsPerMonth);
     }
+    return nextPlans;
+  }
 
-    return plans[currentPlanIndex + 1];
+  async getAllPlans(): Promise<import("../../domain/entities/subscription.entity").SubscriptionPlan[]> {
+    const { data: plans } = await this.subscriptionRepository.findAll();
+    return plans;
   }
 }

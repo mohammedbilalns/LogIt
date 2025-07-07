@@ -22,7 +22,7 @@ interface SubscriptionPlan {
 
 interface SubscriptionLimitError {
   currentPlan: SubscriptionPlan;
-  nextPlan?: SubscriptionPlan;
+  nextPlans?: SubscriptionPlan[];
   currentUsage: number;
   limit: number;
   exceededResource: 'logs' | 'articles';
@@ -77,7 +77,7 @@ export default function LogEditor({ mode }: LogEditorProps) {
           opened={!!subscriptionLimitError}
           onClose={handleCloseSubscriptionModal}
           currentPlan={subscriptionLimitError.currentPlan}
-          nextPlan={subscriptionLimitError.nextPlan}
+          nextPlans={subscriptionLimitError.nextPlans}
           exceededResource={subscriptionLimitError.exceededResource}
           currentUsage={subscriptionLimitError.currentUsage}
           limit={subscriptionLimitError.limit}

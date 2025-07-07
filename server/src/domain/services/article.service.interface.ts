@@ -6,12 +6,35 @@ import {
   ArticleResponse,
 } from "../../application/dtos";
 
+export interface ResourceLimitResponse {
+  limitExceeded: true;
+  currentPlan: {
+    id: string;
+    name: string;
+    price: number;
+    maxLogsPerMonth: number;
+    maxArticlesPerMonth: number;
+    description: string;
+  };
+  nextPlan?: {
+    id: string;
+    name: string;
+    price: number;
+    maxLogsPerMonth: number;
+    maxArticlesPerMonth: number;
+    description: string;
+  };
+  currentUsage: number;
+  limit: number;
+  exceededResource: 'articles';
+}
+
 export interface IArticleService {
   
   createArticle(
     article: CreateArticleData,
     tagIds: string[]
-  ): Promise<ArticleResponse | string>;
+  ): Promise<ArticleResponse | ResourceLimitResponse>;
 
   getArticle(id: string, userId?: string): Promise<ArticleResponse | null>;
 

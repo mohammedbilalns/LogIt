@@ -234,10 +234,15 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
       featured_image: featuredImage,
     };
 
-
     try {
       if (mode === 'create') {
-        await dispatch(createArticle(articleData)).unwrap();
+        const result = await dispatch(createArticle(articleData)).unwrap();
+        if (result && result.limitExceeded) {
+          if (onSubscriptionLimitError) {
+            onSubscriptionLimitError(result);
+          }
+          return;
+        }
         notifications.show({
           title: 'Success',
           message: 'Article created successfully',
@@ -257,7 +262,7 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
     } catch (error: any) {
       console.error('Failed to save article:', error);
 
-      // Check if it's a subscription limit error
+      // Check if it's a subscription limit error (legacy error path)
       if (error?.currentPlan && error?.exceededResource === 'articles') {
         if (onSubscriptionLimitError) {
           onSubscriptionLimitError({
@@ -268,10 +273,9 @@ export default function ArticleEditorForm({ mode, articleId, onClose, onSubscrip
             exceededResource: 'articles'
           });
         }
-        return; // Don't show the error notification, let the modal handle it
+        return; 
       }
 
-      // Show generic error notification
       notifications.show({
         title: 'Error',
         message: error?.message || 'Failed to save article. Please try again.',

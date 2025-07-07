@@ -14,7 +14,7 @@ import {
 } from "../dtos";
 
 import { MissingFieldsError } from "../errors/form.errors";
-import { ResourceNotFoundError, ResourceLimitExceededError } from "../errors/resource.errors";
+import { ResourceNotFoundError } from "../errors/resource.errors";
 import { HttpResponse } from "../../constants/responseMessages";
 import { IUserSubscriptionService } from "../../domain/services/user-subscription.service.interface";
 
@@ -67,14 +67,38 @@ export class ArticleService implements IArticleService {
   async createArticle(
     article: CreateArticleData,
     tagIds: string[]
-  ): Promise<ArticleResponse | string> {
+  ): Promise<ArticleResponse | {
+    limitExceeded: true;
+    currentPlan: {
+      id: string;
+      name: string;
+      price: number;
+      maxLogsPerMonth: number;
+      maxArticlesPerMonth: number;
+      description: string;
+    };
+    nextPlans?: {
+      id: string;
+      name: string;
+      price: number;
+      maxLogsPerMonth: number;
+      maxArticlesPerMonth: number;
+      description: string;
+    }[];
+    currentUsage: number;
+    limit: number;
+    exceededResource: 'articles';
+  }> {
     if (!article.authorId || !article.title || !article.content) {
       throw new MissingFieldsError();
     }
 
     // Check subscription limits
     const currentPlan = await this.userSubscriptionService.getUserCurrentPlan(article.authorId);
-    
+    let currentUsage = 0;
+    const limit = currentPlan.maxArticlesPerMonth;
+    let nextPlans: typeof currentPlan[] | undefined = undefined;
+
     if (currentPlan.maxArticlesPerMonth !== -1) {
       // Get current month's article count
       const startOfMonth = new Date();
@@ -86,32 +110,30 @@ export class ArticleService implements IArticleService {
       endOfMonth.setDate(0);
       endOfMonth.setHours(23, 59, 59, 999);
 
-      const currentMonthArticles = await this.articleRepository.findAll({
-        filters: {
-          authorId: article.authorId
-        }
+      // Use count with createdAt filter
+      currentUsage = await this.articleRepository.count({
+        authorId: article.authorId,
+        createdAt: { $gte: startOfMonth, $lte: endOfMonth }
       });
 
-      // Filter articles by date manually since createdAt is not in filters
-      const filteredArticles = currentMonthArticles.data.filter(art => {
-        const articleDate = new Date(art.createdAt);
-        return articleDate >= startOfMonth && articleDate <= endOfMonth;
-      });
-
-      if (filteredArticles.length >= currentPlan.maxArticlesPerMonth) {
-        // Get next plan for upgrade suggestion
-        const nextPlan = await this.userSubscriptionService.getNextPlan(currentPlan.id);
-
-        throw new ResourceLimitExceededError(
-          `You've reached your ${currentPlan.name} plan limit of ${currentPlan.maxArticlesPerMonth} articles per month.`,
-          {
-            currentPlan,
-            nextPlan: nextPlan || undefined,
-            currentUsage: filteredArticles.length,
-            limit: currentPlan.maxArticlesPerMonth,
-            exceededResource: 'articles'
-          }
-        );
+      if (currentUsage >= limit) {
+        const nextPlansResult = await this.userSubscriptionService.getNextPlans('articles', limit);
+        nextPlans = nextPlansResult || undefined;
+        return {
+          limitExceeded: true,
+          currentPlan: {
+            id: currentPlan.id,
+            name: currentPlan.name,
+            price: currentPlan.price,
+            maxLogsPerMonth: currentPlan.maxLogsPerMonth,
+            maxArticlesPerMonth: currentPlan.maxArticlesPerMonth,
+            description: currentPlan.description,
+          },
+          nextPlans,
+          currentUsage,
+          limit,
+          exceededResource: 'articles',
+        };
       }
     }
 

@@ -122,7 +122,7 @@ export default function ArticleRow({ article }: ArticleRowProps) {
     );
   };
 
-  const tags = article.tagNames.map((name) => ({ name }));
+  const tags = Array.isArray(article.tagNames) ? article.tagNames.map((name) => ({ name })) : [];
 
   return (
     <Paper
