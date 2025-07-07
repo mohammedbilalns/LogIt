@@ -113,7 +113,7 @@ export default function EmailVerification() {
       <Stack gap={4} mb="lg" align="center">
         <h2 style={{ fontWeight: 700, fontSize: 26, margin: 0 }}>Verify Your Email</h2>
         <div style={{ color: '#888', fontSize: 15, textAlign: 'center' }}>
-          We've sent a verification code to{' '}
+            We've sent a verification code to{' '}
           <span style={{ fontWeight: 500, color: 'var(--mantine-color-blue-6)' }}>{verificationEmail}</span>
         </div>
       </Stack>

@@ -2,6 +2,25 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from '@/api/axios';
 import { SubscriptionPlan, SubscriptionState } from '@/types/subscription.types';
 
+// DTOs matching the server
+export interface CreateSubscriptionData {
+  name: string;
+  description: string;
+  isActive: boolean;
+  price: number;
+  maxLogsPerMonth: number;
+  maxArticlesPerMonth: number;
+}
+
+export interface UpdateSubscriptionData {
+  name?: string;
+  description?: string;
+  isActive?: boolean;
+  price?: number;
+  maxLogsPerMonth?: number;
+  maxArticlesPerMonth?: number;
+}
+
 const initialState: SubscriptionState = {
   subscriptions: [],
   loading: false,
@@ -22,7 +41,7 @@ export const fetchSubscriptions = createAsyncThunk(
 
 export const createSubscription = createAsyncThunk(
   'subscriptions/create',
-  async (data: Omit<SubscriptionPlan, 'id'>, { rejectWithValue }) => {
+  async (data: CreateSubscriptionData, { rejectWithValue }) => {
     try {
       const res = await axios.post('/subscription', data);
       return res.data.data;
@@ -34,12 +53,24 @@ export const createSubscription = createAsyncThunk(
 
 export const updateSubscription = createAsyncThunk(
   'subscriptions/update',
-  async (data: Partial<SubscriptionPlan> & { id: string }, { rejectWithValue }) => {
+  async (data: { id: string } & UpdateSubscriptionData, { rejectWithValue }) => {
     try {
       const res = await axios.patch('/subscription', data);
       return res.data.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Failed to update subscription');
+    }
+  }
+);
+
+export const deactivateSubscription = createAsyncThunk(
+  'subscriptions/deactivate',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const res = await axios.patch(`/subscription/${id}/deactivate`);
+      return res.data.data;
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to deactivate subscription');
     }
   }
 );
@@ -78,6 +109,10 @@ const subscriptionSlice = createSlice({
         state.subscriptions.push(action.payload);
       })
       .addCase(updateSubscription.fulfilled, (state, action) => {
+        const idx = state.subscriptions.findIndex((s) => s.id === action.payload.id);
+        if (idx !== -1) state.subscriptions[idx] = action.payload;
+      })
+      .addCase(deactivateSubscription.fulfilled, (state, action) => {
         const idx = state.subscriptions.findIndex((s) => s.id === action.payload.id);
         if (idx !== -1) state.subscriptions[idx] = action.payload;
       })

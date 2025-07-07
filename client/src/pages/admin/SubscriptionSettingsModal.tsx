@@ -6,19 +6,19 @@ import {
   Group,
   Stack,
   rem,
+  Switch,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { SubscriptionPlan } from '@/store/slices/subscriptionSlice';
+import { CreateSubscriptionData, UpdateSubscriptionData } from '@/store/slices/subscriptionSlice';
 import { useEffect } from 'react';
 
 interface SubscriptionModalProps {
   opened: boolean;
   onClose: () => void;
-  onSubmit: (values: Omit<SubscriptionPlan, 'id'>) => Promise<void>;
-  initialValues: Omit<SubscriptionPlan, 'id'>;
+  onSubmit: (values: CreateSubscriptionData | UpdateSubscriptionData) => Promise<void>;
+  initialValues: CreateSubscriptionData;
   loading?: boolean;
   editMode?: boolean;
-  isBase?: boolean;
 }
 
 export default function SubscriptionSettingsModal({
@@ -28,10 +28,10 @@ export default function SubscriptionSettingsModal({
   initialValues,
   loading = false,
   editMode = false,
-  isBase = false,
 }: SubscriptionModalProps) {
   const isPro = initialValues.name.toLowerCase() === 'pro';
-  const form = useForm<Omit<SubscriptionPlan, 'id'>>({
+  const isBase = initialValues.name.toLowerCase() === 'base';
+  const form = useForm<CreateSubscriptionData>({
     initialValues,
     validate: {
       name: (value) => (!value.trim() ? 'Name is required' : null),
@@ -42,12 +42,11 @@ export default function SubscriptionSettingsModal({
     },
   });
 
-  // Reset form when modal opens/closes or initialValues change
   useEffect(() => {
     if (opened) form.setValues(initialValues);
   }, [opened, initialValues]);
 
-  const handleSubmit = async (values: Omit<SubscriptionPlan, 'id'>) => {
+  const handleSubmit = async (values: CreateSubscriptionData) => {
     try {
       await onSubmit(values);
     } catch (err: any) {
@@ -56,11 +55,9 @@ export default function SubscriptionSettingsModal({
       if (err?.response?.data?.message) message = err.response.data.message;
       else if (typeof err === 'string') message = err;
       else if (err?.message) message = err.message;
-      // Use window.notifications if available, else fallback
       if (typeof window !== 'undefined' && (window as any).notifications) {
         (window as any).notifications.show({ title: 'Error', message, color: 'red' });
       } else if (typeof window !== 'undefined') {
-        // fallback for Mantine notifications
         import('@mantine/notifications').then(({ notifications }) => {
           notifications.show({ title: 'Error', message, color: 'red' });
         });
@@ -72,7 +69,7 @@ export default function SubscriptionSettingsModal({
     <Modal
       opened={opened}
       onClose={onClose}
-      title={editMode ? (isBase ? 'Edit Base Plan' : isPro ? 'Edit Pro Plan' : 'Edit Subscription') : 'New Subscription'}
+      title={editMode ? 'Edit Subscription' : 'New Subscription'}
       centered
       size="md"
       overlayProps={{
@@ -96,19 +93,28 @@ export default function SubscriptionSettingsModal({
             label="Name"
             {...form.getInputProps('name')}
             required
-            disabled
+            disabled={isBase}
+            description={isBase ? 'Base plan name cannot be changed' : undefined}
           />
           <TextInput
             label="Description"
             {...form.getInputProps('description')}
             required
-            disabled
+          />
+          <Switch
+            label="Active"
+            {...form.getInputProps('isActive', { type: 'checkbox' })}
+            disabled={isBase}
+            description={isBase ? 'Base plan cannot be deactivated' : undefined}
           />
           <NumberInput
             label="Price"
             {...form.getInputProps('price')}
             min={0}
             required
+            prefix="$"
+            disabled={isBase}
+            description={isBase ? 'Base plan price cannot be changed' : undefined}
           />
           <NumberInput
             label="Max Logs Per Month"
@@ -117,6 +123,7 @@ export default function SubscriptionSettingsModal({
             required
             disabled={isPro}
             placeholder={isPro ? 'Unlimited' : undefined}
+            description={isPro ? 'Pro plans have unlimited logs' : undefined}
           />
           <NumberInput
             label="Max Articles Per Month"
@@ -125,6 +132,7 @@ export default function SubscriptionSettingsModal({
             required
             disabled={isPro}
             placeholder={isPro ? 'Unlimited' : undefined}
+            description={isPro ? 'Pro plans have unlimited articles' : undefined}
           />
           <Group justify="flex-end">
             <Button variant="default" onClick={onClose} type="button">

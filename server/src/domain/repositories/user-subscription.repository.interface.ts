@@ -8,4 +8,5 @@ export interface IUserSubscriptionRepository extends IBaseRepository<UserSubscri
   findSubscriptionsByUserId(userId: string): Promise<UserSubscription[]>;
   deactivateSubscription(id: string): Promise<UserSubscription | null>;
   findExpiredSubscriptions(): Promise<UserSubscription[]>;
+  findActiveSubscriptionsByPlanId(planId: string): Promise<UserSubscription[]>;
 } 

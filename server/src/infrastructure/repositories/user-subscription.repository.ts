@@ -59,4 +59,13 @@ export class UserSubscriptionRepository extends BaseRepository<UserSubscriptionD
     });
     return docs.map(doc => this.mapToEntity(doc));
   }
+
+  async findActiveSubscriptionsByPlanId(planId: string): Promise<UserSubscription[]> {
+    const docs = await this.model.find({
+      planId,
+      isActive: true,
+      expiryDate: { $gt: new Date() }
+    });
+    return docs.map(doc => this.mapToEntity(doc));
+  }
 } 
