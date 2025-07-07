@@ -4,7 +4,7 @@ import { Box, Container } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
-import SubscriptionLimitModal from '@/components/user/SubscriptionLimitModal';
+import SubscriptionUpgradeModal from '@/components/user/SubscriptionUpgradeModal';
 import { useState } from 'react';
 
 interface ArticleEditorProps {
@@ -73,7 +73,7 @@ export default function ArticleEditor({ mode }: ArticleEditorProps) {
       </div>
 
       {subscriptionLimitError && (
-        <SubscriptionLimitModal
+        <SubscriptionUpgradeModal
           opened={!!subscriptionLimitError}
           onClose={handleCloseSubscriptionModal}
           currentPlan={subscriptionLimitError.currentPlan}

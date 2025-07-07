@@ -21,10 +21,12 @@ import UserSidebar from '@components/user/UserSidebar';
 import CreateButton from '@/components/user/CreateButton';
 import { AppDispatch, RootState } from '@/store';
 import { fetchUserArticles } from '@slices/articleSlice';
+import { fetchUserStats } from '@slices/userManagementSlice';
 import { changePassword } from '@/store/slices/authSlice';
 import { updateProfile } from '@/store/slices/userManagementSlice';
 import UserStats from '@/components/user/UserStats';
-import axios from '@/api/axios';
+import { fetchNextPlans } from '@/store/slices/subscriptionSlice';
+import SubscriptionUpgradeModal from '@/components/user/SubscriptionUpgradeModal';
 
 interface ChangePasswordForm {
   currentPassword: string;
@@ -54,6 +56,8 @@ interface UserStats {
   articlesCount: number;
   currentPlan: SubscriptionPlan;
   activeSubscription: any;
+  monthlyArticles?: number;
+  monthlyLogs?: number;
 }
 
 export default function ProfilePage() {
@@ -72,6 +76,8 @@ export default function ProfilePage() {
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const [stats, setStats] = useState<UserStats | null>(null);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [nextPlans, setNextPlans] = useState<SubscriptionPlan[]>([]);
 
   useEffect(() => {
     dispatch(fetchUserArticles({ page: 1, limit: 5 }));
@@ -106,8 +112,11 @@ export default function ProfilePage() {
   }, [userArticlesHasMore, loading]);
 
   useEffect(() => {
-    axios.get('/user/stats').then(res => setStats(res.data)).catch(() => setStats(null));
-  }, []);
+    dispatch(fetchUserStats())
+      .unwrap()
+      .then((data) => setStats(data))
+      .catch(() => setStats(null));
+  }, [dispatch]);
 
   const handleChangePassword = async (values: ChangePasswordForm) => {
     try {
@@ -170,32 +179,36 @@ export default function ProfilePage() {
   const renderSkeletons = () =>
     Array.from({ length: 3 }, (_, i) => <ArticleRowSkeleton key={i} />);
 
+  const handleOpenUpgradeModal = async () => {
+    if (!stats?.currentPlan) return;
+    try {
+      const [nextArticlePlans, nextLogPlans] = await Promise.all([
+        dispatch(fetchNextPlans({ resource: 'articles', currentLimit: stats.currentPlan.maxArticlesPerMonth })).unwrap(),
+        dispatch(fetchNextPlans({ resource: 'logs', currentLimit: stats.currentPlan.maxLogsPerMonth })).unwrap(),
+      ]);
+      const plans = [...(nextArticlePlans || []), ...(nextLogPlans || [])];
+      const uniquePlans = Array.from(new Map(plans.map(p => [p.id, p])).values());
+      setNextPlans(uniquePlans);
+      setUpgradeModalOpen(true);
+    } catch (e) {
+      notifications.show({ title: 'Error', message: 'Failed to fetch upgrade plans', color: 'red' });
+    }
+  };
+
   const getUpgradeButton = () => {
     if (!stats?.currentPlan) return null;
-
-    const currentPlanName = stats.currentPlan.name.toLowerCase();
-    
-    if (currentPlanName === 'base') {
-      return (
-        <Button variant="outline" size="sm" leftSection={<Avatar size={16} radius="xl" />}>
-          Upgrade to Plus
-        </Button>
-      );
-    } else if (currentPlanName === 'plus') {
-      return (
-        <Button variant="outline" size="sm" leftSection={<Avatar size={16} radius="xl" />}>
-          Upgrade to Pro
-        </Button>
-      );
-    } else if (currentPlanName === 'pro') {
+    if (stats.currentPlan.name.toLowerCase() === 'pro') {
       return (
         <Badge color="green" size="md" variant="filled">
           Pro Plan Active
         </Badge>
       );
     }
-    
-    return null;
+    return (
+      <Button variant="outline" size="sm" onClick={handleOpenUpgradeModal}>
+        Upgrade Plan
+      </Button>
+    );
   };
 
   const getPlanInfo = () => {
@@ -223,6 +236,22 @@ export default function ProfilePage() {
           {plan.maxArticlesPerMonth === -1 ? 'Unlimited' : plan.maxArticlesPerMonth} articles/month
         </Text>
       </Stack>
+    );
+  };
+
+  const renderUsage = () => {
+    if (!stats) return null;
+    return (
+      <Group gap="md" justify="center" wrap="wrap">
+        <Paper shadow="sm" radius="md" p="sm">
+          <Text size="sm" fw={500}>Articles this month:</Text>
+          <Text size="lg">{stats.monthlyArticles ?? 0} / {stats.currentPlan.maxArticlesPerMonth === -1 ? 'Unlimited' : stats.currentPlan.maxArticlesPerMonth}</Text>
+        </Paper>
+        <Paper shadow="sm" radius="md" p="sm">
+          <Text size="sm" fw={500}>Logs this month:</Text>
+          <Text size="lg">{stats.monthlyLogs ?? 0} / {stats.currentPlan.maxLogsPerMonth === -1 ? 'Unlimited' : stats.currentPlan.maxLogsPerMonth}</Text>
+        </Paper>
+      </Group>
     );
   };
 
@@ -269,6 +298,8 @@ export default function ProfilePage() {
               </Paper>
             )}
           </Group>
+
+          {renderUsage()}
 
           {/* Action Buttons */}
           <Group justify="center" wrap="wrap" gap="sm">
@@ -318,6 +349,14 @@ export default function ProfilePage() {
           onClose={closeProfile}
           onSubmit={handleUpdateProfile}
         />
+        {stats && stats.currentPlan && (
+          <SubscriptionUpgradeModal
+            opened={upgradeModalOpen}
+            onClose={() => setUpgradeModalOpen(false)}
+            currentPlan={stats.currentPlan}
+            nextPlans={nextPlans}
+          />
+        )}
       </Box>
     </>
   );

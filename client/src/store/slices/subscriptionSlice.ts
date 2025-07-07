@@ -87,6 +87,18 @@ export const deleteSubscription = createAsyncThunk(
   }
 );
 
+export const fetchNextPlans = createAsyncThunk(
+  'subscriptions/fetchNextPlans',
+  async ({ resource, currentLimit }: { resource: 'articles' | 'logs'; currentLimit: number }, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`/subscription/next-plans?resource=${resource}&currentLimit=${currentLimit}`);
+      return res.data;
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to fetch upgrade plans');
+    }
+  }
+);
+
 const subscriptionSlice = createSlice({
   name: 'subscriptions',
   initialState,

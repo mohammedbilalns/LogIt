@@ -112,6 +112,18 @@ export const fetchUsersPaginated = createAsyncThunk(
   }
 );
 
+export const fetchUserStats = createAsyncThunk(
+  'user/fetchUserStats',
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await axios.get('/user/stats');
+      return res.data;
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to fetch user stats');
+    }
+  }
+);
+
 const userManagementSlice = createSlice({
   name: 'userManagement',
   initialState,

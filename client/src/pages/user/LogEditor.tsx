@@ -4,7 +4,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import LogEditorForm from '@components/log/LogEditorForm';
-import SubscriptionLimitModal from '@/components/user/SubscriptionLimitModal';
+import SubscriptionUpgradeModal from '@/components/user/SubscriptionUpgradeModal';
 import { useState } from 'react';
 
 interface LogEditorProps {
@@ -73,7 +73,7 @@ export default function LogEditor({ mode }: LogEditorProps) {
       </Box>
 
       {subscriptionLimitError && (
-        <SubscriptionLimitModal
+        <SubscriptionUpgradeModal
           opened={!!subscriptionLimitError}
           onClose={handleCloseSubscriptionModal}
           currentPlan={subscriptionLimitError.currentPlan}

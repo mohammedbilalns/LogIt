@@ -10,17 +10,17 @@ interface SubscriptionPlan {
   description: string;
 }
 
-interface SubscriptionLimitModalProps {
+interface SubscriptionUpgradeModalProps {
   opened: boolean;
   onClose: () => void;
   currentPlan: SubscriptionPlan;
   nextPlans?: SubscriptionPlan[];
-  exceededResource: 'logs' | 'articles';
-  currentUsage: number;
-  limit: number;
+  exceededResource?: 'logs' | 'articles';
+  currentUsage?: number;
+  limit?: number;
 }
 
-export default function SubscriptionLimitModal({
+export default function SubscriptionUpgradeModal({
   opened,
   onClose,
   currentPlan,
@@ -28,19 +28,20 @@ export default function SubscriptionLimitModal({
   exceededResource,
   currentUsage,
   limit
-}: SubscriptionLimitModalProps) {
+}: SubscriptionUpgradeModalProps) {
   const navigate = useNavigate();
 
   const getResourceText = () => {
+    if (!exceededResource) return '-';
     return exceededResource === 'logs' ? 'logs' : 'articles';
   };
 
   const getLimitText = () => {
+    if (typeof limit !== 'number') return '-';
     return limit === -1 ? 'unlimited' : limit.toString();
   };
 
   const handleUpgrade = () => {
-    // navigate('/subscription');
     onClose();
   };
 
@@ -62,11 +63,15 @@ export default function SubscriptionLimitModal({
     return '';
   };
 
+  // Context-aware title and warning
+  const isWarning = typeof exceededResource === 'string' && typeof currentUsage === 'number' && typeof limit === 'number';
+  const modalTitle = isWarning ? 'Plan Limit Reached' : 'Upgrade Your Plan';
+
   return (
     <Modal
       opened={opened}
       onClose={onClose}
-      title="Plan Limit Reached"
+      title={modalTitle}
       size="xl"
       centered
       overlayProps={{
@@ -87,14 +92,16 @@ export default function SubscriptionLimitModal({
       }}
     >
       <Stack gap="lg">
-        <div>
-          <Title order={4} mb="xs">
-            You've reached your {currentPlan.name} plan limit
-          </Title>
-          <Text c="dimmed" size="sm">
-            You've used {currentUsage} {getResourceText()} this month, but your {currentPlan.name} plan only allows {getLimitText()} {getResourceText()} per month.
-          </Text>
-        </div>
+        {isWarning && (
+          <div>
+            <Title order={4} mb="xs">
+              You've reached your {currentPlan.name} plan limit
+            </Title>
+            <Text c="dimmed" size="sm">
+              You've used {currentUsage} {getResourceText()} this month, but your {currentPlan.name} plan only allows {getLimitText()} {getResourceText()} per month.
+            </Text>
+          </div>
+        )}
 
         <Stack gap="xs">
           <Text fw={500} size="sm">Current Plan:</Text>
@@ -154,4 +161,4 @@ export default function SubscriptionLimitModal({
       </Stack>
     </Modal>
   );
-} 
+}

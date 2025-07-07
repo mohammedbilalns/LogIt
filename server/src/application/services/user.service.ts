@@ -280,6 +280,25 @@ export class UserService implements IUserService {
       this.articleRepository.count({ authorId: userId })
     ]);
 
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+    const endOfMonth = new Date();
+    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+    endOfMonth.setDate(0);
+    endOfMonth.setHours(23, 59, 59, 999);
+
+    const [monthlyArticles, monthlyLogs] = await Promise.all([
+      this.articleRepository.count({
+        authorId: userId,
+        createdAt: { $gte: startOfMonth, $lte: endOfMonth }
+      }),
+      this.logsRepository.count({
+        userId,
+        createdAt: { $gte: startOfMonth, $lte: endOfMonth }
+      })
+    ]);
+
     const currentPlan = await this.userSubscriptionService.getUserCurrentPlan(userId);
     const activeSubscription = await this.userSubscriptionService.findActiveSubscriptionByUserId(userId);
 
@@ -288,7 +307,9 @@ export class UserService implements IUserService {
       followingCount, 
       articlesCount,
       currentPlan,
-      activeSubscription
+      activeSubscription,
+      monthlyArticles,
+      monthlyLogs
     };
   }
 
