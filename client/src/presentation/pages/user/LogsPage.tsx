@@ -14,6 +14,7 @@ import axios from 'axios';
 import TagFilterSection from '@/presentation/components/tags/TagFilterSection';
 import SortBy from '@/presentation/components/SortBy';
 import { ConfirmModal } from '@/presentation/components/confirm';
+import { useInfiniteScroll } from '@/application/hooks/useInfiniteScroll';
 
 interface LogFilters {
   tagIds: string[];
@@ -58,45 +59,25 @@ export default function LogsPage() {
   []);
 
   useEffect(() => {
+    const filterObj = { ...filters, search: debouncedSearch };
     setIsInitialLoad(true);
     dispatch(fetchLogs({
       page,
       limit: pageSize,
-      search: debouncedSearch,
-      sortBy: sortBy === 'new' ? 'createdAt' : 'createdAt',
+      filters: JSON.stringify(filterObj),
+      sortBy: 'createdAt',
       sortOrder: sortBy === 'old' ? 'asc' : 'desc',
-      filters: JSON.stringify(filters)
     })).finally(() => {
       setIsInitialLoad(false);
     });
   }, [dispatch, page, pageSize, filters, sortBy, debouncedSearch]);
 
-  useEffect(() => {
-    const currentObserver = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        if (entry.isIntersecting && hasMore && !loading) {
-          setPage(prev => prev + 1);
-        }
-      },
-      {
-        root: null,
-        rootMargin: '100px',
-        threshold: 0.1
-      }
-    );
-
-    const currentTarget = observerTarget.current;
-    if (currentTarget) {
-      currentObserver.observe(currentTarget);
-    }
-
-    return () => {
-      if (currentTarget) {
-        currentObserver.unobserve(currentTarget);
-      }
-    };
-  }, [hasMore, loading]);
+  useInfiniteScroll({
+    targetRef: observerTarget,
+    loading,
+    hasMore,
+    onLoadMore: () => setPage((prev) => prev + 1),
+  });
 
   const handleSortChange = useCallback((value: string | null) => {
     if (value) {

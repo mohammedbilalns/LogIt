@@ -69,11 +69,11 @@ export const deleteArticle = createAsyncThunk(
 export const fetchArticles = createAsyncThunk(
   'articles/fetchArticles',
   async (
-    { page, limit, filters }: { page: number; limit: number; filters?: string },
+    { page, limit, filters, sortBy, sortOrder }: { page: number; limit: number; filters?: string; sortBy?: string; sortOrder?: string },
     { rejectWithValue }
   ) => {
     try {
-      return await fetchArticlesUsecase(page, limit, filters);
+      return await fetchArticlesUsecase(page, limit, filters, sortBy, sortOrder);
     } catch (e: any) {
       return rejectWithValue(e?.response?.data?.message || 'Fetch articles failed');
     }

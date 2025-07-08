@@ -6,6 +6,7 @@ import { AppDispatch, RootState } from '@/infrastructure/store';
 import { useNavigate } from 'react-router-dom';
 import { fetchFollowers, fetchFollowing } from '@/infrastructure/store/slices/connectionSlice';
 import { FollowButton, UnfollowButton } from './UserPublicProfile';
+import { useInfiniteScroll } from '@/application/hooks/useInfiniteScroll';
 
 const PAGE_SIZE = 10;
 
@@ -83,35 +84,18 @@ export default function NetworkPage() {
     if (tab === 'following') dispatch(fetchFollowing(user._id));
   }, [dispatch, user?._id, tab]);
 
-  useEffect(() => {
-    if (tab !== 'followers') return;
-    const observer = new window.IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && followers.length > followersPage * PAGE_SIZE) {
-          setFollowersPage((prev) => prev + 1);
-        }
-      },
-      { root: null, rootMargin: '100px', threshold: 0.1 }
-    );
-    const target = followersTarget.current;
-    if (target) observer.observe(target);
-    return () => { if (target) observer.unobserve(target); };
-  }, [tab, followers.length, followersPage]);
-
-  useEffect(() => {
-    if (tab !== 'following') return;
-    const observer = new window.IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && localFollowing.length > followingPage * PAGE_SIZE) {
-          setFollowingPage((prev) => prev + 1);
-        }
-      },
-      { root: null, rootMargin: '100px', threshold: 0.1 }
-    );
-    const target = followingTarget.current;
-    if (target) observer.observe(target);
-    return () => { if (target) observer.unobserve(target); };
-  }, [tab, localFollowing.length, followingPage]);
+  useInfiniteScroll({
+    targetRef: followersTarget,
+    loading: followersLoading,
+    hasMore: tab === 'followers' && followers.length > followersPage * PAGE_SIZE,
+    onLoadMore: () => setFollowersPage((prev) => prev + 1),
+  });
+  useInfiniteScroll({
+    targetRef: followingTarget,
+    loading: followingLoading,
+    hasMore: tab === 'following' && localFollowing.length > followingPage * PAGE_SIZE,
+    onLoadMore: () => setFollowingPage((prev) => prev + 1),
+  });
 
   const followersVisible = useMemo(() => followers.slice(0, followersPage * PAGE_SIZE), [followers, followersPage]);
   const followingVisible = useMemo(() => localFollowing.slice(0, followingPage * PAGE_SIZE), [localFollowing, followingPage]);

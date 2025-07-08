@@ -19,11 +19,11 @@ const initialState: LogState = {
 export const fetchLogs = createAsyncThunk(
   'logs/fetchAll',
   async (
-    { page, limit, filters }: { page: number; limit: number; filters?: string },
+    { page, limit, filters, sortBy, sortOrder }: { page: number; limit: number; filters?: string; sortBy?: string; sortOrder?: string },
     { rejectWithValue }
   ) => {
     try {
-      return await fetchLogsUsecase(page, limit, filters);
+      return await fetchLogsUsecase(page, limit, filters, sortBy, sortOrder);
     } catch (e: any) {
       return rejectWithValue(e?.response?.data?.message || 'Failed to fetch logs');
     }

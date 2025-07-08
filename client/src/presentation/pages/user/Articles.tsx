@@ -9,7 +9,7 @@ import SortBy from '@/presentation/components/SortBy';
 import TagFilterSection from '@/presentation/components/tags/TagFilterSection';
 import CreateButton from '@/presentation/components/user/CreateButton';
 import { AppDispatch, RootState } from '@/infrastructure/store';
-
+import { useInfiniteScroll } from '@/application/hooks/useInfiniteScroll';
 
 
 export default function ArticlesPage() {
@@ -41,42 +41,21 @@ export default function ArticlesPage() {
     []
   );
 
-  useEffect(() => {
-    const currentObserver = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-
-        if (entry.isIntersecting && hasMore && !loading) {
-          setPage((prev) => prev + 1);
-        }
-      },
-      {
-        root: null,
-        rootMargin: '100px',
-        threshold: 0.1,
-      }
-    );
-
-    const currentTarget = observerTarget.current;
-    if (currentTarget) {
-      currentObserver.observe(currentTarget);
-    }
-
-    return () => {
-      if (currentTarget) {
-        currentObserver.unobserve(currentTarget);
-      }
-    };
-  }, [hasMore, loading, page]);
+  useInfiniteScroll({
+    targetRef: observerTarget,
+    loading,
+    hasMore,
+    onLoadMore: () => setPage((prev) => prev + 1),
+  });
 
   useEffect(() => {
     dispatch(
       fetchArticles({
         page,
         limit: pageSize,
-        sortBy: sortBy === 'new' ? 'createdAt' : 'createdAt',
-        sortOrder: sortBy === 'old' ? 'asc' : 'desc',
         filters: JSON.stringify(filters),
+        sortBy: 'createdAt',
+        sortOrder: sortBy === 'old' ? 'asc' : 'desc',
       })
     );
   }, [dispatch, page, pageSize, sortBy, filters]);

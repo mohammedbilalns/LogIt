@@ -6,10 +6,14 @@ export const logService = {
   async fetchLogs(
     page: number,
     limit: number,
-    filters?: string
+    filters?: string,
+    sortBy?: string,
+    sortOrder?: string
   ): Promise<{ logs: Log[]; total: number }> {
     const params: any = { page, limit };
     if (filters) params.filters = filters;
+    if (sortBy) params.sortBy = sortBy;
+    if (sortOrder) params.sortOrder = sortOrder;
     const res = await api.get<{ logs: Log[]; total: number }>(API_ROUTES.LOGS.BASE, { params });
     return res.data;
   },

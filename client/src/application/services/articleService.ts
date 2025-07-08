@@ -6,10 +6,14 @@ export const articleService = {
   async fetchArticles(
     page: number,
     limit: number,
-    filters?: string
+    filters?: string,
+    sortBy?: string,
+    sortOrder?: string
   ): Promise<{ articles: Article[]; total: number }> {
     const params: any = { page, limit };
     if (filters) params.filters = filters;
+    if (sortBy) params.sortBy = sortBy;
+    if (sortOrder) params.sortOrder = sortOrder;
     const res = await api.get<{ articles: Article[]; total: number }>(API_ROUTES.ARTICLES.BASE, { params });
     return res.data;
   },

@@ -26,6 +26,7 @@ import { followUser, unfollowUser, blockUser, unblockUser, clearConnectionState 
 import UserStats from '@/presentation/components/user/UserStats';
 import { ConfirmModal } from '@/presentation/components/confirm';
 import {  getOrCreatePrivateChat } from '@/infrastructure/store/slices/chatSlice';
+import { useInfiniteScroll } from '@/application/hooks/useInfiniteScroll';
 
 export const FollowButton = memo(function FollowButton({ userId, isLoading, onSuccess }: { userId: string, isLoading: boolean, onSuccess?: () => void }) {
   const dispatch = useDispatch<AppDispatch>();
@@ -103,21 +104,12 @@ export default function UserPublicProfile() {
     }));
   }, [dispatch, id, page]);
 
-  // Infinite scroll for articles
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && hasMore && !loading) {
-        setPage((prev) => prev + 1);
-      }
-    }, {
-      root: null,
-      rootMargin: '100px',
-      threshold: 0.1,
-    });
-    const target = observerTarget.current;
-    if (target) observer.observe(target);
-    return () => { if (target) observer.unobserve(target); };
-  }, [hasMore, loading]);
+  useInfiniteScroll({
+    targetRef: observerTarget,
+    loading,
+    hasMore,
+    onLoadMore: () => setPage((prev) => prev + 1),
+  });
 
   const getInitials = (name?: string) => {
     if (!name) return '?';

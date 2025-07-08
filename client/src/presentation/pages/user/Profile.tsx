@@ -27,6 +27,7 @@ import { updateProfile } from '@/infrastructure/store/slices/userManagementSlice
 import UserStats from '@/presentation/components/user/UserStats';
 import { fetchNextPlans } from '@/infrastructure/store/slices/subscriptionSlice';
 import SubscriptionUpgradeModal from '@/presentation/components/user/SubscriptionUpgradeModal';
+import { useInfiniteScroll } from '@/application/hooks/useInfiniteScroll';
 
 interface ChangePasswordForm {
   currentPassword: string;
@@ -80,36 +81,15 @@ export default function ProfilePage() {
   const [nextPlans, setNextPlans] = useState<SubscriptionPlan[]>([]);
 
   useEffect(() => {
-    dispatch(fetchUserArticles({ page: 1, limit: 5 }));
-  }, [dispatch]);
+    dispatch(fetchUserArticles({ page, limit: 5 }));
+  }, [dispatch, page]);
 
-  useEffect(() => {
-    if (page > 1) {
-      dispatch(fetchUserArticles({ page, limit: 5 }));
-    }
-  }, [page, dispatch]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && userArticlesHasMore && !loading) {
-          setPage((prev) => prev + 1);
-        }
-      },
-      {
-        root: null,
-        rootMargin: '100px',
-        threshold: 0.1,
-      }
-    );
-
-    const target = observerTarget.current;
-    if (target) observer.observe(target);
-
-    return () => {
-      if (target) observer.unobserve(target);
-    };
-  }, [userArticlesHasMore, loading]);
+  useInfiniteScroll({
+    targetRef: observerTarget,
+    loading,
+    hasMore: userArticlesHasMore,
+    onLoadMore: () => setPage((prev) => prev + 1),
+  });
 
   useEffect(() => {
     dispatch(fetchUserStats())
