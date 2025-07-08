@@ -47,5 +47,23 @@ export const API_ROUTES = {
     UNFOLLOW: '/connections/unfollow',
     BLOCK: '/connections/block',
     UNBLOCK: '/connections/unblock',
+    FETCH_FOLLOWERS: (userId: string) => `/connections/followers/${userId}`,
+    FETCH_FOLLOWING: (userId: string) => `/connections/following/${userId}`,
+  },
+  PAYMENTS: {
+    ORDER: '/payments/order',
+    VERIFY: '/payments/verify',
+  },
+  CHATS: {
+    BASE: '/chats',
+    GROUP: '/chats/group',
+    BY_ID: (id: string) => `/chats/${id}`,
+    PRIVATE: (userId: string) => `/chats/private/${userId}`,
+    MESSAGES: (chatId: string) => `/chats/${chatId}/messages`,
+    PARTICIPANTS: (chatId: string) => `/chats/${chatId}/participants`,
+    PARTICIPANT: (chatId: string, userId: string) => `/chats/${chatId}/participants/${userId}`,
+    PROMOTE_PARTICIPANT: (chatId: string, userId: string) => `/chats/${chatId}/participants/${userId}/promote`,
+    LEAVE: (chatId: string) => `/chats/${chatId}/leave`,
+    GROUP_NAME: (chatId: string) => `/chats/${chatId}/name`,
   },
 };

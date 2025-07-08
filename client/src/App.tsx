@@ -1,14 +1,14 @@
 import { memo, Suspense, useEffect, useRef } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { initializeApp } from '@slices/initSlice';
+import { initializeApp } from '@/infrastructure/store/slices/initSlice';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import { RouterProvider } from 'react-router-dom';
 import { LoadingOverlay } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
-import { router } from '@/Router';
-import { AppDispatch, RootState, store } from '@/store';
-import { useAxiosInterceptors } from './hooks/useAxiosInterceptors';
-import { useRemoveRootLoader } from './hooks/useRemoveRootLoader';
+import { router } from '@/presentation/routes/Router';
+import { AppDispatch, RootState, store } from '@/infrastructure/store';
+import { useAxiosInterceptors } from '@/application/hooks/useAxiosInterceptors';
+import { useRemoveRootLoader } from '@/application/hooks/useRemoveRootLoader';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 

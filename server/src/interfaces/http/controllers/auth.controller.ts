@@ -116,6 +116,7 @@ export class AuthController {
       return;
     }
 
+
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) {
       res

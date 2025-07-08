@@ -12,3 +12,9 @@ export interface AuthState {
   resetPasswordEmail: string | null;
   resetPasswordVerified: boolean;
 }
+
+export interface AuthResponse {
+  user: User;
+  token?: string;
+  message?: string;
+}
