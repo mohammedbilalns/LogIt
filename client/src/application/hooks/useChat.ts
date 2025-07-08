@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { format } from 'date-fns';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
@@ -41,7 +40,6 @@ export function useChat(id?: string) {
 
   const chatName = useMemo(() => {
     if (!currentChat) {
-      // Try to get chat info from the chat lists as fallback
       const groupChat = groupChats.find((c) => c.id === id);
       const singleChat = singleChats.find((c) => c.id === id);
       const fallbackChat = groupChat || singleChat;
@@ -72,7 +70,6 @@ export function useChat(id?: string) {
     [participants, loggedInUser?._id]
   );
 
-  // Check if current user is removed or left the group
   const myParticipant = useMemo(
     () => participants.find((p) => p.userId === loggedInUser?._id),
     [participants, loggedInUser?._id]
@@ -226,6 +223,12 @@ export function useChat(id?: string) {
     loggedInUser?._id,
     isRemovedOrLeft,
   ]);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      setShouldScrollToBottom(true);
+    }
+  }, [messages.length]);
 
   const fetchPreviousMessages = async () => {
     if (!id || !hasMore) return;

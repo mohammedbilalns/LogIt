@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { API_ROUTES } from '@/constants/routes';
 import { Report, ReportState } from '@/types/report.types';
 import { fetchReports as fetchReportsUsecase } from '@/domain/usecases/report/fetchReports';
 import { updateReportStatus as updateReportStatusUsecase } from '@/domain/usecases/report/updateReportStatus';

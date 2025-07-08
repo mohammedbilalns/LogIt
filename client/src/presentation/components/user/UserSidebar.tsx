@@ -75,7 +75,7 @@ export default function UserSidebar({ isModalOpen = false }: UserSidebarProps) {
             onClick={handleToggleSidebar}
             style={{
               position: 'fixed',
-              bottom: '1.5rem',
+              bottom: isMobile ? '3.5rem' : '1.5rem',
               left: '1.5rem',
               zIndex: 1000,
               boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
