@@ -12,7 +12,6 @@ import {
   createChatSchema,
   createGroupChatSchema,
   addParticipantSchema,
-  sendMessageSchema,
 } from "../../../application/validations/chat.validation";
 import { Server } from "socket.io";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
@@ -34,6 +33,7 @@ export function createChatRouter(io: Server) {
   );
 
   const chatController = new ChatController(chatService);
+
 
   router.use(
     asyncHandler((req, res, next) => authMiddleware()(req, res, next)),
@@ -76,7 +76,6 @@ export function createChatRouter(io: Server) {
   );
   router.post(
     "/:chatId/messages",
-    validate(sendMessageSchema),
     asyncHandler((req, res) => chatController.sendMessage(req, res))
   );
   router.patch(

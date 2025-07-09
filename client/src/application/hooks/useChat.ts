@@ -13,6 +13,7 @@ import {
   setCurrentChat,
 } from '@/infrastructure/store/slices/chatSlice';
 import { getInitials } from '@/application/utils/chatUtils';
+import { uploadService } from '@/application/services/uploadService';
 
 export function useChat(id?: string) {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export function useChat(id?: string) {
     useSelector((state: RootState) => state.chat);
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState<{ file: File; type: 'image' | 'audio' } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerClassName = `page-container ${isSidebarOpen ? 'sidebar-open' : ''}`;
   const [isOnline, setIsOnline] = useState(false);
@@ -122,7 +124,6 @@ export function useChat(id?: string) {
       onParticipantLeft: (data) => {
         if (data.chatId === id) {
           dispatch(handleUserLeft({ chatId: data.chatId, leftUserId: data.leftUserId }));
-          // Refresh chat details to update participant list
           dispatch(fetchChatDetails({ chatId: id, page: 1, limit }));
         }
       },
@@ -193,7 +194,7 @@ export function useChat(id?: string) {
       .map((p) => p.userId)
       .filter((uid) => uid && uid !== loggedInUser?._id);
     if (userIds.length === 0) {
-      setOnlineCount(1); // Only self
+      setOnlineCount(1); 
       return;
     }
     const updateOnlineCount = () => {
@@ -246,17 +247,53 @@ export function useChat(id?: string) {
   };
 
   const handleSend = async () => {
-    if (!message.trim() || !id || sending || isRemovedOrLeft) return;
+    if ((!message.trim() && !selectedMedia) || !id || sending || isRemovedOrLeft) return;
     setSending(true);
     try {
-      await dispatch(sendMessage({ chatId: id, content: message.trim() })).unwrap();
+      let mediaData = null;
+      
+      if (selectedMedia) {
+        const url = selectedMedia.type === 'image' 
+          ? await uploadService.uploadImage(selectedMedia.file)
+          : await uploadService.uploadAudio(selectedMedia.file);
+        
+        mediaData = {
+          file: selectedMedia.file,
+          url,
+          type: selectedMedia.type,
+          size: selectedMedia.file.size,
+          uploadedAt: new Date().toISOString(),
+        };
+      }
+      
+      await dispatch(sendMessage({ 
+        chatId: id, 
+        content: message.trim() !== '' ? message.trim() : undefined,
+        media: mediaData 
+      })).unwrap();
+      
       setMessage('');
+      setSelectedMedia(null);
       setShouldScrollToBottom(true);
     } catch (error) {
       console.error('Failed to send message:', error);
     } finally {
       setSending(false);
     }
+  };
+
+  const handleMediaSelect = (file: File, type: 'image' | 'audio') => {
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      notifications.show({
+        title: 'File too large',
+        message: 'File size must be less than 10MB',
+        color: 'red',
+      });
+      return;
+    }
+    
+    setSelectedMedia({ file, type });
   };
 
   const handleProfileClick = (userId: string) => {
@@ -283,6 +320,9 @@ export function useChat(id?: string) {
     setMessage,
     sending,
     handleSend,
+    selectedMedia,
+    setSelectedMedia,
+    handleMediaSelect,
     handleProfileClick,
     messagesEndRef,
     containerClassName,

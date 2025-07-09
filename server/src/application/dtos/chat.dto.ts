@@ -1,3 +1,5 @@
+import { MessageMedia } from '../../domain/entities/message-media.entity';
+
 export interface CreateChatDto {
   isGroup: boolean;
   name?: string;
@@ -11,7 +13,7 @@ export interface CreateGroupChatDto {
 
 export interface SendMessageDto {
   content?: string;
-  media?: string;
+  media?: MessageMedia;
   log?: string;
   replyTo?: string;
 } 

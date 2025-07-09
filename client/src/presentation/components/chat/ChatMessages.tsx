@@ -1,7 +1,10 @@
-import { Stack, Group, Avatar, Paper, Text, Loader, Button, Badge } from '@mantine/core';
+import { Stack, Group, Avatar, Paper, Text, Loader, Button, Badge, Image, Box } from '@mantine/core';
 import React from 'react';
 import { useMantineColorScheme } from '@mantine/core';
 import { formatMessageTime, formatMessageDate, groupMessagesByDate } from '@/application/utils/chatUtils';
+import { ImagePreviewModal } from './ImagePreviewModal';
+import { useState } from 'react';
+import { AudioPlayer } from './AudioPlayer';
 
 interface ChatMessagesProps {
   messages: any[];
@@ -32,6 +35,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
 }) => {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   if (messagesLoading && page === 1 && messages.length === 0) {
     return (
@@ -142,6 +146,31 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                         }}
                       >
                         <Text size="sm" style={{ lineHeight: 1.4, color: isDark ? (isMine ? '#fff' : '#e0e0e0') : '#222' }}>{msg.content}</Text>
+                        {msg.media && (
+                          <Box mt="xs">
+                            {msg.media.type === 'image' ? (
+                              <Image
+                                src={msg.media.url}
+                                alt="Shared image"
+                                radius="md"
+                                style={{ maxWidth: '100%', maxHeight: 200, cursor: 'pointer' }}
+                                fit="cover"
+                                onClick={() => setPreviewImage(msg.media.url)}
+                              />
+                            ) : msg.media.type === 'audio' ? (
+                              <Box
+                                style={{
+                                  background: isDark ? '#343a40' : '#f8f9fa',
+                                  borderRadius: 8,
+                                  padding: 12,
+                                  border: `1px solid ${isDark ? '#495057' : '#dee2e6'}`,
+                                }}
+                              >
+                                <AudioPlayer src={msg.media.url} fileName={msg.media.id} size={msg.media.size} />
+                              </Box>
+                            ) : null}
+                          </Box>
+                        )}
                         <Text size="xs" ta={isMine ? 'right' : 'left'} mt={4} style={{ color: isDark ? '#fff' : undefined }}>
                           {formatMessageTime(msg.createdAt)}
                         </Text>
@@ -162,6 +191,11 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
         )}
         <div ref={messagesEndRef} />
       </Stack>
+      <ImagePreviewModal
+        opened={!!previewImage}
+        onClose={() => setPreviewImage(null)}
+        src={previewImage || ''}
+      />
     </div>
   );
 }; 

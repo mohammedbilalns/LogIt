@@ -52,7 +52,12 @@ export default function SingleChatPage() {
         <Box style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <ChatMessages {...chat} />
         </Box>
-        <ChatInput {...chat} />
+        <ChatInput 
+          {...chat} 
+          handleMediaSelect={chat.handleMediaSelect}
+          selectedMedia={chat.selectedMedia}
+          onRemoveMedia={() => chat.setSelectedMedia(null)}
+        />
       </Box>
     </>
   );

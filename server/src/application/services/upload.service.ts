@@ -10,4 +10,9 @@ export class UploadService implements IUploadService {
   async uploadProfileImage(buffer: Buffer): Promise<string> {
     return this.uploadImage(buffer, 'profile-images');
   }
+
+  async uploadAudio(buffer: Buffer, folder: string = 'audio'): Promise<string> {
+    const result = await uploadBufferToCloudinary(buffer, folder, 'video');
+    return result.secure_url;
+  }
 } 

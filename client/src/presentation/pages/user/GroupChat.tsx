@@ -74,7 +74,12 @@ export default function GroupChatPage() {
             </Text>
           </Box>
         ) : (
-          <ChatInput {...chat} />
+          <ChatInput 
+            {...chat} 
+            handleMediaSelect={chat.handleMediaSelect}
+            selectedMedia={chat.selectedMedia}
+            onRemoveMedia={() => chat.setSelectedMedia(null)}
+          />
         )}
       </Box>
       <GroupDetailsModal

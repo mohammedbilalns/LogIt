@@ -1,12 +1,12 @@
 import React from 'react';
 
-interface XIconProps {
+interface ImageIconProps {
   width?: number;
   height?: number;
   color?: string;
 }
 
-export const XIcon: React.FC<XIconProps> = ({ 
+export const ImageIcon: React.FC<ImageIconProps> = ({ 
   width = 24, 
   height = 24, 
   color = 'currentColor' 
@@ -21,7 +21,8 @@ export const XIcon: React.FC<XIconProps> = ({
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <line x1="18" y1="6" x2="6" y2="18" />
-    <line x1="6" y1="6" x2="18" y2="18" />
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+    <circle cx="8.5" cy="8.5" r="1.5" />
+    <polyline points="21,15 16,10 5,21" />
   </svg>
-);
+); 

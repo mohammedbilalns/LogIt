@@ -1,9 +1,11 @@
+import { MessageMedia } from './message-media.entity';
+
 export interface Message{
     id: string; 
     chatId: string;
     senderId: string;
     content?:string; 
-    media?: string; 
+    media?: MessageMedia;
     log?: string;
     replyTo?: string; 
     deletedFor:string[];
@@ -11,6 +13,5 @@ export interface Message{
     createdAt: Date;
     updatedAt: Date; 
 }
-
 
 

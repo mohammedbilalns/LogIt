@@ -11,7 +11,7 @@ import {
   rem,
   Portal,
 } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/infrastructure/store';
 import { logout } from '@/infrastructure/store/slices/authSlice';
@@ -31,8 +31,11 @@ export default function Navbar({ fixed = true }: NavbarProps) {
   const isDark = colorScheme === 'dark';
   const isMobile = useMediaQuery('(max-width: 768px)');
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   const handleLogout = async () => {
     await dispatch(logout());
@@ -82,7 +85,7 @@ export default function Navbar({ fixed = true }: NavbarProps) {
         </UnstyledButton>
 
         {/* Search */}
-        {isAuthenticated && !isMobile && (
+        {isAuthenticated && !isMobile && !isAdminRoute && (
           <TextInput
             placeholder="Search LogIt"
             leftSection={<SearchIcon width={14} height={14} />}

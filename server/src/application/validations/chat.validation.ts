@@ -20,4 +20,8 @@ export const sendMessageSchema = z.object({
   media: z.string().optional(),
   log: z.string().optional(),
   replyTo: z.string().optional(),
+}).refine((data) => {
+  return (data.content && data.content.trim() !== '') || data.media;
+}, {
+  message: 'Message must have either text content or media.',
 }); 
