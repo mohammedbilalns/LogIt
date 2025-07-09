@@ -10,6 +10,8 @@ import {
   Box,
   rem,
   Portal,
+  Badge,
+  Popover,
 } from '@mantine/core';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -21,6 +23,11 @@ import { MoonIcon } from './icons/MoonIcon';
 import { SunIcon } from './icons/SunIcon';
 import { SearchIcon } from './icons/SearchIcon';
 import { LogoutIcon } from './icons/LogoutIcon';
+import { useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
+import NotificationList from './NotificationModal';
+import { showNotification } from '@mantine/notifications';
+import { addNotification, fetchUnreadCount } from '@/infrastructure/store/slices/notificationSlice';
 
 interface NavbarProps {
   fixed?: boolean;
@@ -33,7 +40,45 @@ export default function Navbar({ fixed = true }: NavbarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const userId = user?._id;
+  const unreadCount = useSelector((state: RootState) => state.notifications.unreadCount);
+  const [socket, setSocket] = useState<any>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated && userId) {
+      if (!(window as any).globalSocket) {
+        const s = io(import.meta.env.VITE_SOCKET_URL, { withCredentials: true });
+        (window as any).globalSocket = s;
+        setSocket(s);
+        s.on('connect', () => {
+          s.emit('identify', userId);
+        });
+        s.on('notification', (notif: any) => {
+          dispatch(addNotification(notif));
+          dispatch(fetchUnreadCount());
+          showNotification({
+            title: notif.title,
+            message: notif.message,
+            color: 'blue',
+          });
+        });
+        s.on('disconnect', () => {
+        });
+      } else {
+        setSocket((window as any).globalSocket);
+      }
+      dispatch(fetchUnreadCount());
+      return () => {
+        if ((window as any).globalSocket) {
+          (window as any).globalSocket.disconnect();
+          (window as any).globalSocket = null;
+        }
+      };
+    }
+  }, [isAuthenticated, userId, dispatch]);
 
   const isAdminRoute = location.pathname.startsWith('/admin');
 
@@ -98,7 +143,7 @@ export default function Navbar({ fixed = true }: NavbarProps) {
                   ? 'rgba(36, 36, 40, 0.6)'
                   : 'rgba(255, 255, 255, 0.6)',
                 backdropFilter: 'blur(8px)',
-                border: isDark 
+                border: isDark
                   ? '1px solid rgba(255, 255, 255, 0.2)'
                   : '1px solid rgba(0, 0, 0, 0.15)',
               },
@@ -111,20 +156,68 @@ export default function Navbar({ fixed = true }: NavbarProps) {
           {isAuthenticated ? (
             <>
               {isMobile && (
-                <ActionIcon variant="light" size="sm" color="blue" radius="md">
-                  <SearchIcon width={16} height={16} />
+                <ActionIcon variant="light" size="lg" color="blue" radius="md">
+                  <SearchIcon width={20} height={20} />
                 </ActionIcon>
               )}
-              <ActionIcon variant="light" size="sm" radius="md">
-                <BellIcon width={16} height={16} />
-              </ActionIcon>
+              <Popover
+                opened={popoverOpen}
+                onChange={setPopoverOpen}
+                position="bottom-end"
+                withArrow
+                shadow="md"
+                offset={12}
+                trapFocus
+                withinPortal
+              >
+                <Popover.Target>
+                  <ActionIcon
+                    variant="light"
+                    size="lg"
+                    radius="md"
+                    onClick={() => setPopoverOpen((v) => !v)}
+                    style={{ position: 'relative', overflow: 'visible' }}
+                  >
+                    <BellIcon width={20} height={20} />
+                    {unreadCount > 0 && (
+                      <Badge
+                        color="red"
+                        size="sm"
+                        style={{
+                          position: 'absolute',
+                          top: 2,
+                          right: 2,
+                          minWidth: 18,
+                          height: 18,
+                          padding: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 12,
+                          borderRadius: '50%',
+                          zIndex: 2,
+                          boxShadow: '0 0 0 2px white',
+                        }}
+                      >
+                        {unreadCount}
+                      </Badge>
+                    )}
+                  </ActionIcon>
+                </Popover.Target>
+                <Popover.Dropdown style={{ padding: 0, minWidth: 360, maxWidth: '90vw', marginTop: 8 }}>
+                  <NotificationList
+                    onRead={() => dispatch(fetchUnreadCount())}
+                    onClose={() => setPopoverOpen(false)}
+                  />
+                </Popover.Dropdown>
+              </Popover>
               <ActionIcon
                 variant="light"
-                size="sm"
+                size="lg"
                 radius="md"
                 onClick={handleLogout}
               >
-                <LogoutIcon width={16} height={16} />
+                <LogoutIcon width={20} height={20} />
               </ActionIcon>
             </>
           ) : (

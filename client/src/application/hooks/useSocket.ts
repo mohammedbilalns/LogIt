@@ -1,155 +1,153 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { io, Socket } from 'socket.io-client';
-import { RootState, AppDispatch } from '@/infrastructure/store';
-import { setSocketConnected, addMessage, addNewChat } from '@/infrastructure/store/slices/chatSlice';
+import { AppDispatch, RootState } from '@/infrastructure/store';
+import {
+  addMessage,
+  addNewChat,
+  setSocketConnected,
+} from '@/infrastructure/store/slices/chatSlice';
 
 export const useSocket = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const socketRef = useRef<Socket | null>(null);
   const { user } = useSelector((state: RootState) => state.auth);
   const { socketConnected } = useSelector((state: RootState) => state.chat);
+  const socket = typeof window !== 'undefined' ? (window as any).globalSocket : null;
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleConnect = () => {
+      dispatch(setSocketConnected(true));
+    };
+    const handleDisconnect = () => {
+      dispatch(setSocketConnected(false));
+    };
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    if (socket.connected) dispatch(setSocketConnected(true));
+    else dispatch(setSocketConnected(false));
+    return () => {
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+    };
+  }, [socket, dispatch]);
 
   // Callbacks for group events
   const groupEventCallbacks = useRef<{
     onUserRemoved?: (data: { chatId: string; message: string }) => void;
     onUserLeft?: (data: { chatId: string; message: string }) => void;
-    onParticipantRemoved?: (data: { chatId: string; removedUserId: string; removedBy: string }) => void;
+    onParticipantRemoved?: (data: {
+      chatId: string;
+      removedUserId: string;
+      removedBy: string;
+    }) => void;
     onParticipantLeft?: (data: { chatId: string; leftUserId: string }) => void;
   }>({});
 
   useEffect(() => {
-    if (!user?._id) return;
-
-    // Clean up existing connection if any
-    if (socketRef.current) {
-      socketRef.current.disconnect();
-      socketRef.current = null;
-    }
-
-    // Initialize socket connection
-    socketRef.current = io('http://localhost:3000', {
-      withCredentials: true,
-    });
-
-    const socket = socketRef.current;
-
-    // Connection events
-    socket.on('connect', () => {
-      console.log('Socket connected:', socket.id);
-      dispatch(setSocketConnected(true));
-      
-      // Join user room for notifications
-      socket.emit('join_user_room', user._id);
-      // Identify user for online status tracking
-      socket.emit('identify', user._id);
-    });
-
-    socket.on('disconnect', () => {
-      console.log('Socket disconnected');
-      dispatch(setSocketConnected(false));
-    });
+    if (!user?._id || !socket) return;
 
     // Chat events
-    socket.on('new_message', (message) => {
-      console.log('New message received:', message);
+    socket.on('new_message', (message: any) => {
       dispatch(addMessage(message));
     });
-
-    socket.on('new_chat', (chat) => {
-      console.log('New chat created:', chat);
+    socket.on('new_chat', (chat: any) => {
       dispatch(addNewChat(chat));
     });
-
-    socket.on('new_group_chat', (chat) => {
-      console.log('New group chat created:', chat);
+    socket.on('new_group_chat', (chat: any) => {
       dispatch(addNewChat(chat));
     });
-
     // Group management events
-    socket.on('user_removed_from_group', (data) => {
-      console.log('User removed from group:', data);
+    socket.on('user_removed_from_group', (data: any) => {
       groupEventCallbacks.current.onUserRemoved?.(data);
     });
-
-    socket.on('user_left_group', (data) => {
-      console.log('User left group:', data);
+    socket.on('user_left_group', (data: any) => {
       groupEventCallbacks.current.onUserLeft?.(data);
     });
-
-    socket.on('participant_removed', (data) => {
-      console.log('Participant removed:', data);
+    socket.on('participant_removed', (data: any) => {
       groupEventCallbacks.current.onParticipantRemoved?.(data);
     });
-
-    socket.on('participant_left', (data) => {
-      console.log('Participant left:', data);
+    socket.on('participant_left', (data: any) => {
       groupEventCallbacks.current.onParticipantLeft?.(data);
     });
-
-    socket.on('force_leave_chat_room', (chatId) => {
-      console.log('Force leave chat room:', chatId);
+    socket.on('force_leave_chat_room', (chatId: string) => {
       socket.emit('force_leave_chat_room', chatId);
     });
-
-    // Cleanup on unmount
+    // Cleanup listeners on unmount
     return () => {
       if (socket) {
-        socket.disconnect();
-        socketRef.current = null;
+        socket.off('new_message');
+        socket.off('new_chat');
+        socket.off('new_group_chat');
+        socket.off('user_removed_from_group');
+        socket.off('user_left_group');
+        socket.off('participant_removed');
+        socket.off('participant_left');
+        socket.off('force_leave_chat_room');
       }
     };
-  }, [user?._id, dispatch]);
+  }, [user?._id, dispatch, socket]);
 
-  const joinChatRoom = useCallback((chatId: string) => {
-    if (socketRef.current && socketRef.current.connected) {
-      socketRef.current.emit('join_chat_room', chatId);
-      console.log('Joined chat room:', chatId);
-    }
-  }, []);
+  const joinChatRoom = useCallback(
+    (chatId: string) => {
+      if (socket && socket.connected) {
+        socket.emit('join_chat_room', chatId);
+      }
+    },
+    [socket]
+  );
 
-  const leaveChatRoom = useCallback((chatId: string) => {
-    if (socketRef.current && socketRef.current.connected) {
-      socketRef.current.emit('leave_chat_room', chatId);
-      console.log('Left chat room:', chatId);
-    }
-  }, []);
+  const leaveChatRoom = useCallback(
+    (chatId: string) => {
+      if (socket && socket.connected) {
+        socket.emit('leave_chat_room', chatId);
+      }
+    },
+    [socket]
+  );
 
   // Subscribe to user online/offline events
-  const subscribeToUserStatus = useCallback((
-    onOnline: (data: { userId: string }) => void,
-    onOffline: (data: { userId: string }) => void
-  ) => {
-    if (!socketRef.current) return;
-    socketRef.current.on('user_online', onOnline);
-    socketRef.current.on('user_offline', onOffline);
-    return () => {
-      socketRef.current?.off('user_online', onOnline);
-      socketRef.current?.off('user_offline', onOffline);
-    };
-  }, []);
+  const subscribeToUserStatus = useCallback(
+    (
+      onOnline: (data: { userId: string }) => void,
+      onOffline: (data: { userId: string }) => void
+    ) => {
+      if (!socket) return;
+      socket.on('user_online', onOnline);
+      socket.on('user_offline', onOffline);
+      return () => {
+        socket?.off('user_online', onOnline);
+        socket?.off('user_offline', onOffline);
+      };
+    },
+    [socket]
+  );
 
   // Subscribe to group events
-  const subscribeToGroupEvents = useCallback((
-    callbacks: {
+  const subscribeToGroupEvents = useCallback(
+    (callbacks: {
       onUserRemoved?: (data: { chatId: string; message: string }) => void;
       onUserLeft?: (data: { chatId: string; message: string }) => void;
-      onParticipantRemoved?: (data: { chatId: string; removedUserId: string; removedBy: string }) => void;
+      onParticipantRemoved?: (data: {
+        chatId: string;
+        removedUserId: string;
+        removedBy: string;
+      }) => void;
       onParticipantLeft?: (data: { chatId: string; leftUserId: string }) => void;
-    }
-  ) => {
-    groupEventCallbacks.current = callbacks;
-    return () => {
-      groupEventCallbacks.current = {};
-    };
-  }, []);
+    }) => {
+      groupEventCallbacks.current = callbacks;
+      return () => {
+        groupEventCallbacks.current = {};
+      };
+    },
+    []
+  );
 
   return {
-    socket: socketRef.current,
+    socket,
     socketConnected,
     joinChatRoom,
     leaveChatRoom,
     subscribeToUserStatus,
     subscribeToGroupEvents,
   };
-}; 
+};

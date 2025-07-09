@@ -5,6 +5,7 @@ import { Server as HTTPServer } from "http";
 import env from "./env";
 import { logger } from "../utils/logger";
 import { chatHandler } from "../interfaces/http/sockets/chat.handler";
+import { notificationHandler } from "../interfaces/http/sockets/notification.handler";
 
 export interface SocketConfig {
   io: SocketIOServer;
@@ -52,6 +53,7 @@ export const initializeSocket = (server: HTTPServer): SocketConfig => {
     });
 
     chatHandler(io, socket);
+    notificationHandler();
 
     socket.on("disconnect", () => {
       for (const [userId, sId] of onlineUsers.entries()) {

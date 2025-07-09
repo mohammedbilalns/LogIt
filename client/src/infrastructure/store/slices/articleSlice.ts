@@ -200,14 +200,7 @@ const articleSlice = createSlice({
 
         state.total = action.payload.total;
         state.hasMore = newArticles.length === action.meta.arg.limit;
-        console.log('Articles state updated:', {
-          currentCount: state.articles.length,
-          total: state.total,
-          hasMore: state.hasMore,
-          page: action.meta.arg.page,
-          receivedArticles: newArticles.length,
-          requestedLimit: action.meta.arg.limit,
-        });
+      
       })
       .addCase(fetchArticles.rejected, (state, action) => {
         state.loading = false;

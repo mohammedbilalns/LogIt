@@ -15,6 +15,9 @@ import {
 } from "../../../application/validations/chat.validation";
 import { Server } from "socket.io";
 import { csrfMiddleware } from "../middlewares/csrf.middleware";
+import { NotificationService } from '../../../application/services/notification.service';
+import { MongoNotificationRepository } from '../../../infrastructure/repositories/notification.repository';
+import { MongoUserRepository } from '../../../infrastructure/repositories/user.repository';
 
 export function createChatRouter(io: Server) {
   const router = Router();
@@ -23,13 +26,17 @@ export function createChatRouter(io: Server) {
   const messageRepository = new MessageRepository();
   const chatParticipantRepository = new ChatParticipantRepository();
   const chatActionLogRepository = new ChatActionLogRepository();
+  const userRepository = new MongoUserRepository();
 
+  const notificationService = new NotificationService(new MongoNotificationRepository());
   const chatService = new ChatService(
     chatRepository,
     messageRepository,
     chatParticipantRepository,
     chatActionLogRepository,
-    io
+    userRepository,
+    io,
+    notificationService
   );
 
   const chatController = new ChatController(chatService);

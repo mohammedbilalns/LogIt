@@ -78,14 +78,16 @@ function ChatCard({ chat, isGroup }: { chat: any; isGroup?: boolean }) {
         </Avatar>
         <Stack gap={0} style={{ flex: 1 }}>
           <Group gap="xs" justify="space-between" align="center">
-            <Text fw={600} size="sm" style={{ color: isRemovedOrLeft ? '#ff6b6b' : undefined }}>
-              {chatName}
+            <Group gap={4}>
+              <Text fw={600} size="sm" style={{ color: isRemovedOrLeft ? '#ff6b6b' : undefined }} span>
+                {chatName}
+              </Text>
               {isRemovedOrLeft && (
                 <Badge size="xs" color="red" variant="light" style={{ marginLeft: 4 }}>
                   {myParticipant?.role === 'removed-user' ? 'Removed' : 'Left'}
                 </Badge>
               )}
-            </Text>
+            </Group>
             {lastMessageTime && !isRemovedOrLeft && (
               <Text size="xs" c="dimmed">{lastMessageTime}</Text>
             )}

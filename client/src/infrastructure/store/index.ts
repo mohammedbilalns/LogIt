@@ -13,6 +13,7 @@ import homeReducer from '@/infrastructure/store/slices/homeSlice';
 import connectionReducer from './slices/connectionSlice';
 import chatReducer from './slices/chatSlice';
 import subscriptionReducer from './slices/subscriptionSlice';
+import notificationReducer from './slices/notificationSlice';
 
 export const store = configureStore({
   reducer: {
@@ -30,6 +31,7 @@ export const store = configureStore({
     connection: connectionReducer,
     chat: chatReducer,
     subscriptions: subscriptionReducer,
+    notifications: notificationReducer,
   },
 });
 

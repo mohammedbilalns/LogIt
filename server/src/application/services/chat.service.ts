@@ -13,18 +13,26 @@ import { BadRequestError, UnauthorizedError } from "../errors/http.errors";
 import { HttpResponse } from "../../constants/responseMessages";
 import { Chat } from "../../domain/entities/chat.entity";
 import { Message } from "../../domain/entities/message.entity";
+import { NotificationService } from "./notification.service";
+import { IUserRepository } from "../../domain/repositories/user.repository.interface";
 
 export class ChatService implements IChatService {
   private io: Server;
+  private notificationService: NotificationService;
+  private userRepository: IUserRepository;
 
   constructor(
     private chatRepository: IChatRepository,
     private messageRepository: IMessageRepository,
     private chatParticipantRepository: IChatParticipantRepository,
     private chatActionLogRepository: IChatActionLogRepository,
-    io: Server
+    userRepository: IUserRepository,
+    io: Server,
+    notificationService: NotificationService
   ) {
     this.io = io;
+    this.notificationService = notificationService;
+    this.userRepository = userRepository;
   }
 
   async createChat(creatorId: string, data: CreateChatDto) {
@@ -86,14 +94,12 @@ export class ChatService implements IChatService {
 
     const allParticipants = [...new Set([creatorId, ...participants])];
 
-    // Create the group chat
     const newChat = await this.chatRepository.create({
       isGroup: true,
       name: name.trim(),
       creator: creatorId,
     });
 
-    // Add all participants to the chat
     for (const userId of allParticipants) {
       await this.chatParticipantRepository.create({
         chatId: newChat.id,
@@ -103,7 +109,6 @@ export class ChatService implements IChatService {
       });
     }
 
-    // Notify all participants about the new group chat
     allParticipants.forEach((userId) => {
       this.io.to(userId).emit("new_group_chat", {
         ...newChat,
@@ -268,9 +273,15 @@ export class ChatService implements IChatService {
         message: `User added to group`,
       });
       addedParticipants.push(participant);
+      await this.notificationService.createNotification({
+        userId,
+        type: "group",
+        title: "Added to group",
+        message: `You were added to group: ${chat.name}`,
+        isRead: false,
+      });
     }
 
-    // Re-add existing participants who were removed or left
     for (const userId of existingParticipants) {
       await this.chatParticipantRepository.setRole(chatId, userId, "member");
       await this.chatActionLogRepository.createLog({
@@ -281,7 +292,6 @@ export class ChatService implements IChatService {
         message: `User re-added to group`,
       });
 
-      // Get the updated participant record
       const participant = await this.chatParticipantRepository.findParticipant(
         chatId,
         userId
@@ -339,6 +349,14 @@ export class ChatService implements IChatService {
     });
 
     this.io.to(userId).emit("force_leave_chat_room", chatId);
+
+    await this.notificationService.createNotification({
+      userId,
+      type: "group",
+      title: "Removed from group",
+      message: `You were removed from group: ${chat?.name}`,
+      isRead: false,
+    });
   }
 
   async getChatParticipants(chatId: string) {
@@ -384,6 +402,31 @@ export class ChatService implements IChatService {
     await this.chatRepository.update(chatId, { lastMessage: message.id });
 
     this.io.to(chatId).emit("new_message", message);
+
+    let senderName = undefined;
+    const sender = await this.userRepository.findById(senderId);
+    senderName = sender?.name;
+
+    const chat = await this.chatRepository.findById(chatId);
+    const chatParticipants =
+      await this.chatParticipantRepository.findChatParticipants(chatId);
+    for (const participant of chatParticipants) {
+      if (
+        participant.userId !== senderId &&
+        participant.role !== "removed-user" &&
+        participant.role !== "left-user"
+      ) {
+        await this.notificationService.createNotification({
+          userId: participant.userId,
+          type: chat?.isGroup ? "group" : "chat",
+          title: chat?.isGroup ? `New group message` : `New message`,
+          message: chat?.isGroup
+            ? `New message from ${senderName} in group: ${chat?.name}`
+            : `New message from ${senderName}`,
+          isRead: false,
+        });
+      }
+    }
 
     return message;
   }
@@ -439,6 +482,7 @@ export class ChatService implements IChatService {
     const chat = await this.chatRepository.findById(chatId);
     if (!chat || !chat.isGroup)
       throw new BadRequestError(HttpResponse.CHAT_NOT_FOUND);
+    const oldName = chat.name;
     const participant = await this.chatParticipantRepository.findParticipant(
       chatId,
       userId
@@ -452,6 +496,27 @@ export class ChatService implements IChatService {
       action: "renamed",
       message: `Group chat name updated to "${name}"`,
     });
+    const chatParticipants =
+      await this.chatParticipantRepository.findChatParticipants(chatId);
+    let renamerName = undefined;
+      const renamer = await this.userRepository.findById(userId);
+      renamerName = renamer?.name;
+    
+    for (const participant of chatParticipants) {
+      if (
+        participant.userId !== userId &&
+        participant.role !== "removed-user" &&
+        participant.role !== "left-user"
+      ) {
+        await this.notificationService.createNotification({
+          userId: participant.userId,
+          type: "group",
+          title: "Group name updated",
+          message: `${renamerName} renamed the group ${oldName}  to "${name}"`,
+          isRead: false,
+        });
+      }
+    }
     return this.chatRepository.findChatWithDetailsById(chatId);
   }
 
@@ -486,6 +551,18 @@ export class ChatService implements IChatService {
       action: "promoted",
       targetUser: userId,
       message: `User promoted to admin`,
+    });
+    let promoterName = undefined;
+
+      const promoter = await this.userRepository.findById(requesterId);
+      promoterName = promoter?.name;
+    
+    await this.notificationService.createNotification({
+      userId,
+      type: "group",
+      title: "Promoted to admin",
+      message: `You have been promoted to admin in group: ${chat?.name} by ${promoterName}`,
+      isRead: false,
     });
     return result;
   }
@@ -545,6 +622,31 @@ export class ChatService implements IChatService {
     });
 
     this.io.to(userId).emit("force_leave_chat_room", chatId);
+
+    const chatParticipants =
+      await this.chatParticipantRepository.findChatParticipants(chatId);
+    let leaverName = undefined;
+    try {
+      const leaver = await this.userRepository.findById(userId);
+      leaverName = leaver?.name;
+    } catch {
+      leaverName = undefined;
+    }
+    for (const participant of chatParticipants) {
+      if (
+        participant.userId !== userId &&
+        participant.role !== "removed-user" &&
+        participant.role !== "left-user"
+      ) {
+        await this.notificationService.createNotification({
+          userId: participant.userId,
+          type: "group",
+          title: "Member left group",
+          message: `${leaverName || "A member"} left the group: ${chat?.name}`,
+          isRead: false,
+        });
+      }
+    }
 
     return { left: true };
   }
