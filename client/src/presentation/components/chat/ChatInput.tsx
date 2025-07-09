@@ -186,7 +186,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               radius="xl"
               leftSection={<SendIcon width={18} />}
               loading={sending}
-              disabled={(!message.trim() && !sending) || !socketConnected || sending || isRemovedOrLeft || recording}
+              disabled={((!message.trim() && !selectedMedia) || !socketConnected || sending || isRemovedOrLeft || recording)}
               style={{ boxShadow: '0 2px 8px rgba(34,139,230,0.08)' }}
             >
               Send

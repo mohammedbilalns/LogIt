@@ -124,7 +124,6 @@ export function useChat(id?: string) {
       onParticipantLeft: (data) => {
         if (data.chatId === id) {
           dispatch(handleUserLeft({ chatId: data.chatId, leftUserId: data.leftUserId }));
-          // Refresh chat details to update participant list
           dispatch(fetchChatDetails({ chatId: id, page: 1, limit }));
         }
       },
@@ -195,7 +194,7 @@ export function useChat(id?: string) {
       .map((p) => p.userId)
       .filter((uid) => uid && uid !== loggedInUser?._id);
     if (userIds.length === 0) {
-      setOnlineCount(1); // Only self
+      setOnlineCount(1); 
       return;
     }
     const updateOnlineCount = () => {
@@ -254,12 +253,10 @@ export function useChat(id?: string) {
       let mediaData = null;
       
       if (selectedMedia) {
-        // Upload media first
         const url = selectedMedia.type === 'image' 
           ? await uploadService.uploadImage(selectedMedia.file)
           : await uploadService.uploadAudio(selectedMedia.file);
         
-        // Create media object
         mediaData = {
           file: selectedMedia.file,
           url,
@@ -271,7 +268,7 @@ export function useChat(id?: string) {
       
       await dispatch(sendMessage({ 
         chatId: id, 
-        content: message.trim() || undefined,
+        content: message.trim() !== '' ? message.trim() : undefined,
         media: mediaData 
       })).unwrap();
       
@@ -286,7 +283,6 @@ export function useChat(id?: string) {
   };
 
   const handleMediaSelect = (file: File, type: 'image' | 'audio') => {
-    // Validate file size (10MB limit)
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       notifications.show({
