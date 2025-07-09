@@ -139,11 +139,14 @@ export class ArticleService implements IArticleService {
 
     const createData = { ...article };
 
+    // Ensure likes is always a number
+    createData.likes = typeof createData.likes === 'number' ? createData.likes : 0;
+
     if (!createData.featured_image) {
       createData.featured_image = this.determineFeaturedImage(article.content);
     }
 
-    const newArticle = await this.articleRepository.create(createData);
+    const newArticle = await this.articleRepository.create(createData as Omit<Article, 'id' | 'createdAt' | 'updatedAt'>);
     
     // Create article-tag relationships
     for (const tagId of tagIds) {

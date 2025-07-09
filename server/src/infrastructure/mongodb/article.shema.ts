@@ -9,9 +9,10 @@ const articleSchema = new mongoose.Schema<ArticleDocument>(
   {
     authorId: { type: String, required: true },
     title: { type: String, required: true },
-    isActive: { type: Boolean, default: true },
+    isActive: { type: Boolean, required: true },
     content: { type: String, required: true },
-    featured_image: { type: String },
+    featured_image: { type: String, default: null },
+    likes: { type: Number, default: 0 },
   },
   {
     timestamps: true,

@@ -6,6 +6,7 @@ export interface CreateArticleData {
   content: string;
   isActive: boolean;
   featured_image?: string | null;
+  likes?: number;
 }
 
 export interface UpdateArticleData {

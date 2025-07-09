@@ -87,6 +87,7 @@ export class MongoArticleRepository
         content: doc.content || "",
         isActive: doc.isActive ?? true,
         featured_image: doc.featured_image,
+        likes: typeof doc.likes === 'number' ? doc.likes : 0,
         createdAt: doc.createdAt || new Date(),
         updatedAt: doc.updatedAt || new Date(),
       })),

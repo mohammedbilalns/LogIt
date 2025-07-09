@@ -6,8 +6,8 @@ export interface Article extends BaseEntity {
   isActive: boolean;
   content: string;
   featured_image?: string | null;
-
-} 
+  likes: number;
+}
 
 export interface ArticleWithTags extends Article {
   tags: string[];
