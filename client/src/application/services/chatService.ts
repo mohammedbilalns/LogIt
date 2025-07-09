@@ -18,8 +18,11 @@ export const chatService = {
     const response = await axiosInstance.get(`${API_ROUTES.CHATS.BY_ID(chatId)}?page=${page}&limit=${limit}`);
     return { ...response.data, page };
   },
-  async sendMessage({ chatId, content }: { chatId: string; content: string }) {
-    const response = await axiosInstance.post(API_ROUTES.CHATS.MESSAGES(chatId), { content });
+  async sendMessage({ chatId, content, media }: { chatId: string; content?: string; media?: any }) {
+    const payload: any = {};
+    if (content) payload.content = content;
+    if (media) payload.media = media;
+    const response = await axiosInstance.post(API_ROUTES.CHATS.MESSAGES(chatId), payload);
     return response.data;
   },
   async getOrCreatePrivateChat(userId: string) {

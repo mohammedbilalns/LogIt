@@ -8,7 +8,14 @@ const messageSchema = new Schema<MessageDocument>({
   chatId: { type: String, required: true },
   senderId: { type: String, required: true },
   content: { type: String },
-  media: { type: String },
+  media: {
+    id: { type: String },
+    messageId: { type: String },
+    url: { type: String },
+    type: { type: String, enum: ['image', 'audio'] },
+    size: { type: Number },
+    uploadedAt: { type: String },
+  },
   log: { type: String },
   replyTo: { type: String },
   deletedFor: [{ type: String, default: [] }],
@@ -18,4 +25,4 @@ const messageSchema = new Schema<MessageDocument>({
 
 const MessageModel = model<MessageDocument>("Message", messageSchema);
 
-export default MessageModel; 
+export default MessageModel;

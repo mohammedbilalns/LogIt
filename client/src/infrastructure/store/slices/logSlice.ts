@@ -145,7 +145,9 @@ const logSlice = createSlice({
       })
       .addCase(createLog.fulfilled, (state, action) => {
         state.loading = false;
-        state.logs.unshift(action.payload);
+        if ('_id' in action.payload) {
+          state.logs.unshift(action.payload);
+        }
         state.total += 1;
       })
       .addCase(createLog.rejected, (state, action) => {

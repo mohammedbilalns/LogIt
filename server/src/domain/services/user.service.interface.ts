@@ -41,4 +41,6 @@ export interface IUserService {
     limit: number,
     search?: string
   ): Promise<{ users: User[]; total: number; hasMore: boolean }>;
+
+  
 }

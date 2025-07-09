@@ -82,9 +82,9 @@ export const fetchChatDetails = createAsyncThunk(
 
 export const sendMessage = createAsyncThunk(
   'chat/sendMessage',
-  async ({ chatId, content }: { chatId: string; content: string }, { rejectWithValue }) => {
+  async ({ chatId, content, media }: { chatId: string; content?: string; media?: any }, { rejectWithValue }) => {
     try {
-      return await sendMessageUsecase({ chatId, content });
+      return await sendMessageUsecase({ chatId, content, media });
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to send message');
     }
