@@ -81,6 +81,7 @@ export default function Navbar({ fixed = true }: NavbarProps) {
   }, [isAuthenticated, userId, dispatch]);
 
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isAdminUser = user?.role === 'admin' || user?.role === 'superadmin';
 
   const handleLogout = async () => {
     await dispatch(logout());
@@ -130,7 +131,7 @@ export default function Navbar({ fixed = true }: NavbarProps) {
         </UnstyledButton>
 
         {/* Search */}
-        {isAuthenticated && !isMobile && !isAdminRoute && (
+        {isAuthenticated && !isMobile && !isAdminRoute && !isAdminUser && (
           <TextInput
             placeholder="Search LogIt"
             leftSection={<SearchIcon width={14} height={14} />}
@@ -155,62 +156,64 @@ export default function Navbar({ fixed = true }: NavbarProps) {
         <Group gap="xs" wrap="nowrap">
           {isAuthenticated ? (
             <>
-              {isMobile && (
+              {isMobile && !isAdminUser && (
                 <ActionIcon variant="light" size="lg" color="blue" radius="md">
                   <SearchIcon width={20} height={20} />
                 </ActionIcon>
               )}
-              <Popover
-                opened={popoverOpen}
-                onChange={setPopoverOpen}
-                position="bottom-end"
-                withArrow
-                shadow="md"
-                offset={12}
-                trapFocus
-                withinPortal
-              >
-                <Popover.Target>
-                  <ActionIcon
-                    variant="light"
-                    size="lg"
-                    radius="md"
-                    onClick={() => setPopoverOpen((v) => !v)}
-                    style={{ position: 'relative', overflow: 'visible' }}
-                  >
-                    <BellIcon width={20} height={20} />
-                    {unreadCount > 0 && (
-                      <Badge
-                        color="red"
-                        size="sm"
-                        style={{
-                          position: 'absolute',
-                          top: 2,
-                          right: 2,
-                          minWidth: 18,
-                          height: 18,
-                          padding: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: 12,
-                          borderRadius: '50%',
-                          zIndex: 2,
-                          boxShadow: '0 0 0 2px white',
-                        }}
-                      >
-                        {unreadCount}
-                      </Badge>
-                    )}
-                  </ActionIcon>
-                </Popover.Target>
-                <Popover.Dropdown style={{ padding: 0, minWidth: 360, maxWidth: '90vw', marginTop: 8 }}>
-                  <NotificationList
-                    onRead={() => dispatch(fetchUnreadCount())}
-                    onClose={() => setPopoverOpen(false)}
-                  />
-                </Popover.Dropdown>
-              </Popover>
+              {!isAdminUser && (
+                <Popover
+                  opened={popoverOpen}
+                  onChange={setPopoverOpen}
+                  position="bottom-end"
+                  withArrow
+                  shadow="md"
+                  offset={12}
+                  trapFocus
+                  withinPortal
+                >
+                  <Popover.Target>
+                    <ActionIcon
+                      variant="light"
+                      size="lg"
+                      radius="md"
+                      onClick={() => setPopoverOpen((v) => !v)}
+                      style={{ position: 'relative', overflow: 'visible' }}
+                    >
+                      <BellIcon width={20} height={20} />
+                      {unreadCount > 0 && (
+                        <Badge
+                          color="red"
+                          size="sm"
+                          style={{
+                            position: 'absolute',
+                            top: 2,
+                            right: 2,
+                            minWidth: 18,
+                            height: 18,
+                            padding: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: 12,
+                            borderRadius: '50%',
+                            zIndex: 2,
+                            boxShadow: '0 0 0 2px white',
+                          }}
+                        >
+                          {unreadCount}
+                        </Badge>
+                      )}
+                    </ActionIcon>
+                  </Popover.Target>
+                  <Popover.Dropdown style={{ padding: 0, minWidth: 360, maxWidth: '90vw', marginTop: 8 }}>
+                    <NotificationList
+                      onRead={() => dispatch(fetchUnreadCount())}
+                      onClose={() => setPopoverOpen(false)}
+                    />
+                  </Popover.Dropdown>
+                </Popover>
+              )}
               <ActionIcon
                 variant="light"
                 size="lg"

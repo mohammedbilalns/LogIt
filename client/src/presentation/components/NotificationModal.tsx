@@ -33,10 +33,10 @@ export default function NotificationList({ onRead, onClose }: NotificationListPr
     dispatch(resetNotifications());
     dispatch(fetchNotifications({ page: 1, limit: 10 }));
     dispatch(fetchUnreadCount());
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []); 
+  }, []);
 
 
   const handleMarkAsRead = useCallback((id: string) => {
