@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { Notification } from '@/types/notification.types';
 import { notificationService } from '@/application/services/notificationService';
+import { Notification } from '@/types/notification.types';
 
 interface NotificationState {
   notifications: Notification[];
@@ -135,11 +135,9 @@ const notificationSlice = createSlice({
         state.notifications = state.notifications.map((notif) =>
           notif.id === action.payload ? { ...notif, isRead: true } : notif
         );
-        state.unreadCount = state.notifications.filter((n) => !n.isRead).length;
       })
       .addCase(markAllAsRead.fulfilled, (state) => {
         state.notifications = state.notifications.map((notif) => ({ ...notif, isRead: true }));
-        state.unreadCount = 0;
       })
       .addCase(fetchUnreadCount.fulfilled, (state, action) => {
         state.unreadCount = action.payload;
@@ -148,4 +146,4 @@ const notificationSlice = createSlice({
 });
 
 export const { addNotification, setUnreadCount, resetNotifications } = notificationSlice.actions;
-export default notificationSlice.reducer; 
+export default notificationSlice.reducer;

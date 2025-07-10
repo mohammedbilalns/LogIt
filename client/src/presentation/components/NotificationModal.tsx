@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { List, Button, Group, Text, Loader, Badge, ScrollArea } from '@mantine/core';
+import { useEffect, useCallback, useRef } from 'react';
+import { List, Button, Group, Text, Loader, Badge, ScrollArea, UnstyledButton } from '@mantine/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/infrastructure/store';
 import {
@@ -11,6 +11,7 @@ import {
   resetNotifications,
 } from '@/infrastructure/store/slices/notificationSlice';
 import { Notification } from '@/types/notification.types';
+import { useNavigate } from 'react-router-dom';
 
 interface NotificationListProps {
   onRead: () => void;
@@ -19,34 +20,49 @@ interface NotificationListProps {
 
 export default function NotificationList({ onRead, onClose }: NotificationListProps) {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const { notifications, loading, hasMore, page, limit } = useSelector((state: RootState) => state.notifications);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape' && onCloseRef.current) onCloseRef.current();
+  }, []);
 
   useEffect(() => {
     dispatch(resetNotifications());
     dispatch(fetchNotifications({ page: 1, limit: 10 }));
     dispatch(fetchUnreadCount());
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && onClose) onClose();
-    };
+    
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [dispatch, onClose]);
+  }, []); 
 
-  const handleMarkAsRead = (id: string) => {
+
+  const handleMarkAsRead = useCallback((id: string) => {
     dispatch(markAsRead(id)).then(() => {
-      onRead();
+      dispatch(fetchUnreadCount());
     });
-  };
+  }, [dispatch]);
 
-  const handleMarkAllAsRead = () => {
+  const handleMarkAllAsRead = useCallback(() => {
     dispatch(markAllAsRead()).then(() => {
-      onRead();
+      dispatch(fetchUnreadCount());
     });
-  };
+  }, [dispatch]);
 
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     dispatch(loadMoreNotifications({ page: page + 1, limit: limit }));
-  };
+  }, [dispatch, page, limit]);
+
+  const handleNotificationClick = useCallback((notif: Notification) => {
+    dispatch(markAsRead(notif.id)).then(() => {
+      dispatch(fetchUnreadCount());
+      if (notif.link) {
+        navigate(notif.link);
+      }
+    });
+  }, [dispatch, navigate]);
 
   return (
     <div style={{ width: 360, maxWidth: '90vw', minHeight: 200, maxHeight: '70vh', borderRadius: 12, boxShadow: '0 4px 32px rgba(0,0,0,0.15)', background: 'var(--mantine-color-body, #fff)', overflow: 'hidden', padding: 0 }}>
@@ -64,10 +80,20 @@ export default function NotificationList({ onRead, onClose }: NotificationListPr
         ) : (
           <List spacing="xs">
             {notifications.map((notif: Notification) => (
-              <List.Item
+              <UnstyledButton
                 key={notif.id}
-                style={{ cursor: 'pointer', background: notif.isRead ? 'inherit' : '#e6f7ff', borderRadius: 6, padding: 8, marginBottom: 4 }}
-                onClick={() => handleMarkAsRead(notif.id)}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  background: notif.isRead ? 'inherit' : '#e6f7ff',
+                  borderRadius: 6,
+                  padding: 8,
+                  marginBottom: 4,
+                  cursor: 'pointer',
+                  border: 'none',
+                  display: 'block',
+                }}
+                onClick={() => handleNotificationClick(notif)}
               >
                 <Group justify="space-between">
                   <div>
@@ -80,7 +106,7 @@ export default function NotificationList({ onRead, onClose }: NotificationListPr
                   </div>
                   {!notif.isRead && <Badge color="blue" size="xs">New</Badge>}
                 </Group>
-              </List.Item>
+              </UnstyledButton>
             ))}
           </List>
         )}
