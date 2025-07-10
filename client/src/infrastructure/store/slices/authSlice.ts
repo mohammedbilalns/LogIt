@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { AuthState } from '@type/auth.types';
-import { changePassword as changePasswordUsecase } from '@/domain/usecases/auth/changePassword';
 import { checkAuth as checkAuthUsecase } from '@/domain/usecases/auth/checkAuth';
 import { googleAuth as googleAuthUsecase } from '@/domain/usecases/auth/googleAuth';
 import { initiatePasswordReset as initiatePasswordResetUsecase } from '@/domain/usecases/auth/initiatePasswordReset';
@@ -102,7 +101,8 @@ export const initiatePasswordReset = createAsyncThunk(
   'auth/initiatePasswordReset',
   async (email: string, { rejectWithValue }) => {
     try {
-      return await initiatePasswordResetUsecase(email);
+      const result = await initiatePasswordResetUsecase(email);
+      return { ...result, email };
     } catch (e: any) {
       return rejectWithValue(e?.response?.data?.message || 'Failed to initiate password reset');
     }
@@ -130,20 +130,6 @@ export const updatePassword = createAsyncThunk(
       return await updatePasswordUsecase(email, otp, newPassword);
     } catch (e: any) {
       return rejectWithValue(e?.response?.data?.message || 'Failed to update password');
-    }
-  }
-);
-
-export const changePassword = createAsyncThunk(
-  'auth/changePassword',
-  async (
-    { currentPassword, newPassword }: { currentPassword: string; newPassword: string },
-    { rejectWithValue }
-  ) => {
-    try {
-      return await changePasswordUsecase(currentPassword, newPassword);
-    } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || 'Failed to change password');
     }
   }
 );
@@ -322,19 +308,6 @@ const authSlice = createSlice({
         state.resetPasswordVerified = false;
       })
       .addCase(updatePassword.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
-      // Change Password
-      .addCase(changePassword.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(changePassword.fulfilled, (state) => {
-        state.loading = false;
-        state.error = null;
-      })
-      .addCase(changePassword.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

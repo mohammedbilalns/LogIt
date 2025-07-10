@@ -86,7 +86,7 @@ export const changePassword = createAsyncThunk(
     try {
       return await changePasswordUsecase(passwordData);
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to change password');
+      return rejectWithValue(error?.response?.data?.message || 'Failed to change password');
     }
   }
 );

@@ -38,7 +38,7 @@ export const authService = {
     return res.data;
   },
   async verifyResetOTP(email: string, otp: string): Promise<{ email: string; message: string }> {
-    const res = await api.post<{ email: string; message: string }>(API_ROUTES.AUTH.VERIFY_OTP, {
+    const res = await api.post<{ email: string; message: string }>(API_ROUTES.AUTH.VERIFY_RESET_OTP, {
       email,
       otp,
     });
