@@ -10,6 +10,8 @@ import GroupDetailsModal from '@/presentation/components/chat/GroupDetailsModal'
 import { useMediaQuery } from '@mantine/hooks';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/infrastructure/store';
+import { CallInterface } from '@/presentation/components/call/CallInterface';
+import { IncomingCallModal } from '@/presentation/components/call/IncomingCallModal';
 
 export default function GroupChatPage() {
   const { id } = useParams();
@@ -52,6 +54,8 @@ export default function GroupChatPage() {
   
   return (
     <>
+      <CallInterface />
+      <IncomingCallModal />
       <UserSidebar />
       <Box className={containerClassName}>
         <ChatHeader
@@ -62,6 +66,7 @@ export default function GroupChatPage() {
           onBackClick={handleBackToChats}
           isRemovedOrLeft={isRemovedOrLeft}
           myParticipant={myParticipant}
+          hideCallButtons={true}
         />
         <Box style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <ChatMessages {...chat} />

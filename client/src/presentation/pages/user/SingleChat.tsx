@@ -8,6 +8,8 @@ import { ChatInput } from '../../components/chat/ChatInput';
 import { useMediaQuery } from '@mantine/hooks';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/infrastructure/store';
+import { CallInterface } from '@/presentation/components/call/CallInterface';
+import { IncomingCallModal } from '@/presentation/components/call/IncomingCallModal';
 
 export default function SingleChatPage() {
   const { id } = useParams();
@@ -46,9 +48,11 @@ export default function SingleChatPage() {
   
   return (
     <>
+      <CallInterface />
+      <IncomingCallModal />
       <UserSidebar />
       <Box className={containerClassName}>
-        <ChatHeader {...chat} onBackClick={handleBackToChats} />
+        <ChatHeader {...chat} onBackClick={handleBackToChats} hideAudioCallButton={true} />
         <Box style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <ChatMessages {...chat} />
         </Box>

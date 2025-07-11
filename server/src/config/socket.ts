@@ -39,6 +39,7 @@ export const initializeSocket = (server: HTTPServer): SocketConfig => {
     socket.on("identify", (userId: string) => {
       if (userId) {
         onlineUsers.set(userId, socket.id);
+        socket.join(userId);
         socket.broadcast.emit("user_online", { userId });
         logger.green("SOCKET_ONLINE", `User online: ${userId}`);
       }
@@ -52,7 +53,7 @@ export const initializeSocket = (server: HTTPServer): SocketConfig => {
       if (typeof callback === 'function') callback(status);
     });
 
-    chatHandler(io, socket);
+    chatHandler(socket);
     notificationHandler();
 
     socket.on("disconnect", () => {

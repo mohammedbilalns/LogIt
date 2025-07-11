@@ -44,7 +44,6 @@ export default function Navbar({ fixed = true }: NavbarProps) {
   const userId = user?._id;
   const unreadCount = useSelector((state: RootState) => state.notifications.unreadCount);
   const [socket, setSocket] = useState<any>(null);
-  const [modalOpen, setModalOpen] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
   useEffect(() => {
@@ -55,20 +54,39 @@ export default function Navbar({ fixed = true }: NavbarProps) {
         setSocket(s);
         s.on('connect', () => {
           s.emit('identify', userId);
+          s.emit('join_user_room', userId);
         });
         s.on('notification', (notif: any) => {
+          const isCallEnded = notif.title === 'Call ended';
+          const leaverId = notif.leaverId || notif.from || notif.userId;
+          if (isCallEnded && leaverId && user && leaverId === user._id) {
+            return;
+          }
           dispatch(addNotification(notif));
           dispatch(fetchUnreadCount());
-          showNotification({
-            title: notif.title,
-            message: notif.message,
-            color: 'blue',
-          });
+          const notifId = isCallEnded ? `call-ended-${notif.message}` : undefined;
+          if (isCallEnded) {
+            showNotification({
+              id: notifId,
+              title: notif.title,
+              message: notif.message,
+              color: 'blue',
+            });
+          } else {
+            showNotification({
+              title: notif.title,
+              message: notif.message,
+              color: 'blue',
+            });
+          }
         });
         s.on('disconnect', () => {
         });
       } else {
         setSocket((window as any).globalSocket);
+        if ((window as any).globalSocket.connected) {
+          (window as any).globalSocket.emit('join_user_room', userId);
+        }
       }
       dispatch(fetchUnreadCount());
       return () => {
