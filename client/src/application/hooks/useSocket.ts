@@ -6,6 +6,7 @@ import {
   addNewChat,
   setSocketConnected,
 } from '@/infrastructure/store/slices/chatSlice';
+import { setIncomingCall } from '@/infrastructure/store/slices/callSlice';
 
 export const useSocket = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -72,6 +73,25 @@ export const useSocket = () => {
     socket.on('force_leave_chat_room', (chatId: string) => {
       socket.emit('force_leave_chat_room', chatId);
     });
+
+    // Call events
+    socket.on('call:start', (data: any) => {
+      if (data.to === user?._id) {
+        dispatch(setIncomingCall({
+          id: data.callId,
+          from: data.from,
+          fromName: data.fromName || 'Unknown',
+          chatId: data.chatId,
+          type: data.type,
+          timestamp: new Date(),
+        }));
+      }
+    });
+
+    socket.on('call:end', (data: any) => {
+      console.log('Call ended:', data);
+    });
+
     // Cleanup listeners on unmount
     return () => {
       if (socket) {
@@ -83,6 +103,8 @@ export const useSocket = () => {
         socket.off('participant_removed');
         socket.off('participant_left');
         socket.off('force_leave_chat_room');
+        socket.off('call:start');
+        socket.off('call:end');
       }
     };
   }, [user?._id, dispatch, socket]);

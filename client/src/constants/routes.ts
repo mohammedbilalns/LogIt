@@ -55,6 +55,12 @@ export const API_ROUTES = {
     ORDER: '/payments/order',
     VERIFY: '/payments/verify',
   },
+  CALLS: {
+    CREATE_LOG: '/calls/log',
+    UPDATE_LOG: (id: string) => `/calls/log/${id}`,
+    HISTORY: '/calls/history',
+    EVENT: '/calls/event',
+  },
   CHATS: {
     BASE: '/chats',
     GROUP: '/chats/group',

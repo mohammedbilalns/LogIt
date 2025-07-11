@@ -9,6 +9,9 @@ import { router } from '@/presentation/routes/Router';
 import { AppDispatch, RootState, store } from '@/infrastructure/store';
 import { useAxiosInterceptors } from '@/application/hooks/useAxiosInterceptors';
 import { useRemoveRootLoader } from '@/application/hooks/useRemoveRootLoader';
+import { IncomingCallModal } from '@/presentation/components/call/IncomingCallModal';
+import { CallInterface } from '@/presentation/components/call/CallInterface';
+import { CallManagerProvider } from '@/application/hooks/CallManagerContext';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -27,9 +30,12 @@ const AppContent = memo(function AppContent() {
   }
 
   return (
+    <>
     <Suspense fallback={<LoadingOverlay />}>
       <RouterProvider router={router} />
     </Suspense>
+      <IncomingCallModal />
+    </>
   );
 });
 
@@ -40,7 +46,10 @@ export default function App() {
     <Provider store={store}>
       <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
         <Notifications />
+        <CallManagerProvider>
         <AppContent />
+          <CallInterface />
+        </CallManagerProvider>
       </GoogleOAuthProvider>
     </Provider>
   );

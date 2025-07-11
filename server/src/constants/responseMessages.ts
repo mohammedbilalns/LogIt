@@ -77,5 +77,14 @@ export enum HttpResponse {
   REMOVED_FROM_GROUP = "You have been removed from this group",
   GROUP_SIZE_CANNOT_EXCEED_LIMIT ="Group size cannot exceed 10 members (including the creator)",
   ONLY_ADMIN_CAN_CHANGE_NAME = "Only admins can update group name",
-  ONLY_ADMIN_CAN_PROMOTE = "Only admins can promote"
+  ONLY_ADMIN_CAN_PROMOTE = "Only admins can promote",
+  CALL_LOG_CREATED = "Call log created successfully",
+  CALL_LOG_CREATION_FAILED = "Failed to create call log",
+  CALL_NOT_FOUND = "Call not found",
+  CALL_LOG_UPDATED = "Call log updated successfully",
+  CALL_LOG_UPDATE_FAILED = "Failed to update call log",
+  CALL_HISTORY_FETCHED = "Call history fetched successfully",
+  CALL_HISTORY_FETCH_FAILED = "Failed to fetch call history",
+  CALL_EVENT_EMITTED = "Call event emitted successfully",
+  CALL_EVENT_EMISSION_FAILED = "Failed to emit call event"
 }
