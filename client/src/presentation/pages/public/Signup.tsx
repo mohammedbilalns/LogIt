@@ -92,12 +92,12 @@ export default function Signup() {
           <Divider label="or Sign up with Email" labelPosition="center" my="xs" color="gray" />
           <TextField
             label="Name"
-            placeholder="Your name"
+            placeholder="Enter your name"
             {...form.getInputProps('name')}
           />
           <TextField
             label="Email"
-            placeholder="you@example.com"
+            placeholder="Enter your email"
             {...form.getInputProps('email')}
           />
           <PasswordField

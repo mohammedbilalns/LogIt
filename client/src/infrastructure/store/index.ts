@@ -15,6 +15,7 @@ import chatReducer from './slices/chatSlice';
 import callReducer from './slices/callSlice';
 import subscriptionReducer from './slices/subscriptionSlice';
 import notificationReducer from './slices/notificationSlice';
+import dashboardReducer from './slices/dashboardSlice';
 
 export const store = configureStore({
   reducer: {
@@ -34,6 +35,7 @@ export const store = configureStore({
     calls: callReducer,
     subscriptions: subscriptionReducer,
     notifications: notificationReducer,
+    dashboard: dashboardReducer,
   },
 });
 

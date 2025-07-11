@@ -100,12 +100,12 @@ export default function Login() {
           <Divider label="or Sign in with Email" labelPosition="center" my="xs" color="gray" />
           <TextField
             label="Email"
-            placeholder="mail@website.com"
+            placeholder="Enter your email"
             {...form.getInputProps('email')}
           />
           <PasswordField
             label="Password"
-            placeholder="Min. 8 character"
+            placeholder="Enter your password"
             {...form.getInputProps('password')}
           />
           <Group justify="flex-end" align="center" mt={-8} mb={-4}>

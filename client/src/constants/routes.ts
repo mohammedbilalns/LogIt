@@ -73,4 +73,8 @@ export const API_ROUTES = {
     LEAVE: (chatId: string) => `/chats/${chatId}/leave`,
     GROUP_NAME: (chatId: string) => `/chats/${chatId}/name`,
   },
+  DASHBOARD: {
+    STATS: '/dashboard/stats',
+    CHART_DATA: '/dashboard/chart-data',
+  },
 };

@@ -23,6 +23,7 @@ import { logger } from "./utils/logger";
 import uploadRoutes from "./interfaces/http/routes/upload.routes";
 import paymentRoutes from "./interfaces/http/routes/payment.routes";
 import notificationRoutes from "./interfaces/http/routes/notification.routes";
+import dashboardRoutes from "./interfaces/http/routes/dashboard.routes";
 
 const app = express();
 const server = http.createServer(app);
@@ -58,6 +59,7 @@ app.use("/api/subscription", subscritionRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.use(errorMiddleware());
 
 // Connect to DB

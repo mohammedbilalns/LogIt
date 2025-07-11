@@ -205,7 +205,7 @@ export default function ResetPassword() {
           <Stack gap="md">
             <TextField
               label="Email"
-              placeholder="your@email.com"
+              placeholder="Enter your email"
               {...emailForm.getInputProps('email')}
             />
             <SubmitButton loading={loading}>
