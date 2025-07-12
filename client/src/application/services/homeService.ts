@@ -1,8 +1,9 @@
-import { homeServiceImpl } from '@/infrastructure/services/home.service';
-import { HomeData } from '@/types/home.types';
+import { API_ROUTES } from '@/constants/routes';
+import axiosInstance from '@/infrastructure/api/axios';
 
 export const homeService = {
-  fetchHomeData: (): Promise<HomeData> => {
-    return homeServiceImpl.fetchHomeData();
+  async fetchHomeData() {
+    const response = await axiosInstance.get(API_ROUTES.HOME.BASE);
+    return response.data;
   },
-}; 
+};

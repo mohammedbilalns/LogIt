@@ -34,11 +34,15 @@ export const API_ROUTES = {
     PROMOTE: (id: string) => `/tags/${id}/promote`,
     DEMOTE: (id: string) => `/tags/${id}/demote`,
   },
-  UPLOAD: {},
+  UPLOAD: {
+    UPLOAD_IMAGE:'/upload/upload-image',
+    UPLOAD_AUDIO:'/upload/upload-audio'
+  },
   USER_MANAGEMENT: {
     BASE: '/admin/users',
     BY_ID: (id: string) => `/admin/users/${id}`,
     UPDATE_PROFILE: '/user/update-profile',
+    FETCH_STATS :'/user/stats'
   },
   HOME: {
     BASE: '/user/home',
@@ -69,7 +73,8 @@ export const API_ROUTES = {
     MESSAGES: (chatId: string) => `/chats/${chatId}/messages`,
     PARTICIPANTS: (chatId: string) => `/chats/${chatId}/participants`,
     PARTICIPANT: (chatId: string, userId: string) => `/chats/${chatId}/participants/${userId}`,
-    PROMOTE_PARTICIPANT: (chatId: string, userId: string) => `/chats/${chatId}/participants/${userId}/promote`,
+    PROMOTE_PARTICIPANT: (chatId: string, userId: string) =>
+      `/chats/${chatId}/participants/${userId}/promote`,
     LEAVE: (chatId: string) => `/chats/${chatId}/leave`,
     GROUP_NAME: (chatId: string) => `/chats/${chatId}/name`,
   },
@@ -77,4 +82,11 @@ export const API_ROUTES = {
     STATS: '/dashboard/stats',
     CHART_DATA: '/dashboard/chart-data',
   },
+  SUBSCRIPTION: {
+    BASE: '/subscription',
+    DEACTIVATE: (subscriptionId: string) => `/subscription/${subscriptionId}/deactivate`,
+    NEXT_PLANS: (resource: 'articles' | 'logs', currentLimit: number) =>
+      `/subscription/next-plans?resource=${resource}&currentLimit=${currentLimit}`,
+  }    
+  
 };

@@ -102,7 +102,9 @@ export class AuthController {
   refresh = async (req: Request, res: Response): Promise<void> => {
     const accessToken = req.cookies.accessToken;
     if (accessToken) {
-      const { user, csrfToken } = await this.authService.validateAccessToken(accessToken);
+      const { user, csrfToken } = await this.authService.validateAccessToken(
+        accessToken
+      );
       res.cookie("csrfToken", csrfToken, {
         ...COOKIE_OPTIONS,
         httpOnly: false,
@@ -115,7 +117,6 @@ export class AuthController {
       });
       return;
     }
-
 
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) {

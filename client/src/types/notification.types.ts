@@ -5,5 +5,4 @@ export interface Notification {
   isRead: boolean;
   createdAt: string;
   link?: string;
-  senderName?: string; // For chat notifications
 } 

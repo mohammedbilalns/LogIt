@@ -1,32 +1,10 @@
-import api from '@/infrastructure/api/axios';
 import { API_ROUTES } from '@/constants/routes';
-
-export type DashboardStatsResponse = {
-  totalUsers: number;
-  totalArticles: number;
-  totalLogs: number;
-};
-
-export type DashboardChartType = 'user-joined' | 'article-shared';
-export type DashboardChartGranularity = 'daily' | 'monthly' | 'yearly';
-
-export interface DashboardChartRequest {
-  type: DashboardChartType;
-  granularity: DashboardChartGranularity;
-  startDate?: string;
-  endDate?: string;
-}
-
-export interface DashboardChartDataPoint {
-  date: string;
-  value: number;
-}
-
-export interface DashboardChartResponse {
-  type: DashboardChartType;
-  granularity: DashboardChartGranularity;
-  data: DashboardChartDataPoint[];
-}
+import api from '@/infrastructure/api/axios';
+import {
+  DashboardChartRequest,
+  DashboardChartResponse,
+  DashboardStatsResponse,
+} from '@/types/dashboard.types';
 
 export const dashboardService = {
   async fetchStats(): Promise<DashboardStatsResponse> {
@@ -37,4 +15,4 @@ export const dashboardService = {
     const response = await api.post(API_ROUTES.DASHBOARD.CHART_DATA, params);
     return response.data;
   },
-}; 
+};

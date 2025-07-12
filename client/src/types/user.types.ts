@@ -3,7 +3,7 @@ export interface User {
   name: string;
   email: string;
   isVerified: boolean;
-  isBlocked: boolean; 
+  isBlocked: boolean;
   createdAt: string;
   updatedAt: string;
   role: 'user' | 'admin' | 'superadmin';
@@ -33,4 +33,4 @@ export interface SignupRequest {
 export interface VerifyEmailRequest {
   email: string;
   otp: string;
-} 
+}

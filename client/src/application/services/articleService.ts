@@ -1,6 +1,6 @@
-import api from '@/infrastructure/api/axios';
-import { Article } from '@/domain/entities/article';
 import { API_ROUTES } from '@/constants/routes';
+import { Article } from '@/domain/entities/article';
+import api from '@/infrastructure/api/axios';
 
 export const articleService = {
   async fetchArticles(
@@ -14,11 +14,19 @@ export const articleService = {
     if (filters) params.filters = filters;
     if (sortBy) params.sortBy = sortBy;
     if (sortOrder) params.sortOrder = sortOrder;
-    const res = await api.get<{ articles: Article[]; total: number }>(API_ROUTES.ARTICLES.BASE, { params });
+    const res = await api.get<{ articles: Article[]; total: number }>(API_ROUTES.ARTICLES.BASE, {
+      params,
+    });
     return res.data;
   },
-  async fetchUserArticles(userId: string, page: number, limit: number): Promise<{ articles: Article[]; total: number }> {
-    const res = await api.get<{ articles: Article[]; total: number }>(`${API_ROUTES.ARTICLES.BASE}?page=${page}&limit=${limit}&authorId=${userId}`);
+  async fetchUserArticles(
+    userId: string,
+    page: number,
+    limit: number
+  ): Promise<{ articles: Article[]; total: number }> {
+    const res = await api.get<{ articles: Article[]; total: number }>(
+      `${API_ROUTES.ARTICLES.BASE}?page=${page}&limit=${limit}&authorId=${userId}`
+    );
     return res.data;
   },
   async fetchArticle(id: string): Promise<Article> {
@@ -29,7 +37,10 @@ export const articleService = {
     const res = await api.post<Article>(API_ROUTES.ARTICLES.BASE, { title, content, tags });
     return res.data;
   },
-  async updateArticle(id: string, data: { title: string; content: string; tagIds: string[]; featured_image?: string }): Promise<Article> {
+  async updateArticle(
+    id: string,
+    data: { title: string; content: string; tagIds: string[]; featured_image?: string }
+  ): Promise<Article> {
     const res = await api.put<Article>(API_ROUTES.ARTICLES.BY_ID(id), data);
     return res.data;
   },
@@ -42,4 +53,4 @@ export const articleService = {
   async unreportArticle(id: string): Promise<void> {
     await api.delete(`${API_ROUTES.ARTICLES.BY_ID(id)}/report`);
   },
-}; 
+};

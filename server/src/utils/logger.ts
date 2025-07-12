@@ -20,7 +20,7 @@ const colors = {
   bgWhite: "\x1b[47m",
 };
 
-type LogFunction = (label: string, message: string) => void;
+type LogFunction = (label: string, message: string | object | number) => void;
 
 interface Logger {
   red: LogFunction;
@@ -36,9 +36,11 @@ const createColorLogger = (
   color: keyof typeof colors,
   bgColor: keyof typeof colors
 ) => {
-  return (label: string, message: string) => {
+  return (label: string, message: string | object | number) => {
     console.log(
-      `${colors[bgColor]}${colors.black}${label}${colors.reset} : ${colors[color]}${message}${colors.reset}`
+      `${colors[bgColor]}${colors.black}${label}${colors.reset} : ${
+        colors[color]
+      }${JSON.stringify(message)}${colors.reset}`
     );
   };
 };

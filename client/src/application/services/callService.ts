@@ -1,6 +1,6 @@
-import axiosInstance from '@/infrastructure/api/axios';
 import { API_ROUTES } from '@/constants/routes';
-import { CallLog, CallEvent } from '@/types/call.types';
+import axiosInstance from '@/infrastructure/api/axios';
+import { CallEvent, CallLog } from '@/types/call.types';
 
 export const callService = {
   async createCallLog(callData: {
@@ -12,17 +12,24 @@ export const callService = {
     return response.data;
   },
 
-  async updateCallLog(callId: string, updateData: {
-    endedAt?: Date;
-    endedBy?: string;
-    status: 'ended' | 'missed' | 'rejected';
-    duration?: number;
-  }): Promise<CallLog> {
+  async updateCallLog(
+    callId: string,
+    updateData: {
+      endedAt?: Date;
+      endedBy?: string;
+      status: 'ended' | 'missed' | 'rejected';
+      duration?: number;
+    }
+  ): Promise<CallLog> {
     const response = await axiosInstance.patch(API_ROUTES.CALLS.UPDATE_LOG(callId), updateData);
     return response.data;
   },
 
-  async getCallHistory(chatId?: string, page = 1, limit = 20): Promise<{
+  async getCallHistory(
+    chatId?: string,
+    page = 1,
+    limit = 20
+  ): Promise<{
     calls: CallLog[];
     total: number;
   }> {
@@ -30,7 +37,7 @@ export const callService = {
     if (chatId) params.append('chatId', chatId);
     params.append('page', page.toString());
     params.append('limit', limit.toString());
-    
+
     const response = await axiosInstance.get(`${API_ROUTES.CALLS.HISTORY}?${params}`);
     return response.data;
   },
@@ -38,4 +45,4 @@ export const callService = {
   async emitCallEvent(event: CallEvent): Promise<void> {
     await axiosInstance.post(API_ROUTES.CALLS.EVENT, event);
   },
-}; 
+};

@@ -1,8 +1,18 @@
-import axiosInstance from '@/infrastructure/api/axios';
 import { API_ROUTES } from '@/constants/routes';
+import axiosInstance from '@/infrastructure/api/axios';
 
 export const reportService = {
-  async fetchReports({ page = 1, limit = 10, search = '', status }: { page?: number; limit?: number; search?: string; status?: string }) {
+  async fetchReports({
+    page = 1,
+    limit = 10,
+    search = '',
+    status,
+  }: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+  }) {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
@@ -20,8 +30,20 @@ export const reportService = {
     const response = await axiosInstance.post(API_ROUTES.REPORTS.BLOCK_ARTICLE(articleId));
     return response.data;
   },
-  async createReport({ targetType, targetId, reason }: { targetType: 'article' | 'user'; targetId: string; reason: string }) {
-    const response = await axiosInstance.post(API_ROUTES.REPORTS.BASE, { targetType, targetId, reason });
+  async createReport({
+    targetType,
+    targetId,
+    reason,
+  }: {
+    targetType: 'article' | 'user';
+    targetId: string;
+    reason: string;
+  }) {
+    const response = await axiosInstance.post(API_ROUTES.REPORTS.BASE, {
+      targetType,
+      targetId,
+      reason,
+    });
     return response.data;
   },
-}; 
+};

@@ -1,5 +1,5 @@
-import axiosInstance from '@/infrastructure/api/axios';
 import { API_ROUTES } from '@/constants/routes';
+import axiosInstance from '@/infrastructure/api/axios';
 
 export const connectionService = {
   async followUser(targetUserId: string) {
@@ -26,4 +26,4 @@ export const connectionService = {
     const response = await axiosInstance.get(API_ROUTES.CONNECTIONS.FETCH_FOLLOWING(userId));
     return response.data;
   },
-}; 
+};

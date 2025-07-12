@@ -1,6 +1,6 @@
-import api from '@/infrastructure/api/axios';
-import { Log } from '@/domain/entities/log';
 import { API_ROUTES } from '@/constants/routes';
+import { Log } from '@/domain/entities/log';
+import api from '@/infrastructure/api/axios';
 
 export const logService = {
   async fetchLogs(
@@ -21,15 +21,26 @@ export const logService = {
     const res = await api.get<Log>(API_ROUTES.LOGS.BY_ID(id));
     return res.data;
   },
-  async createLog(title: string, content: string, tags: string[], mediaUrls: string[]): Promise<Log> {
+  async createLog(
+    title: string,
+    content: string,
+    tags: string[],
+    mediaUrls: string[]
+  ): Promise<Log> {
     const res = await api.post<Log>(API_ROUTES.LOGS.BASE, { title, content, tags, mediaUrls });
     return res.data;
   },
-  async updateLog(id: string, title: string, content: string, tags: string[], mediaUrls: string[]): Promise<Log> {
+  async updateLog(
+    id: string,
+    title: string,
+    content: string,
+    tags: string[],
+    mediaUrls: string[]
+  ): Promise<Log> {
     const res = await api.put<Log>(API_ROUTES.LOGS.BY_ID(id), { title, content, tags, mediaUrls });
     return res.data;
   },
   async deleteLog(id: string): Promise<void> {
     await api.delete(API_ROUTES.LOGS.BY_ID(id));
   },
-}; 
+};
