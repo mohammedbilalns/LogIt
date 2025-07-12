@@ -21,8 +21,8 @@ export const logService = {
     const res = await api.get<Log>(API_ROUTES.LOGS.BY_ID(id));
     return res.data;
   },
-  async createLog(title: string, content: string, tags: string[]): Promise<Log> {
-    const res = await api.post<Log>(API_ROUTES.LOGS.BASE, { title, content, tags });
+  async createLog(title: string, content: string, tags: string[], mediaUrls: string[]): Promise<Log> {
+    const res = await api.post<Log>(API_ROUTES.LOGS.BASE, { title, content, tags, mediaUrls });
     return res.data;
   },
   async updateLog(id: string, title: string, content: string, tags: string[], mediaUrls: string[]): Promise<Log> {

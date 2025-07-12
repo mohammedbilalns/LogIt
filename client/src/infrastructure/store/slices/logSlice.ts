@@ -44,11 +44,11 @@ export const fetchLog = createAsyncThunk(
 export const createLog = createAsyncThunk(
   'logs/create',
   async (
-    { title, content, tags }: { title: string; content: string; tags: string[] },
+    { title, content, tags, mediaUrls }: { title: string; content: string; tags: string[]; mediaUrls: string[] },
     { rejectWithValue }
   ) => {
     try {
-      return await createLogUsecase(title, content, tags);
+      return await createLogUsecase(title, content, tags, mediaUrls);
     } catch (e: any) {
       return rejectWithValue(e?.response?.data?.message || 'Failed to create log');
     }

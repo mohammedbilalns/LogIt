@@ -87,7 +87,7 @@ export const setupAxiosInterceptors = (store: { dispatch: AppDispatch }) => {
         return Promise.reject(error);
       }
 
-      // Only attempt refresh if status is 401 and message matches
+      //  attempt refresh if status is 401 and message matches
       if (
         status !== 401 ||
         message !== 'Authentication required' ||

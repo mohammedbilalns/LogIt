@@ -27,6 +27,6 @@ export interface LogLimitExceededResponse {
 
 export type CreateLogResult = Log | LogLimitExceededResponse;
 
-export async function createLog(title: string, content: string, tags: string[]): Promise<CreateLogResult> {
-  return await logService.createLog(title, content, tags);
+export async function createLog(title: string, content: string, tags: string[], mediaUrls: string[]): Promise<CreateLogResult> {
+  return await logService.createLog(title, content, tags, mediaUrls);
 } 
